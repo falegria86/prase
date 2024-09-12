@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List, History } from 'lucide-react'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 import Link from 'next/link'
