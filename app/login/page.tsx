@@ -39,14 +39,14 @@ export default function LoginPage() {
                         <div>
                             <Input
                                 type="email"
-                                placeholder="Enter your email"
+                                placeholder="correo@ejemplo.com"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                         <div className="relative">
                             <Input
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
+                                placeholder="Introduce tu contraseña"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             <button
