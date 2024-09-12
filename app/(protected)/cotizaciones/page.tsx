@@ -1,4 +1,4 @@
-import Cotizador from '../../components/Cotizador'
+import Cotizador from '../../../components/Cotizador'
 
 export default function CotizadorPage() {
     return (

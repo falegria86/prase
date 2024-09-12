@@ -14,7 +14,7 @@ interface StepIndicatorProps {
 export default function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
     <div className="mb-8 relative">
-      <div className="absolute top-1/2 left-6 right-6 h-0.5 bg-gray-200 -translate-y-1/2">
+      <div className="absolute top-1/2 left-6 right-6 h-0.5 bg-gray-200 -translate-y-3">
         <motion.div
           className="h-full bg-blue-600"
           initial={{ width: "0%" }}

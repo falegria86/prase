@@ -1,6 +1,7 @@
 'use client'
 
-import { Home, FileText } from 'lucide-react'
+import { useState } from 'react'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List, History } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 import Link from 'next/link'
@@ -9,6 +10,9 @@ import Image from 'next/image'
 
 export default function Sidebar() {
     const pathname = usePathname()
+    const [isQuotesOpen, setIsQuotesOpen] = useState(false)
+
+    const toggleQuotes = () => setIsQuotesOpen(!isQuotesOpen)
 
     return (
         <aside className="w-64 bg-white shadow-lg p-4 flex flex-col">
@@ -30,15 +34,41 @@ export default function Sidebar() {
                         Inicio
                     </Button>
                 </Link>
-                <Link href="/cotizador" passHref>
+                <div className="mb-4">
                     <Button
-                        variant={pathname === '/cotizador' ? 'default' : 'ghost'}
-                        className="w-full justify-start mb-4"
+                        variant="ghost"
+                        className="w-full justify-between"
+                        onClick={toggleQuotes}
                     >
-                        <FileText className="mr-2 h-4 w-4" />
-                        Cotizador
+                        <span className="flex items-center">
+                            <FileText className="mr-2 h-4 w-4" />
+                            Cotizaciones
+                        </span>
+                        {isQuotesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
-                </Link>
+                    {isQuotesOpen && (
+                        <div className="ml-4 mt-2 space-y-2">
+                            <Link href="/cotizaciones/nueva" passHref>
+                                <Button
+                                    variant={pathname === '/cotizaciones/nueva' ? 'default' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <Plus className="mr-2 h-3 w-3" />
+                                    Nueva cotización
+                                </Button>
+                            </Link>
+                            <Link href="/cotizaciones/lista" passHref>
+                                <Button
+                                    variant={pathname === '/cotizaciones/lista' ? 'default' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Lista de cotizaciones
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </nav>
             <div className="mt-auto pt-4 border-t">
                 <UserDropdown />
