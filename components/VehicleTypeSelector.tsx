@@ -33,7 +33,6 @@ export default function VehicleTypeSelector({ selectedUse, selectedType, setSele
     )
 }
 
-// Función auxiliar que devuelve los tipos de vehículo según el uso seleccionado
 function getVehicleTypesByUse(selectedUse: string): VehicleType[] {
     const vehicleTypesByUse: Record<string, VehicleType[]> = {
         residentes: [{ id: 'auto', label: 'Automóvil' }, { id: 'moto', label: 'Motocicleta' }],

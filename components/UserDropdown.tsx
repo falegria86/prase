@@ -17,8 +17,8 @@ export default function UserDropdown() {
                 <Button variant="ghost" className="w-full justify-start p-0">
                     <div className="flex items-center space-x-2">
                         <Avatar className="w-10 h-10">
-                            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Usuario" />
-                            <AvatarFallback>US</AvatarFallback>
+                            <AvatarImage src="https://xsgames.co/randomusers/assets/avatars/male/47.jpg" alt="Usuario" />
+                            <AvatarFallback>JP</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start">
                             <span className="text-sm font-medium">Juan Pérez</span>

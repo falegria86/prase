@@ -49,7 +49,7 @@ export default function Cotizador() {
                 </div>
             )}
 
-            <div className="flex justify-between mt-8">
+            <div className="flex gap-5 mt-8">
                 <Button onClick={prevStep} disabled={currentStep === 1}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Anterior
