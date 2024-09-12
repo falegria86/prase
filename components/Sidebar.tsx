@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 
 export default function Sidebar() {
     const pathname = usePathname()
@@ -12,7 +13,12 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-white shadow-lg p-4 flex flex-col">
             <div className="flex items-center justify-center mb-8">
-                <h1 className="text-xl font-bold">PRASE</h1>
+                <Image
+                    src='/prase-logo.png'
+                    width={100}
+                    height={100}
+                    alt='Prase logo'
+                />
             </div>
             <nav className="flex-1">
                 <Link href="/" passHref>
