@@ -37,6 +37,6 @@ export const {
     },
 
     session: { strategy: "jwt" },
-    trustHost: process.env.NODE_ENV === 'production' ? true : false,
+    trustHost: true,
     ...authConfig,
 });
