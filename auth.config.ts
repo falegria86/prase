@@ -3,7 +3,7 @@ import credentials from "next-auth/providers/credentials";
 import { LoginSchema } from "./schemas/loginSchema";
 
 
-const url = process.env.API_URL;
+const url = process.env.NEXTAUTH_URL;
 
 export default {
     providers: [
