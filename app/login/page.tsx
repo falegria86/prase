@@ -1,17 +1,7 @@
-'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react'
+import { LoginForm } from '@/components/auth/LoginForm'
 
 export default function LoginPage() {
-    const [showPassword, setShowPassword] = useState(false)
-
-    const togglePasswordVisibility = () => setShowPassword(!showPassword)
-
     return (
         <div className="flex flex-col md:flex-row h-screen">
             <div className="hidden md:block relative w-1/2 h-full">
@@ -35,43 +25,7 @@ export default function LoginPage() {
                     <p className="mb-2 text-gray-600">
                         Inicia sesión con tus credenciales.
                     </p>
-                    <form className="space-y-6">
-                        <div>
-                            <Input
-                                type="email"
-                                placeholder="correo@ejemplo.com"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Introduce tu contraseña"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                                type="button"
-                                onClick={togglePasswordVisibility}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                            >
-                                {showPassword ? (
-                                    <EyeOffIcon className="h-5 w-5" />
-                                ) : (
-                                    <EyeIcon className="h-5 w-5" />
-                                )}
-                            </button>
-                        </div>
-                        <Button
-                            asChild
-                            type="submit"
-                            className='w-full'
-                        >
-                            <Link href='/'>
-                                <LogInIcon className="mr-2 h-4 w-4" />
-                                Iniciar sesión
-                            </Link>
-                        </Button>
-                    </form>
+                    <LoginForm />
                 </div>
             </div>
         </div>

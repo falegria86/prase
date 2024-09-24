@@ -9,6 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { logout } from '@/actions/logout'
 
 export default function UserDropdown() {
     return (
@@ -32,9 +33,9 @@ export default function UserDropdown() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Perfil</DropdownMenuItem>
                 <DropdownMenuItem>Configuración</DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className='cursor-pointer'>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Cerrar Sesión</span>
+                    <span onClick={() => logout()}>Cerrar Sesión</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
