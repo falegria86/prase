@@ -3,7 +3,7 @@ import credentials from "next-auth/providers/credentials";
 import { LoginSchema } from "./schemas/loginSchema";
 
 
-// const url = process.env.API_URL;
+const url = process.env.API_URL;
 
 export default {
     providers: [
@@ -23,7 +23,7 @@ export default {
                     password
                 }
 
-                const res = await fetch(`https://prase-api-production.up.railway.app/auth/login`, {
+                const res = await fetch(`${url}/auth/login`, {
                     method: "POST",
                     body: JSON.stringify(formToSend),
                     headers: {
