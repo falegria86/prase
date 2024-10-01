@@ -29,7 +29,7 @@ export default function Cotizador() {
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-6 shadow-md">
             <StepIndicator steps={steps} currentStep={currentStep} />
 
             {currentStep === 1 && (

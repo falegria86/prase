@@ -1,18 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import UserDropdown from './UserDropdown'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import UserDropdown from './UserDropdown'
 
 export default function Sidebar() {
     const pathname = usePathname()
-    const [isQuotesOpen, setIsQuotesOpen] = useState(false)
-
-    const toggleQuotes = () => setIsQuotesOpen(!isQuotesOpen)
+    const [isCotizacionesOpen, setIsCotizacionesOpen] = useState(false);
+    const [isAdminOpen, setIsAdminOpen] = useState(false);
 
     return (
         <aside className="w-64 bg-white shadow-lg p-4 flex flex-col">
@@ -27,7 +26,7 @@ export default function Sidebar() {
             <nav className="flex-1">
                 <Link href="/" passHref>
                     <Button
-                        variant={pathname === '/' ? 'default' : 'ghost'}
+                        variant={pathname === '/' ? 'link' : 'ghost'}
                         className="w-full justify-start mb-4"
                     >
                         <Home className="mr-2 h-4 w-4" />
@@ -36,21 +35,56 @@ export default function Sidebar() {
                 </Link>
                 <div className="mb-4">
                     <Button
-                        variant="ghost"
+                        variant={pathname.includes('/admin') ? 'link' : 'ghost'}
                         className="w-full justify-between"
-                        onClick={toggleQuotes}
+                        onClick={() => setIsAdminOpen(!isAdminOpen)}
+                    >
+                        <span className="flex items-center">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Administración
+                        </span>
+                        {isAdminOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                    {isAdminOpen && (
+                        <div className="ml-4 mt-2 space-y-2">
+                            <Link href="/admin/catalogos-paquetes" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-paquetes' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Catálogo Paquetes
+                                </Button>
+                            </Link>
+                            <Link href="/admin/catalogos-deducibles" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-deducibles' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Catálogo Deducibles
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+                <div className="mb-4">
+                    <Button
+                        variant={pathname.includes('/cotizaciones') ? 'link' : 'ghost'}
+                        className="w-full justify-between"
+                        onClick={() => setIsCotizacionesOpen(!isCotizacionesOpen)}
                     >
                         <span className="flex items-center">
                             <FileText className="mr-2 h-4 w-4" />
                             Cotizaciones
                         </span>
-                        {isQuotesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        {isCotizacionesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
-                    {isQuotesOpen && (
+                    {isCotizacionesOpen && (
                         <div className="ml-4 mt-2 space-y-2">
                             <Link href="/cotizaciones/nueva" passHref>
                                 <Button
-                                    variant={pathname === '/cotizaciones/nueva' ? 'default' : 'ghost'}
+                                    variant={pathname === '/cotizaciones/nueva' ? 'link' : 'ghost'}
                                     className="w-full justify-start text-sm"
                                 >
                                     <Plus className="mr-2 h-3 w-3" />
@@ -59,7 +93,7 @@ export default function Sidebar() {
                             </Link>
                             <Link href="/cotizaciones/lista" passHref>
                                 <Button
-                                    variant={pathname === '/cotizaciones/lista' ? 'default' : 'ghost'}
+                                    variant={pathname === '/cotizaciones/lista' ? 'link' : 'ghost'}
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
