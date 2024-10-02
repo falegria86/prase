@@ -6,7 +6,9 @@ const url = process.env.API_URL;
 
 export const getDeducibles = async () => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas`);
+        const resp = await fetch(`${url}/deducibles`, {
+            cache: 'no-store'
+        });
 
         if (!resp.ok) return null;
 
@@ -19,7 +21,7 @@ export const getDeducibles = async () => {
 
 export const postDeducible = async (body: iPostDeducible) => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas`, {
+        const resp = await fetch(`${url}/deducibles`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -38,7 +40,7 @@ export const postDeducible = async (body: iPostDeducible) => {
 
 export const patchDeducible = async (id: number, body: iPatchDeducible) => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas/${id}/admin`, {
+        const resp = await fetch(`${url}/deducibles/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

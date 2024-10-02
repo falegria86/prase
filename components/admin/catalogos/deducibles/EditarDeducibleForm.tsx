@@ -17,43 +17,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { patchPaqueteCobertura } from "@/actions/CatPaquetesActions";
-import { iGetAllPaquetes } from "@/interfaces/CatPaquetesInterface";
-import { editPaqueteSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
+import { editDeducibleSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
+import { patchDeducible } from "@/actions/CatDeduciblesActions";
+import { iGetDeducibles } from "@/interfaces/CatDeduciblesInterface";
 
-interface EditarPaqueteFormProps {
-    paquete: iGetAllPaquetes;
+interface EditarDeducibleFormProps {
+    deducible: iGetDeducibles;
     onSave: () => void;
 }
 
-export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) => {
+export const EditarDeducibleForm = ({ deducible, onSave }: EditarDeducibleFormProps) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<z.infer<typeof editPaqueteSchema>>({
-        resolver: zodResolver(editPaqueteSchema),
+    const form = useForm<z.infer<typeof editDeducibleSchema>>({
+        resolver: zodResolver(editDeducibleSchema),
         defaultValues: {
-            NombrePaquete: paquete.NombrePaquete,
-            DescripcionPaquete: paquete.DescripcionPaquete,
+            DeducibleMinimo: Number(deducible.DeducibleMinimo),
+            DeducibleMaximo: Number(deducible.DeducibleMaximo),
+            Rango: Number(deducible.Rango),
         },
     });
 
-    const onSubmit = (values: z.infer<typeof editPaqueteSchema>) => {
+    const onSubmit = (values: z.infer<typeof editDeducibleSchema>) => {
         startTransition(async () => {
             try {
-                const resp = await patchPaqueteCobertura(paquete.PaqueteCoberturaID, values);
+                const resp = await patchDeducible(deducible.DeducibleID, values);
 
                 if (!resp) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al actualizar el paquete.",
+                        description: "Hubo un problema al actualizar el deducible.",
                         variant: "destructive",
                     });
                 } else {
                     toast({
-                        title: "Paquete actualizado",
-                        description: "El paquete se ha actualizado exitosamente.",
+                        title: "Deducible actualizado",
+                        description: "El deducible se ha actualizado exitosamente.",
                         variant: "default",
                     });
                     form.reset();
@@ -63,7 +64,7 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al actualizar el paquete.",
+                    description: "Hubo un problema al actualizar el deducible.",
                     variant: "destructive",
                 });
             }
@@ -75,12 +76,16 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
-                    name="NombrePaquete"
+                    name="DeducibleMinimo"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Nombre del paquete</FormLabel>
+                            <FormLabel>Deducible Mínimo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Paquete de cobertura..." {...field} />
+                                <Input
+                                    type="number"
+                                    placeholder="Ej. 12"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -88,12 +93,33 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
                 />
                 <FormField
                     control={form.control}
-                    name="DescripcionPaquete"
+                    name="DeducibleMaximo"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción del paquete</FormLabel>
+                            <FormLabel>Deducible Máximo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Describe lo que incluye el paquete..." {...field} />
+                                <Input
+                                    type="number"
+                                    placeholder="Ej. 23"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="Rango"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Rango</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    placeholder="Ej. 7"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

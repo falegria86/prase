@@ -17,43 +17,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { patchPaqueteCobertura } from "@/actions/CatPaquetesActions";
-import { iGetAllPaquetes } from "@/interfaces/CatPaquetesInterface";
-import { editPaqueteSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
+import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
+import { patchTipoSumaAsegurada } from "@/actions/CatSumasAseguradasActions";
+import { editTipoSumaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 
-interface EditarPaqueteFormProps {
-    paquete: iGetAllPaquetes;
+interface EditarTipoSumaFormProps {
+    tipoSumaAsegurada: iGetTiposSumasAseguradas;
     onSave: () => void;
 }
 
-export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) => {
+export const EditarTipoSumaForm = ({ tipoSumaAsegurada, onSave }: EditarTipoSumaFormProps) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<z.infer<typeof editPaqueteSchema>>({
-        resolver: zodResolver(editPaqueteSchema),
+    const form = useForm<z.infer<typeof editTipoSumaSchema>>({
+        resolver: zodResolver(editTipoSumaSchema),
         defaultValues: {
-            NombrePaquete: paquete.NombrePaquete,
-            DescripcionPaquete: paquete.DescripcionPaquete,
+            NombreTipo: tipoSumaAsegurada.NombreTipo,
+            DescripcionSuma: tipoSumaAsegurada.DescripcionSuma,
         },
     });
 
-    const onSubmit = (values: z.infer<typeof editPaqueteSchema>) => {
+    const onSubmit = (values: z.infer<typeof editTipoSumaSchema>) => {
         startTransition(async () => {
             try {
-                const resp = await patchPaqueteCobertura(paquete.PaqueteCoberturaID, values);
+                const resp = await patchTipoSumaAsegurada(tipoSumaAsegurada.TipoSumaAseguradaID, values);
 
                 if (!resp) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al actualizar el paquete.",
+                        description: "Hubo un problema al actualizar el tipo de suma asegurada.",
                         variant: "destructive",
                     });
                 } else {
                     toast({
-                        title: "Paquete actualizado",
-                        description: "El paquete se ha actualizado exitosamente.",
+                        title: "Tipo de Suma Asegurada actualizado",
+                        description: "El tipo de suma asegurada se ha actualizado exitosamente.",
                         variant: "default",
                     });
                     form.reset();
@@ -63,7 +63,7 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al actualizar el paquete.",
+                    description: "Hubo un problema al actualizar el tipo de suma asegurada.",
                     variant: "destructive",
                 });
             }
@@ -75,12 +75,12 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
-                    name="NombrePaquete"
+                    name="NombreTipo"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Nombre del paquete</FormLabel>
+                            <FormLabel>Nombre del Tipo de Suma Asegurada</FormLabel>
                             <FormControl>
-                                <Input placeholder="Paquete de cobertura..." {...field} />
+                                <Input placeholder="Tipo de suma asegurada..." {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -88,12 +88,12 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
                 />
                 <FormField
                     control={form.control}
-                    name="DescripcionPaquete"
+                    name="DescripcionSuma"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción del paquete</FormLabel>
+                            <FormLabel>Descripción del Tipo de Suma Asegurada</FormLabel>
                             <FormControl>
-                                <Input placeholder="Describe lo que incluye el paquete..." {...field} />
+                                <Input placeholder="Descripción de la suma asegurada..." {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

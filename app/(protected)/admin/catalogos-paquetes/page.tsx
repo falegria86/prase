@@ -17,7 +17,7 @@ export default async function CatalogoPaquetesPage() {
                 <h4 className="text-red-500">Hubo un error al obtener los paquetes.</h4>
             )}
 
-            <h3 className="text-2xl font-bold mt-16 mb-6">Nuevo paquete</h3>
+            <h3 className="text-2xl font-bold mt-16 mb-6">Nuevo Paquete</h3>
             <NuevoPaqueteForm />
         </>
     )

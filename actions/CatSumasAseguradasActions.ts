@@ -1,44 +1,27 @@
 "use server";
 
-import { iGetAllPaquetes, iPatchPaqueteCobertura, iPostPaqueteCobertura, iPostPaqueteResp } from "@/interfaces/CatPaquetesInterface";
+import { iEditTipoSumaAsegurada, iGetTiposSumasAseguradas, iPostTipoSumaAsegurada, iPostTipoSumaResp } from "@/interfaces/CatTiposSumasInterface";
 
 const url = process.env.API_URL;
 
-export const getAllPaquetes = async () => {
+export const getTiposSumasAseguradas = async () => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas`, {
+        const resp = await fetch(`${url}/tipos-suma-asegurada`, {
             cache: 'no-store'
         });
 
         if (!resp.ok) return null;
 
-        const data: iGetAllPaquetes[] = await resp.json();
+        const data: iGetTiposSumasAseguradas[] = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al obtener paquetes: ', error);
     }
 }
 
-export const getPaquetesById = async (id: number) => {
+export const postTipoSumaAsegurada = async (body: iPostTipoSumaAsegurada) => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas/${id}`, {
-            cache: 'no-store'
-        });
-
-        if (!resp.ok) {
-            console.log(`Error al obtener paquete con id ${id}`);
-        }
-
-        const data: iGetAllPaquetes = await resp.json();
-        return data;
-    } catch (error) {
-        console.log('Error al obtener paquete: ', error);
-    }
-}
-
-export const postPaqueteCobertura = async (body: iPostPaqueteCobertura) => {
-    try {
-        const resp = await fetch(`${url}/paquete-coberturas`, {
+        const resp = await fetch(`${url}/tipos-suma-asegurada`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,16 +31,16 @@ export const postPaqueteCobertura = async (body: iPostPaqueteCobertura) => {
 
         if (!resp.ok) return null;
 
-        const data: iPostPaqueteResp = await resp.json();
+        const data: iPostTipoSumaResp = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al crear paquete: ', error);
     }
 }
 
-export const patchPaqueteCobertura = async (id: number, body: iPatchPaqueteCobertura) => {
+export const patchTipoSumaAsegurada = async (id: number, body: iEditTipoSumaAsegurada) => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas/${id}/admin`, {
+        const resp = await fetch(`${url}/tipos-suma-asegurada/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,16 +50,16 @@ export const patchPaqueteCobertura = async (id: number, body: iPatchPaqueteCober
 
         if (!resp.ok) return null;
 
-        const data: iPostPaqueteResp = await resp.json();
+        const data: iPostTipoSumaResp = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al modificar paquete: ', error);
     }
 }
 
-export const deletePaqueteCobertura = async (id: number) => {
+export const deleteTipoSumaAsegurada = async (id: number) => {
     try {
-        const resp = await fetch(`${url}/paquete-coberturas/${id}`, {
+        const resp = await fetch(`${url}/tipos-suma-asegurada/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

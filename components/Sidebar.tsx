@@ -65,6 +65,15 @@ export default function Sidebar() {
                                     Catálogo Deducibles
                                 </Button>
                             </Link>
+                            <Link href="/admin/tipos-sumas-aseguradas" passHref>
+                                <Button
+                                    variant={pathname === '/admin/tipos-sumas-aseguradas' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Tipos Sumas Aseguradas
+                                </Button>
+                            </Link>
                         </div>
                     )}
                 </div>
