@@ -12,7 +12,7 @@ interface VehicleUseOption {
 const vehicleUseOptions: VehicleUseOption[] = [
     { id: 'residentes', label: 'Residentes', icon: MapPin },
     { id: 'publico', label: 'Público', icon: Bus },
-    { id: 'equipo-pesado', label: 'Equipo pesado', icon: Truck },
+    { id: 'equipoPesado', label: 'Equipo pesado', icon: Truck },
     { id: 'fronterizos', label: 'Fronterizos', icon: FileText },
 ]
 
