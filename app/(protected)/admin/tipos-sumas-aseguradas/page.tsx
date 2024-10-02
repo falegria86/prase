@@ -1,5 +1,4 @@
 import { getTiposSumasAseguradas } from "@/actions/CatSumasAseguradasActions";
-import { NuevoPaqueteForm } from "@/components/admin/catalogos/paquetes/NuevoPaqueteForm";
 import { NuevoTipoSumaForm } from "@/components/admin/catalogos/tipos-sumas-aseguradas/NuevoTipoSumaForm";
 import { TableTiposSumas } from "@/components/admin/catalogos/tipos-sumas-aseguradas/TableTiposSuma";
 
