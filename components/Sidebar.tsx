@@ -65,6 +65,15 @@ export default function Sidebar() {
                                     Catálogo Deducibles
                                 </Button>
                             </Link>
+                            <Link href="/admin/catalogos-coberturas" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-coberturas' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Catálogo Coberturas
+                                </Button>
+                            </Link>
                             <Link href="/admin/tipos-sumas-aseguradas" passHref>
                                 <Button
                                     variant={pathname === '/admin/tipos-sumas-aseguradas' ? 'link' : 'ghost'}
@@ -72,6 +81,15 @@ export default function Sidebar() {
                                 >
                                     <List className="mr-2 h-3 w-3" />
                                     Tipos Sumas Aseguradas
+                                </Button>
+                            </Link>
+                            <Link href="/admin/asociar-paquete-cobertura" passHref>
+                                <Button
+                                    variant={pathname === '/admin/asociar-paquete-cobertura' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Asociar Paq-Cobertura
                                 </Button>
                             </Link>
                         </div>
