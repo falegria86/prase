@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Edit, Trash2, Trash } from "lucide-react";
+import { Trash2, Trash } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -26,7 +26,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { deleteAsociacionPaqueteCobertura, deleteAllAsociacionesPaqueteCobertura } from "@/actions/CatPaquetesActions";

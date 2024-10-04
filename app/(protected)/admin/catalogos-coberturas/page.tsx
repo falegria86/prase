@@ -1,9 +1,6 @@
 import { getCoberturas } from "@/actions/CatCoberturasActions";
-import { getAllPaquetes } from "@/actions/CatPaquetesActions"
 import { NuevaCoberturaForm } from "@/components/admin/catalogos/coberturas/NuevaCoberturaForm";
 import { TableCoberturas } from "@/components/admin/catalogos/coberturas/TableCoberturas";
-import { NuevoPaqueteForm } from "@/components/admin/catalogos/paquetes/NuevoPaqueteForm";
-import { TablePaquetes } from "@/components/admin/catalogos/paquetes/TablePaquetes";
 
 export default async function CatalogoPaquetesPage() {
     const coberturas = await getCoberturas();
