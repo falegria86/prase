@@ -71,16 +71,16 @@ export const nuevaCoberturaSchema = z.object({
         message: 'Rango de selección es requerido',
     }),
     EsCoberturaEspecial: z.boolean({
-        required_error: 'EsCoberturaEspecial es requerido',
+        message: 'EsCoberturaEspecial es requerido',
     }),
     Variable: z.boolean({
-        required_error: 'Variable es requerido',
+        message: 'Variable es requerido',
     }),
     SinValor: z.boolean({
-        required_error: 'SinValor es requerido',
+        message: 'SinValor es requerido',
     }),
     AplicaSumaAsegurada: z.boolean({
-        required_error: 'AplicaSumaAsegurada es requerido',
+        message: 'AplicaSumaAsegurada es requerido',
     }),
 });
 
@@ -104,4 +104,24 @@ export const nuevaAsociacionSchema = z.object({
     paqueteId: z.coerce.number().min(1, { message: "Paquete es requerido" }),
     coberturaIds: z.array(z.number()).min(1, "Debe seleccionar al menos una cobertura"),
     obligatoria: z.boolean(),
+});
+
+export const nuevoGrupoSchema = z.object({
+    nombre: z.string().min(1, { message: "El nombre del grupo es requerido." }),
+    descripcion: z.string().min(1, { message: "La descripción del grupo es requerida." }),
+});
+
+export const groupEditSchema = z.object({
+    nombre: z.string(),
+    descripcion: z.string(),
+});
+
+export const nuevaApplicationSchema = z.object({
+    nombre: z.string().min(1, { message: "El nombre de la aplicación es requerido" }),
+    descripcion: z.string().min(1, { message: "La descripción de la aplicación es requerida" }),
+});
+
+export const editApplicationSchema = z.object({
+    nombre: z.string(),
+    descripcion: z.string(),
 });

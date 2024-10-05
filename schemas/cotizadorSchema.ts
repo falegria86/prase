@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Definimos el esquema para incluir los campos de paso 3
 export const nuevaCotizacionSchema = z.object({
     anio: z.coerce.number().min(1930, {
         message: "El año es requerido"

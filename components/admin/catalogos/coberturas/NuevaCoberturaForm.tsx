@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { postCobertura } from "@/actions/CatCoberturasActions";
 import Loading from "@/app/(protected)/loading";
 import { nuevaCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Asegúrate de tener el componente de selección
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const NuevaCoberturaForm = () => {
     const [isPending, startTransition] = useTransition();
