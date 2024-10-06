@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole } from 'lucide-react'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 
@@ -47,6 +47,15 @@ export default function Sidebar() {
                     </Button>
                     {isAdminOpen && (
                         <div className="ml-4 mt-2 space-y-2">
+                            <Link href="/admin/usuarios" passHref>
+                                <Button
+                                    variant={pathname === '/admin/usuarios' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <User2 className="mr-2 h-3 w-3" />
+                                    Usuarios
+                                </Button>
+                            </Link>
                             <Link href="/admin/seguridad" passHref>
                                 <Button
                                     variant={pathname === '/admin/seguridad' ? 'link' : 'ghost'}

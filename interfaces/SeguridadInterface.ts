@@ -35,3 +35,9 @@ export interface iPatchApplication {
     nombre?: string;
     descripcion?: string;
 }
+
+export interface iPostUsuario {
+    username: string;
+    password: string;
+    idGroup: number;
+}

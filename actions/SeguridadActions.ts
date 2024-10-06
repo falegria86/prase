@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationResp, iPostGroup } from "@/interfaces/SeguridadInterface";
+import { iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
 
 const url = process.env.API_URL;
 
@@ -135,6 +135,25 @@ export const deleteApplication = async (id: number) => {
             headers: {
                 'Content-Type': 'application/json',
             },
+        });
+
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al crear paquete: ', error);
+    }
+}
+
+export const postUsuario = async (body: iPostUsuario) => {
+    try {
+        const resp = await fetch(`${url}/users/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
         });
 
         if (!resp.ok) return null;
