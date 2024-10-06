@@ -56,12 +56,9 @@ export const RegistrarForm = ({ groups }: { groups: iGetGroups[] }) => {
     }, [fuerzaPassword])
 
     const onSubmit = (values: z.infer<typeof registrarUsuarioSchema>) => {
-        console.log(values)
-        const { confirmPassword, ...filteredValues } = values;
-
         startTransition(async () => {
             try {
-                const resp = await postUsuario(filteredValues)
+                const resp = await postUsuario(values)
 
                 if (!resp) {
                     toast({
