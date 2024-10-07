@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2 } from 'lucide-react'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2, Merge, Scale } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 
@@ -65,6 +65,24 @@ export default function Sidebar() {
                                     Seguridad
                                 </Button>
                             </Link>
+                            <Link href="/admin/reglas-negocio" passHref>
+                                <Button
+                                    variant={pathname === '/admin/reglas-negocio' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <Scale className="mr-2 h-3 w-3" />
+                                    Reglas de negocio
+                                </Button>
+                            </Link>
+                            <Link href="/admin/asociar-paquete-cobertura" passHref>
+                                <Button
+                                    variant={pathname === '/admin/asociar-paquete-cobertura' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <Merge className="mr-2 h-3 w-3" />
+                                    Asociar Paq-Cobertura
+                                </Button>
+                            </Link>
                             <Link href="/admin/catalogos-paquetes" passHref>
                                 <Button
                                     variant={pathname === '/admin/catalogos-paquetes' ? 'link' : 'ghost'}
@@ -99,15 +117,6 @@ export default function Sidebar() {
                                 >
                                     <List className="mr-2 h-3 w-3" />
                                     Tipos Sumas Aseguradas
-                                </Button>
-                            </Link>
-                            <Link href="/admin/asociar-paquete-cobertura" passHref>
-                                <Button
-                                    variant={pathname === '/admin/asociar-paquete-cobertura' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Asociar Paq-Cobertura
                                 </Button>
                             </Link>
                         </div>
