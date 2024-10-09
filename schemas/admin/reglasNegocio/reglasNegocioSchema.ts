@@ -34,10 +34,7 @@ export const editReglaNegocioSchema = z.object({
         }),
         Valor: z.string().min(1, {
             message: "El valor es requerido"
-        }),
-        CodigoPostal: z.string().min(1, {
-            message: "El código postal es requerido"
-        }),
+        })
     })),
 });
 

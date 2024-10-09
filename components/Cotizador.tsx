@@ -102,6 +102,7 @@ export default function Cotizador() {
     useEffect(() => {
         // Actualizar la fecha de fin cada vez que se cambia el inicio o los meses
         updateFinVigencia();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.watch("inicioVigencia"), form.watch("meses")]);
 
     const onSubmit = (data: z.infer<typeof nuevaCotizacionSchema>) => {

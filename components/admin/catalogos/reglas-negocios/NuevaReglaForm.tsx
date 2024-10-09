@@ -56,7 +56,6 @@ export const NuevaReglaForm = () => {
     });
 
     const onSubmit = (values: z.infer<typeof nuevaReglaNegocioSchema>) => {
-        console.log("Valores del formulario:", values); // Agrega esto para depurar
         startTransition(async () => {
             try {
                 const resp = await postReglaNegocio(values)
