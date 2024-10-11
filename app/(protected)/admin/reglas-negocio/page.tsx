@@ -1,9 +1,10 @@
-import { getAllReglasNegocio } from "@/actions/ReglasNegocio"
+import { getAllReglasNegocio, getAllCoberturas } from "@/actions/ReglasNegocio"
 import { NuevaReglaForm } from "@/components/admin/catalogos/reglas-negocios/NuevaReglaForm";
 import { TableReglasNegocio } from "@/components/admin/catalogos/reglas-negocios/TableReglasNegocio";
 
 export default async function ReglasNegocioPage() {
     const reglas = await getAllReglasNegocio();
+    const coberturas = await getAllCoberturas();
 
     return (
         <>
@@ -11,6 +12,7 @@ export default async function ReglasNegocioPage() {
 
             {reglas && reglas.length > 0 ? (
                 <TableReglasNegocio
+                    coberturas={coberturas || []}
                     reglas={reglas}
                 />
             ) : (
@@ -18,7 +20,7 @@ export default async function ReglasNegocioPage() {
             )}
 
             <h3 className="text-2xl font-bold mt-16 mb-6">Nueva Regla de Negocio</h3>
-            <NuevaReglaForm />
+            <NuevaReglaForm coberturas={coberturas || []} />
 
         </>
     )

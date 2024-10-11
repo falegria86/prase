@@ -2,6 +2,7 @@
 
 import { useToast } from '@/hooks/use-toast';
 import {
+    iGetAllCobertura,
     iGetAllReglaNegocio
 } from '@/interfaces/ReglasNegocios';
 import { useRouter } from "next/navigation";
@@ -40,12 +41,12 @@ import {
 import { deleteReglaNegocio } from '@/actions/ReglasNegocio';
 import Loading from '@/app/(protected)/loading';
 import { EditarReglaForm } from './EditarReglaForm';
-
 interface Props {
     reglas: iGetAllReglaNegocio[];
+    coberturas: iGetAllCobertura[];
 }
 
-export const TableReglasNegocio = ({ reglas }: Props) => {
+export const TableReglasNegocio = ({ reglas, coberturas }: Props) => {
     const [isPending, startTransition] = useTransition();
     const [selectedRegla, setSelectedRegla] = useState<iGetAllReglaNegocio | null>(null);
     const [editRegla, setEditRegla] = useState<iGetAllReglaNegocio | null>(null);
@@ -59,18 +60,24 @@ export const TableReglasNegocio = ({ reglas }: Props) => {
 
     const handleDelete = async () => {
         if (!selectedRegla) return;
-
         startTransition(async () => {
             try {
-                await deleteReglaNegocio(selectedRegla.ReglaID);
-
-                toast({
-                    title: "Regla eliminada",
-                    description: "La regla se eliminó correctamente.",
-                    variant: "default",
-                });
-                router.refresh();
-
+                const res = await deleteReglaNegocio(selectedRegla.ReglaID);
+                if (!res) {
+                    toast({
+                        title: "Error",
+                        description: "Hubo un problema al eliminar la regla.",
+                        variant: "destructive",
+                    });
+                    return;
+                } else {
+                    toast({
+                        title: "Regla eliminada",
+                        description: "La regla se eliminó correctamente.",
+                        variant: "default",
+                    });
+                    router.refresh();
+                }
             } catch (error) {
                 toast({
                     title: "Error",
@@ -94,8 +101,12 @@ export const TableReglasNegocio = ({ reglas }: Props) => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" onClick={() => handleDelete()}>
+                        <AlertDialogCancel className='rounded-md'>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            className='rounded-md'
+                            variant="destructive"
+                            onClick={() => handleDelete()}
+                        >
                             Eliminar
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -106,8 +117,8 @@ export const TableReglasNegocio = ({ reglas }: Props) => {
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Tipo de Regla</TableHead>
-                            <TableHead>Cobertura Asociada </TableHead>
                             <TableHead>Es Global</TableHead>
+                            <TableHead>Cobertura Asociada </TableHead>
                             <TableHead>Estado </TableHead>
                             <TableHead>Acciones </TableHead>
                         </TableRow>
@@ -118,9 +129,8 @@ export const TableReglasNegocio = ({ reglas }: Props) => {
                                 <TableCell>{regla.NombreRegla}</TableCell>
                                 <TableCell>{regla.Descripcion}</TableCell>
                                 <TableCell>{regla.TipoRegla}</TableCell>
-                                <TableCell>{regla.TipoRegla}</TableCell>
-                                {/* <TableCell>{regla.CoberturaAsociada}</TableCell> */}
                                 <TableCell>{regla.EsGlobal ? 'Si' : 'No'}</TableCell>
+                                <TableCell>{regla.EsGlobal ? 'N/A' : regla.cobertura?.NombreCobertura || 'Sin cobertura'}</TableCell>
                                 <TableCell>{regla.Activa ? 'Activa' : 'Inactiva'}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
@@ -162,12 +172,15 @@ export const TableReglasNegocio = ({ reglas }: Props) => {
                 setEditRegla(null);
                 setEditReglaModalOpen(false);
             }}>
-                <DialogContent>
+                <DialogContent aria-describedby="dialog-description" className="max-w-[80vw] ">
                     <DialogHeader>
                         <DialogTitle>Editar regla de negocio</DialogTitle>
                     </DialogHeader>
+                    <p id="dialog-description" className="sr-only">
+                        En este formulario puedes editar los detalles de la regla de negocio seleccionada.
+                    </p>
                     {editRegla && (
-                        <EditarReglaForm regla={editRegla} onSave={() => {
+                        <EditarReglaForm regla={editRegla} coberturas={coberturas} onSave={() => {
                             setEditRegla(null);
                             setEditReglaModalOpen(false);
                         }} />

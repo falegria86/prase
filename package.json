@@ -2,6 +2,7 @@
   "name": "prase-front",
   "version": "0.1.0",
   "private": true,
+  "proxy": "https://api.libroazul.com",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

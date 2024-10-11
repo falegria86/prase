@@ -3,6 +3,7 @@ import {
     iGetAllReglaNegocio,
     iPostReglaNegocio,
     iPatchReglaNegocio,
+    iGetAllCobertura
 } from '@/interfaces/ReglasNegocios';
 
 const url = process.env.API_URL;
@@ -41,7 +42,7 @@ export const getReglaNegocioById = async (id: number) => {
 
 export const deleteReglaNegocio = async (id: number) => {
     try {
-        const resp = await fetch(`${url}/reglas-negocio/${id}`, {
+        const resp = await fetch(`${url}/reglas-negocio/${id}/admin`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -58,18 +59,22 @@ export const deleteReglaNegocio = async (id: number) => {
 
     } catch (error) {
         console.log('Error al eliminar regla de negocio: ', error);
+        return error;
     }
 }
 
 export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) => {
+    console.log("🚀 ~ patchReglaNegocio ~ id:", id)
+    console.log("🚀 ~ patchReglaNegocio ~ body:", body)
     try {
-        const resp = await fetch(`${url}/reglas-negocio/${id}`, {
+        const resp = await fetch(`${url}/reglas-negocio/${id}/admin`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(body)
         });
+        console.log("🚀 ~ patchReglaNegocio ~ resp:", resp)
 
         if (!resp.ok) return null;
 
@@ -90,11 +95,28 @@ export const postReglaNegocio = async (body: iPostReglaNegocio) => {
             body: JSON.stringify(body)
         });
 
-        if (!resp.ok) return null;
+        console.log("🚀 ~ postReglaNegocio ~ resp:", resp)
+
+        if (!resp.ok) return resp;
 
         const data: iPostReglaNegocio = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al crear regla de negocio: ', error);
+    }
+}
+
+export const getAllCoberturas = async () => {
+    try {
+        const resp = await fetch(`${url}/coberturas`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetAllCobertura[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener coberturas: ', error);
     }
 }
