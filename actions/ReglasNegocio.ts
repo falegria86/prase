@@ -64,8 +64,7 @@ export const deleteReglaNegocio = async (id: number) => {
 }
 
 export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) => {
-    console.log("🚀 ~ patchReglaNegocio ~ id:", id)
-    console.log("🚀 ~ patchReglaNegocio ~ body:", body)
+    
     try {
         const resp = await fetch(`${url}/reglas-negocio/${id}/admin`, {
             method: 'PATCH',

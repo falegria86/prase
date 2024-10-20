@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2, Merge, Scale, Bolt, BookOpenCheck   } from 'lucide-react'
+import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2, Merge, Scale, Bolt, BookOpenCheck, Car, User } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import UserDropdown from './UserDropdown'
 
@@ -128,6 +128,25 @@ export default function Sidebar() {
                                     Tipos Sumas Aseguradas
                                 </Button>
                             </Link>
+                            <Link href="/admin/vehiculos" passHref>
+                                <Button
+                                    variant={pathname === '/admin/vehiculos' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <Car className="mr-2 h-3 w-3" />
+                                    Vehículos
+                                </Button>
+                            </Link>
+                            <Link href="/admin/clientes" passHref>
+                                <Button
+                                    variant={pathname === '/admin/clientes' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <User className="mr-2 h-3 w-3" />
+                                    Clientes
+                                </Button>
+                            </Link>
+
                         </div>
                     )}
                 </div>
@@ -168,7 +187,7 @@ export default function Sidebar() {
                                     variant={pathname === '/cotizaciones/libroAzul' ? 'link' : 'ghost'}
                                     className="w-full justify-start text-sm"
                                 >
-                                    <BookOpenCheck  className="mr-2 h-3 w-3" />
+                                    <BookOpenCheck className="mr-2 h-3 w-3" />
                                     Libro Azul
                                 </Button>
                             </Link>

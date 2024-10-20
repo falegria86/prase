@@ -68,7 +68,6 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
         startTransition(async () => {
             try {
                 const resp = await patchReglaNegocio(regla.ReglaID, values);
-                console.log("🚀 ~ startTransition ~ resp:", resp)
 
                 if (!resp) {
                     toast({
