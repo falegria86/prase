@@ -63,8 +63,6 @@ export const postCliente = async (data: iPostCliente) => {
 }
 
 export const patchCliente = async (id: number, data: iPatchCliente) => {
-    console.log("🚀 ~ patchCliente ~ id:", id)
-    console.log("🚀 ~ patchCliente ~ data:", data)
     try {
         const resp = await fetch(`${url}/clientes/${id}/admin`, {
             method: 'PATCH',
@@ -73,7 +71,6 @@ export const patchCliente = async (id: number, data: iPatchCliente) => {
             },
             body: JSON.stringify(data)
         });
-        console.log("🚀 ~ patchCliente ~ resp:", resp)
 
         if (!resp.ok) {
             console.log(`Error al modificar cliente con id ${id}`);

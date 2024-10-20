@@ -49,7 +49,6 @@ export const EditarClienteForm = ({ cliente, onSave }: EditarClienteFormProps) =
 
             try {
                 const resp = await patchCliente(cliente.ClienteID, values);
-                console.log("🚀 ~ startTransition ~ resp:", resp)
 
                 if (!resp) {
                     toast({
