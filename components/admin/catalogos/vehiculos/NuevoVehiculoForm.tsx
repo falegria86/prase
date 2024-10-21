@@ -19,45 +19,52 @@ import { useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// Schema
-import { postClienteSchema } from "@/schemas/admin/clientes/clienteSchema"
-// Actions
-import { postCliente } from "@/actions/ClientesActions"
-// Interfaces
+//schemas
+import { postVehiculoSchema } from "@/schemas/admin/vehiculos/vehiculosSchema"
+//actions
+import { postVehiculo } from "@/actions/vehiculoActions"
+//interfaces
+import { iGetCliente } from "@/interfaces/ClientesInterface"
 
-export const NuevoClienteForm = () => {
+interface Props {
+    clientes: iGetCliente[];
+}
+
+export const NuevoVehiculoForm = ({ clientes }: Props) => {
     const [isPending, startTransition] = useTransition()
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<z.infer<typeof postClienteSchema>>({
-        resolver: zodResolver(postClienteSchema),
+    const form = useForm<z.infer<typeof postVehiculoSchema>>({
+        resolver: zodResolver(postVehiculoSchema),
         defaultValues: {
-            NombreCompleto: "",
-            FechaNacimiento: "",
-            Genero: "",
-            Direccion: "",
-            Telefono: "",
-            Email: "",
-            HistorialSiniestros: 0,
-            HistorialReclamos: 0,
+            ClienteID: 0,
+            Marca: "",
+            Modelo: "",
+            AnoFabricacion: 0,
+            TipoVehiculo: "",
+            ValorVehiculo: 0,
+            ValorFactura: 0,
+            FechaRegistro: "",
+            UsoVehiculo: "",
             ZonaResidencia: "",
-            FechaRegistro: ""
+            Salvamento: 0
         },
     })
 
-    const onSubmit = (values: z.infer<typeof postClienteSchema>) => {
+    const onSubmit = (values: z.infer<typeof postVehiculoSchema>) => {
         startTransition(async () => {
 
             try {
-                const resp = await postCliente(values);
+                const resp = await postVehiculo(values);
 
                 if (!resp) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al crear el cliente.",
+                        description: "Hubo un problema al crear el vehículo.",
                         variant: "destructive",
                     });
                 } else {
@@ -72,7 +79,7 @@ export const NuevoClienteForm = () => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al crear el cliente.",
+                    description: "Hubo un problema al crear el vehículo.",
                     variant: "destructive",
                 });
             }
@@ -89,10 +96,10 @@ export const NuevoClienteForm = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <FormField
                                 control={form.control}
-                                name="NombreCompleto"
+                                name="Marca"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nombre Completo</FormLabel>
+                                        <FormLabel>Marca</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="Nombre completo..."
@@ -105,56 +112,13 @@ export const NuevoClienteForm = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="FechaNacimiento"
+                                name="Modelo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Fecha de Nacimiento</FormLabel>
+                                        <FormLabel>Modelo</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="date"
-                                                {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => {
-                                                    const dateValue = e.target.value;
-                                                    field.onChange(dateValue);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Genero"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Genero</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={field.onChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Masculino">Masculino</SelectItem>
-                                                    <SelectItem value="Femenino">Femenino</SelectItem>
-                                                    <SelectItem value="Otro">Otro</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Direccion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Direccion</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Direccion..."
+                                                placeholder="Nombre completo..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -164,46 +128,14 @@ export const NuevoClienteForm = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="Telefono"
+                                name="AnoFabricacion"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Telefono</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Telefono..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Email..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="HistorialSiniestros"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Historial de Siniestros</FormLabel>
+                                        <FormLabel>Año de Fabricación</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                placeholder="Historial de Siniestros..."
+                                                min={1900}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -213,14 +145,29 @@ export const NuevoClienteForm = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="HistorialReclamos"
+                                name="TipoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Historial de Reclamos</FormLabel>
+                                        <FormLabel>Tipo de Vehículo</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Nombre completo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="ValorVehiculo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Valor del Vehículo</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                placeholder="Historial de Reclamos..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -230,13 +177,13 @@ export const NuevoClienteForm = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="ZonaResidencia"
+                                name="ValorFactura"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Zona de Residencia</FormLabel>
+                                        <FormLabel>Valor Factura</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Zona de Residencia..."
+                                                type="number"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -254,36 +201,101 @@ export const NuevoClienteForm = () => {
                                             <Input
                                                 type="date"
                                                 {...field}
-                                                value={field.value || ''}
-                                                onChange={(e) => {
-                                                    const dateValue = e.target.value;
-                                                    field.onChange(dateValue);
-                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit" disabled={isPending} size="lg" className="rounded-md w-full">
-                                {isPending ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <SaveIcon className="w-4 h-4 mr-2" />
-                                        Guardar
-                                    </>
+                            <FormField
+                                control={form.control}
+                                name="UsoVehiculo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Uso de Vehículo</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Nombre completo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                            </Button>
-
+                            />
+                            <FormField
+                                control={form.control}
+                                name="ZonaResidencia"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Zona de Residencia</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Nombre completo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="Salvamento"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Salvamento</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="ClienteID"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cliente</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={field.onChange}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {clientes.map((cliente) => (
+                                                        <SelectItem key={cliente.ClienteID} value={cliente.ClienteID + ''}>
+                                                            {cliente.NombreCompleto}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+                        <Button type="submit" disabled={isPending} size="lg" className="rounded-md w-full">
+                            {isPending ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <SaveIcon className="w-4 h-4 mr-2" />
+                                    Guardar
+                                </>
+                            )}
+                        </Button>
                     </form>
                 </Form>
             </div>
         </>
-    )
-
+    );
 }

@@ -1,31 +1,15 @@
 "use client"
 // interfaces
 import {
-    iGetCliente
-} from '@/interfaces/ClientesInterface';
+    iGetVehiculo
+} from '@/interfaces/VehiculoInterface';
 
 // actions
 import {
-    deleteCliente
-} from '@/actions/ClientesActions';
+    deleteVehiculo
+} from '@/actions/vehiculoActions';
 
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from 'react';
-import { Edit, Trash2 } from "lucide-react";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+import Loading from '@/app/(protected)/loading';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -43,41 +27,57 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import Loading from '@/app/(protected)/loading';
-import { EditarClienteForm } from './EditarClienteForm';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useToast } from '@/hooks/use-toast';
+import { Edit, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from 'react';
+import { EditarVehiculoForm } from './EditarVehiculoModal';
 
 interface Props {
-    clientes: iGetCliente[];
+    vehiculos: iGetVehiculo[];
 }
 
-export const TableClientes = ({ clientes }: Props) => {
+export const TableVehiculos = ({ vehiculos }: Props) => {
     const [isPending, startTransition] = useTransition();
-    const [selectedCliente, setSelectedCliente] = useState<iGetCliente | null>(null);
-    const [editCliente, setEditCliente] = useState<iGetCliente | null>(null);
-    const [editClienteModalOpen, setEditClienteModalOpen] = useState(false);
+    const [selectedVehiculo, setSelectedVehiculo] = useState<iGetVehiculo | null>(null);
+    const [editVehiculo, setEditVehiculo] = useState<iGetVehiculo | null>(null);
+    const [editVehiculoModalOpen, setEditVehiculoModalOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
-    const handleSelectCliente = (cliente: iGetCliente) => {
-        setSelectedCliente(cliente);
+    const handleSelectVehiculo = (vehiculo: iGetVehiculo) => {
+        setSelectedVehiculo(vehiculo);
     };
 
     const handleDelete = async () => {
-        if (!selectedCliente) return;
+        if (!selectedVehiculo) return;
         startTransition(async () => {
             try {
-                const res = await deleteCliente(selectedCliente.ClienteID);
+                const res = await deleteVehiculo(selectedVehiculo.VehiculoID);
                 if (!res) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al eliminar al cliente.",
+                        description: "Hubo un problema al eliminar el vehículo.",
                         variant: "destructive",
                     });
                     return;
                 } else {
                     toast({
-                        title: "Cliente eliminado",
-                        description: "El cliente se eliminó correctamente.",
+                        title: "Vehículo eliminado",
+                        description: "El vehículo se eliminó correctamente.",
                         variant: "default",
                     });
                     router.refresh();
@@ -85,7 +85,7 @@ export const TableClientes = ({ clientes }: Props) => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al eliminar el cliente.",
+                    description: "Hubo un problema al eliminar el vehículo.",
                     variant: "destructive",
                 });
             }
@@ -100,8 +100,8 @@ export const TableClientes = ({ clientes }: Props) => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente el Cliente{" "}
-                            <strong>{selectedCliente?.NombreCompleto}</strong> y eliminará todos sus datos.
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente el vehículo{" "}
+                            <strong>{selectedVehiculo?.Marca} {selectedVehiculo?.Modelo} {selectedVehiculo?.AnoFabricacion}</strong> y eliminará todos sus datos.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -118,37 +118,34 @@ export const TableClientes = ({ clientes }: Props) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead>Fecha de Nacimiento</TableHead>
-                            <TableHead>Género</TableHead>
-                            <TableHead>Dirección</TableHead>
-                            <TableHead>Teléfono</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Historial de Siniestros</TableHead>
-                            <TableHead>Historial de Reclamos</TableHead>
-                            <TableHead>Zona de Residencia</TableHead>
+                            <TableHead>Marca</TableHead>
+                            <TableHead>Modelo</TableHead>
+                            <TableHead>Año de Fabricación</TableHead>
+                            <TableHead>Tipo de Vehículo</TableHead>
+                            <TableHead>Valor Vehículo</TableHead>
+                            <TableHead>Valor Factura</TableHead>
                             <TableHead>Fecha de Registro</TableHead>
+                            <TableHead>Uso de Vehículo</TableHead>
+                            <TableHead>Zona de Residencia</TableHead>
+                            <TableHead>Salvamento</TableHead>
                             <TableHead>Acciones</TableHead>
-
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {clientes.map((cliente) => (
-                            <TableRow key={cliente.ClienteID}>
-                                <TableCell>{cliente.NombreCompleto}</TableCell>
+                        {vehiculos.map((vehiculo) => (
+                            <TableRow key={vehiculo.VehiculoID}>
+                                <TableCell>{vehiculo.Marca}</TableCell>
+                                <TableCell>{vehiculo.Modelo}</TableCell>
+                                <TableCell>{vehiculo.AnoFabricacion}</TableCell>
+                                <TableCell>{vehiculo.TipoVehiculo}</TableCell>
+                                <TableCell>{vehiculo.ValorVehiculo}</TableCell>
+                                <TableCell>{vehiculo.ValorFactura}</TableCell>
                                 <TableCell>
-                                    {new Date(cliente.FechaNacimiento).toLocaleDateString()} {/* Convierte a Date y formatea */}
+                                    {new Date(vehiculo.FechaRegistro).toLocaleDateString()} {/* Convierte a Date y formatea */}
                                 </TableCell>
-                                <TableCell>{cliente.Genero}</TableCell>
-                                <TableCell>{cliente.Direccion}</TableCell>
-                                <TableCell>{cliente.Telefono}</TableCell>
-                                <TableCell>{cliente.Email}</TableCell>
-                                <TableCell>{cliente.HistorialSiniestros}</TableCell>
-                                <TableCell>{cliente.HistorialReclamos}</TableCell>
-                                <TableCell>{cliente.ZonaResidencia}</TableCell>
-                                <TableCell>
-                                    {new Date(cliente.FechaRegistro).toLocaleDateString()}
-                                </TableCell>
+                                <TableCell>{vehiculo.UsoVehiculo}</TableCell>
+                                <TableCell>{vehiculo.ZonaResidencia}</TableCell>
+                                <TableCell>{vehiculo.Salvamento}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
                                         <TooltipTrigger>
@@ -156,8 +153,8 @@ export const TableClientes = ({ clientes }: Props) => {
                                                 size={16}
                                                 className="text-gray-600 cursor-pointer"
                                                 onClick={() => {
-                                                    setEditCliente(cliente);
-                                                    setEditClienteModalOpen(true);
+                                                    setEditVehiculo(vehiculo);
+                                                    setEditVehiculoModalOpen(true);
                                                 }}
                                             >
                                             </Edit>
@@ -170,7 +167,7 @@ export const TableClientes = ({ clientes }: Props) => {
                                                 <Trash2
                                                     size={16}
                                                     className="text-gray-600 cursor-pointer"
-                                                    onClick={() => handleSelectCliente(cliente)}
+                                                    onClick={() => handleSelectVehiculo(vehiculo)}
                                                 />
                                             </AlertDialogTrigger>
                                         </TooltipTrigger>
@@ -184,12 +181,12 @@ export const TableClientes = ({ clientes }: Props) => {
                 </Table>
             </AlertDialog>
 
-            {/* Modal para editar la regla */}
+            {/*  */}
             <Dialog
-                open={editClienteModalOpen}
+                open={editVehiculoModalOpen}
                 onOpenChange={() => {
-                    setEditCliente(null);
-                    setEditClienteModalOpen(false);
+                    setEditVehiculo(null);
+                    setEditVehiculoModalOpen(false);
                 }}>
                 <DialogContent aria-describedby="dialog-description" className="max-w-[80vw] ">
                     <DialogHeader>
@@ -198,16 +195,17 @@ export const TableClientes = ({ clientes }: Props) => {
                     <p id="dialog-description" className="sr-only">
                         En este formulario puedes editar los detalles de el cliente seleccionado.
                     </p>
-                    {editCliente && (
-                        <EditarClienteForm
-                            cliente={editCliente}
+                    {editVehiculo && (
+                        <EditarVehiculoForm
+                            vehiculo={editVehiculo}
                             onSave={() => {
-                                setEditCliente(null);
-                                setEditClienteModalOpen(false);
+                                setEditVehiculo(null);
+                                setEditVehiculoModalOpen(false);
                             }} />
                     )}
                 </DialogContent>
             </Dialog >
         </>
     )
+
 }
