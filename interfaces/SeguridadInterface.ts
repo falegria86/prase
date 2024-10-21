@@ -67,3 +67,7 @@ export interface iPostApplicationGroup {
 export interface iPatchApplicationGroup {
     aplicaciones: iApplication[];
 }
+
+export interface iDeleteApplicationGroup {
+    aplicacionesIds: number[];
+}

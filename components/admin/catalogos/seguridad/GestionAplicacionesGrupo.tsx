@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ interface Props {
   aplicaciones: iGetApplications[];
 }
 
-export default function GestionAplicacionesGrupo({ grupos, aplicaciones }: Props) {
+export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
   const [selectedGroup, setSelectedGroup] = useState<number | null>(null)
   const [applicationGroup, setApplicationGroup] = useState<iGetApplicationGroup>({
     id: 0,
