@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
+import { iGetApplicationGroup, iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationGroup, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
 
 const url = process.env.API_URL;
 
@@ -149,6 +149,40 @@ export const deleteApplication = async (id: number) => {
 export const postUsuario = async (body: iPostUsuario) => {
     try {
         const resp = await fetch(`${url}/users/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al crear paquete: ', error);
+    }
+}
+
+export const getApplicationsGroup = async () => {
+    try {
+        const resp = await fetch(`${url}/applications-grupos`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetApplicationGroup[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener coberturas: ', error);
+    }
+}
+
+export const postApplicationGroup = async (id: number, body: iPostApplicationGroup) => {
+    try {
+        const resp = await fetch(`${url}/applications-grupos/${id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

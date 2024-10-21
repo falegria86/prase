@@ -21,6 +21,7 @@ export default function Sidebar() {
                     width={100}
                     height={100}
                     alt='Prase logo'
+                    priority={true}
                 />
             </div>
             <nav className="flex-1">
@@ -71,7 +72,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <Bolt className="mr-2 h-3 w-3" />
-                                    Configuracion Global
+                                    Configuración Global
                                 </Button>
                             </Link>
                             <Link href="/admin/reglas-negocio" passHref>

@@ -1,14 +1,17 @@
-import { getApplications, getGroups } from "@/actions/SeguridadActions"
+import { getApplications, getApplicationsGroup, getGroups } from "@/actions/SeguridadActions"
+import GestionAplicacionesGrupo from "@/components/admin/catalogos/seguridad/GestionAplicacionesGrupo";
 import { NuevaAplicacionForm } from "@/components/admin/catalogos/seguridad/NuevaAplicacionForm";
 import { NuevoGroupForm } from "@/components/admin/catalogos/seguridad/NuevoGroupForm";
+import ResumenPermisosAplicaciones from "@/components/admin/catalogos/seguridad/ResumenPermisosAplicaciones";
 import { TableAplicaciones } from "@/components/admin/catalogos/seguridad/TableAplicaciones";
 import { TableGroups } from "@/components/admin/catalogos/seguridad/TableGroups";
 
 export default async function SeguridadPage() {
     const grupos = await getGroups();
     const aplicaciones = await getApplications();
+    const aplicacionesGrupos = await getApplicationsGroup();
 
-    if (!grupos || !aplicaciones) {
+    if (!grupos || !aplicaciones || !aplicacionesGrupos) {
         return <h4 className="text-red-500">Hubo un error al obtener los datos.</h4>;
     }
 
@@ -31,6 +34,18 @@ export default async function SeguridadPage() {
 
             <h3 className="text-2xl font-bold mt-16 mb-6">Nueva Aplicación</h3>
             <NuevaAplicacionForm />
+
+            <h3 className="text-2xl font-bold mt-16 mb-6">Gestión de Permisos de Aplicaciones y Grupos</h3>
+            
+            <ResumenPermisosAplicaciones
+                initialGroups={aplicacionesGrupos}
+            />
+
+            <GestionAplicacionesGrupo
+                grupos={grupos}
+                aplicaciones={aplicaciones}
+            />
+
         </>
     )
 }

@@ -41,3 +41,29 @@ export interface iPostUsuario {
     password: string;
     idGroup: number;
 }
+
+export interface iApplication {
+    id: number;
+    ingresar: boolean;
+    insertar: boolean;
+    eliminar: boolean;
+    actualizar: boolean;
+}
+
+export interface iGetApplicationGroup {
+    id: number;
+    ingresar: boolean;
+    insertar: boolean;
+    eliminar: boolean;
+    actualizar: boolean;
+    aplicaciones: iGetApplications;
+    grupos: iGetGroups | null;
+}
+
+export interface iPostApplicationGroup {
+    aplicaciones: iApplication[];
+}
+
+export interface iPatchApplicationGroup {
+    aplicaciones: iApplication[];
+}
