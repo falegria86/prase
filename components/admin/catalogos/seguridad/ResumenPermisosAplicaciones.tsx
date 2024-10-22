@@ -1,15 +1,16 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
 import { startTransition, useState } from 'react'
 import { iApplication, iDeleteApplicationGroup, iGetApplicationGroup, iPatchApplicationGroup } from '@/interfaces/SeguridadInterface'
 import { Check, Edit2, Trash2, X } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { toast } from '@/hooks/use-toast'
-import { deleteApplicationGroup } from '@/actions/SeguridadActions'
+import { deleteApplicationGroup, patchApplicationGroup } from '@/actions/SeguridadActions'
 
 const PermissionIcon = ({ hasPermission }: { hasPermission: boolean }) => (
     hasPermission ? <Check className="text-green-500" /> : <X className="text-red-500" />
@@ -20,32 +21,45 @@ interface Props {
 }
 
 export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
-
+    
+    const router = useRouter();
     const [groups, setGroups] = useState<iGetApplicationGroup[]>(initialGroups)
     const [editingGroup, setEditingGroup] = useState<iGetApplicationGroup | null>(null)
 
     const handlePermissionChange = (permission: keyof iApplication) => {
-        if (editingGroup) {
+
+        if (editingGroup && permission !== 'aplicacionId') {
             setEditingGroup({ ...editingGroup, [permission]: !editingGroup[permission] })
         }
     }
 
-    const saveChanges = () => {
+
+    const saveChanges = async () => {
         if (editingGroup) {
             const patchData: iPatchApplicationGroup = {
                 aplicaciones: [{
-                    id: editingGroup.aplicaciones.id,
+                    aplicacionId: editingGroup.aplicaciones.id,
                     ingresar: editingGroup.ingresar,
                     insertar: editingGroup.insertar,
                     eliminar: editingGroup.eliminar,
                     actualizar: editingGroup.actualizar
                 }]
             }
-            console.log('Datos a enviar:', patchData)
+
+            await patchApplicationGroup(editingGroup.id, patchData)
 
             setGroups(groups.map(group =>
                 group.id === editingGroup.id ? editingGroup : group
             ))
+
+            toast({
+                title: "Cambios guardados",
+                description: `Los cambios en los permisos para ${editingGroup.aplicaciones.nombre} se guardaron exitosamente.`,
+                variant: "default",
+            });
+
+            router.refresh();
+
             setEditingGroup(null)
         }
     }
@@ -54,7 +68,7 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
         startTransition(async () => {
             try {
                 console.log('entra');
-                
+
                 await deleteApplicationGroup(grupoId, aplicacionesIds);
 
                 toast({
@@ -62,6 +76,8 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
                     description: `La aplicación se eliminó del grupo exitosamente.`,
                     variant: "default",
                 });
+
+                router.refresh();
 
             } catch (error) {
                 toast({
@@ -109,11 +125,12 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
                                             <Edit2 className="h-4 w-4" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[425px]">
-                                        <DialogHeader>
-                                            <DialogTitle>Editar permisos para {group.grupos?.nombre}</DialogTitle>
-                                        </DialogHeader>
-                                        {editingGroup && (
+                                    {editingGroup && (
+                                        <DialogContent className="sm:max-w-[425px]">
+                                            <DialogHeader>
+                                                <DialogTitle>Editar permisos para {group.grupos?.nombre}</DialogTitle>
+                                                <DialogDescription></DialogDescription>
+                                            </DialogHeader>
                                             <div className="grid gap-4 py-4">
                                                 <h3 className="font-medium">Permisos para {editingGroup.aplicaciones.nombre}</h3>
                                                 <div className="grid grid-cols-2 gap-2">
@@ -134,9 +151,9 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
                                                     ))}
                                                 </div>
                                             </div>
-                                        )}
-                                        <Button onClick={saveChanges}>Guardar cambios</Button>
-                                    </DialogContent>
+                                            <Button onClick={saveChanges}>Guardar cambios</Button>
+                                        </DialogContent>
+                                    )}
                                 </Dialog>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -153,7 +170,7 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(group.id, {'aplicacionesIds':[group.aplicaciones.id]})}>Continuar</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleDelete(group.id, { 'aplicacionesIds': [group.aplicaciones.id] })}>Continuar</AlertDialogAction>
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>

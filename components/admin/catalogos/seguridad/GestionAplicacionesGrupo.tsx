@@ -1,13 +1,16 @@
 "use client";
 
+import { postApplicationGroup } from '@/actions/SeguridadActions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/hooks/use-toast';
 import { iGetApplicationGroup, iGetApplications, iGetGroups, iPostApplicationGroup } from '@/interfaces/SeguridadInterface'
 import { Save } from 'lucide-react';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { startTransition, useState } from 'react';
 
 interface Props {
   grupos: iGetGroups[];
@@ -15,7 +18,10 @@ interface Props {
 }
 
 export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
-  const [selectedGroup, setSelectedGroup] = useState<number | null>(null)
+
+  const router = useRouter();
+
+  const [selectedGroup, setSelectedGroup] = useState<number>(0)
   const [applicationGroup, setApplicationGroup] = useState<iGetApplicationGroup>({
     id: 0,
     ingresar: false,
@@ -62,20 +68,50 @@ export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
   const saveChanges = () => {
     const postData: iPostApplicationGroup = {
       aplicaciones: [{
-        id: applicationGroup.aplicaciones.id,
+        aplicacionId: applicationGroup.aplicaciones.id,
         ingresar: applicationGroup.ingresar,
         insertar: applicationGroup.insertar,
         eliminar: applicationGroup.eliminar,
         actualizar: applicationGroup.actualizar
       }]
     }
-    console.log('Datos a enviar:', postData)
-    // Aquí iría la lógica para enviar los datos al servidor
+
+    console.log('postData', postData);
+    
+
+    startTransition(async () => {
+      try {
+        const resp = await postApplicationGroup(selectedGroup, postData);
+
+        if (!resp) {
+          toast({
+            title: "Error",
+            description: "Hubo un problema al guardar.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Cambios guardados",
+            description: "Los cambios se han guardado exitosamente.",
+            variant: "default",
+          });
+
+          router.refresh();
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Hubo un problema al guardar.",
+          variant: "destructive",
+        });
+      }
+    });
+
   }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Gestión de Permisos de Aplicaciones y Grupos</h1>
+      <h1 className="text-2xl font-bold mb-4">Asignar aplicaciones a grupos</h1>
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Seleccionar Grupo</CardTitle>
@@ -103,8 +139,8 @@ export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
           <CardContent>
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-2">Seleccionar Aplicación</h3>
-              <Select 
-                value={applicationGroup.aplicaciones.id.toString()} 
+              <Select
+                value={applicationGroup.aplicaciones.id.toString()}
                 onValueChange={handleApplicationChange}
               >
                 <SelectTrigger className="w-full">
@@ -123,34 +159,34 @@ export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
               <h3 className="text-lg font-semibold mb-2">Permisos</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
+                  <Checkbox
                     id="ingresar"
-                    checked={applicationGroup.ingresar} 
-                    onCheckedChange={() => handlePermissionChange('ingresar')} 
+                    checked={applicationGroup.ingresar}
+                    onCheckedChange={() => handlePermissionChange('ingresar')}
                   />
                   <label htmlFor="ingresar">Ingresar</label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
+                  <Checkbox
                     id="insertar"
-                    checked={applicationGroup.insertar} 
-                    onCheckedChange={() => handlePermissionChange('insertar')} 
+                    checked={applicationGroup.insertar}
+                    onCheckedChange={() => handlePermissionChange('insertar')}
                   />
                   <label htmlFor="insertar">Insertar</label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
+                  <Checkbox
                     id="eliminar"
-                    checked={applicationGroup.eliminar} 
-                    onCheckedChange={() => handlePermissionChange('eliminar')} 
+                    checked={applicationGroup.eliminar}
+                    onCheckedChange={() => handlePermissionChange('eliminar')}
                   />
                   <label htmlFor="eliminar">Eliminar</label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
+                  <Checkbox
                     id="actualizar"
-                    checked={applicationGroup.actualizar} 
-                    onCheckedChange={() => handlePermissionChange('actualizar')} 
+                    checked={applicationGroup.actualizar}
+                    onCheckedChange={() => handlePermissionChange('actualizar')}
                   />
                   <label htmlFor="actualizar">Actualizar</label>
                 </div>

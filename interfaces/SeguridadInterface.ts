@@ -43,7 +43,7 @@ export interface iPostUsuario {
 }
 
 export interface iApplication {
-    id: number;
+    aplicacionId: number;
     ingresar: boolean;
     insertar: boolean;
     eliminar: boolean;
