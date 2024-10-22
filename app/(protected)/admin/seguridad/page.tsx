@@ -1,8 +1,8 @@
 import { getApplications, getApplicationsGroup, getGroups } from "@/actions/SeguridadActions"
-import GestionAplicacionesGrupo from "@/components/admin/catalogos/seguridad/GestionAplicacionesGrupo";
+import { GestionAplicacionesGrupo } from "@/components/admin/catalogos/seguridad/GestionAplicacionesGrupo";
 import { NuevaAplicacionForm } from "@/components/admin/catalogos/seguridad/NuevaAplicacionForm";
 import { NuevoGroupForm } from "@/components/admin/catalogos/seguridad/NuevoGroupForm";
-import ResumenPermisosAplicaciones from "@/components/admin/catalogos/seguridad/ResumenPermisosAplicaciones";
+import { ResumenPermisosAplicaciones } from "@/components/admin/catalogos/seguridad/ResumenPermisosAplicaciones";
 import { TableAplicaciones } from "@/components/admin/catalogos/seguridad/TableAplicaciones";
 import { TableGroups } from "@/components/admin/catalogos/seguridad/TableGroups";
 

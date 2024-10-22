@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetApplicationGroup, iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationGroup, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
+import { iDeleteApplicationGroup, iGetApplicationGroup, iGetApplications, iGetGroups, iPatchApplication, iPatchGroup, iPostApplication, iPostApplicationGroup, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
 
 const url = process.env.API_URL;
 
@@ -196,5 +196,46 @@ export const postApplicationGroup = async (id: number, body: iPostApplicationGro
         return data;
     } catch (error) {
         console.log('Error al crear paquete: ', error);
+    }
+}
+
+export const patchApplicationGroup = async (id: number, body: iPostApplicationGroup) => {
+    try {
+        const resp = await fetch(`${url}/applications-grupos/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al crear paquete: ', error);
+    }
+}
+
+export const deleteApplicationGroup = async (grupoId: number, aplicacionesIds: iDeleteApplicationGroup) => {
+    
+    try {
+        const resp = await fetch(`${url}/applications-grupos/${grupoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(aplicacionesIds)
+        });
+
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        console.log('Data:', data);
+        
+        return data;
+    } catch (error) {
+        console.log('Error al eliminar: ', error);
     }
 }

@@ -43,7 +43,7 @@ export interface iPostUsuario {
 }
 
 export interface iApplication {
-    id: number;
+    aplicacionId: number;
     ingresar: boolean;
     insertar: boolean;
     eliminar: boolean;
@@ -66,4 +66,8 @@ export interface iPostApplicationGroup {
 
 export interface iPatchApplicationGroup {
     aplicaciones: iApplication[];
+}
+
+export interface iDeleteApplicationGroup {
+    aplicacionesIds: number[];
 }
