@@ -219,11 +219,8 @@ export const patchApplicationGroup = async (id: number, body: iPostApplicationGr
 }
 
 export const deleteApplicationGroup = async (grupoId: number, aplicacionesIds: iDeleteApplicationGroup) => {
-    console.log(JSON.stringify(aplicacionesIds));
     
     try {
-        console.log('entra2');
-        
         const resp = await fetch(`${url}/applications-grupos/${grupoId}`, {
             method: 'DELETE',
             headers: {
