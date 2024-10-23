@@ -31,6 +31,7 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
@@ -160,6 +161,7 @@ export const TableAplicaciones = ({ applications }: Props) => {
                     <DialogHeader>
                         <DialogTitle>Editar Aplicación</DialogTitle>
                     </DialogHeader>
+                    <DialogDescription></DialogDescription>
                     {editApplication && (
                         <EditarApplicationForm application={editApplication} onSave={() => {
                             setEditApplication(null);
