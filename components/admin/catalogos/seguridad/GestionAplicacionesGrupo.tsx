@@ -30,7 +30,7 @@ export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
     insertar: false,
     eliminar: false,
     actualizar: false,
-    aplicaciones: { id: 0, nombre: '', descripcion: '' },
+    aplicaciones: { id: 0, nombre: '', descripcion: '', categoria: 'Administración' },
     grupos: null
   })
 
@@ -207,13 +207,13 @@ export const GestionAplicacionesGrupo = ({ grupos, aplicaciones }: Props) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Aplicación</TableHead>
-                    <TableHead>Descripción</TableHead>
+                    <TableHead>Categoría</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
                     <TableCell>{applicationGroup.aplicaciones.nombre}</TableCell>
-                    <TableCell>{applicationGroup.aplicaciones.descripcion}</TableCell>
+                    <TableCell>{applicationGroup.aplicaciones.categoria}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

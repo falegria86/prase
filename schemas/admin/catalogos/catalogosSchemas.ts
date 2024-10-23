@@ -119,9 +119,15 @@ export const groupEditSchema = z.object({
 export const nuevaApplicationSchema = z.object({
     nombre: z.string().min(1, { message: "El nombre de la aplicación es requerido" }),
     descripcion: z.string().min(1, { message: "La descripción de la aplicación es requerida" }),
+    icon: z.string().min(1, { message: "El icono de la aplicación es requerido" }),
+    color: z.string().min(1, { message: "El color de la aplicación es requerido" }),
+    categoria: z.enum(['Administración', 'Catalogos', 'Cotizaciones', 'Siniestros', 'Reportería', 'Control de Cajas', 'Recursos Humanos'], { message: "La categoría de la aplicación es requerida" }),
 });
 
 export const editApplicationSchema = z.object({
     nombre: z.string(),
     descripcion: z.string(),
+    icon: z.string(),
+    color: z.string(),
+    categoria: z.enum(['Administración', 'Catalogos', 'Cotizaciones', 'Siniestros', 'Reportería', 'Control de Cajas', 'Recursos Humanos']),
 });
