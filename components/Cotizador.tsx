@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useForm } from "react-hook-form";
@@ -21,6 +21,23 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import { nuevaCotizacionSchema } from '@/schemas/cotizadorSchema';
 import { formatDateLocal } from '@/lib/format-date';
+import {
+    login,
+    getAnios,
+    getMarcasPorAnio,
+    getModelosPorAnioMarca,
+    getVersionesPorAnioMarcaModelo,
+    getPrecioVersionPorClave,
+    loginAuto
+} from "@/actions/LibroAzul";
+import { getAniosSchema, getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getPrecioVersionPorClaveSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema"
+import {
+    iGetAnios,
+    iGetMarcasPorAnio,
+    iGetModelosPorAnioMarca,
+    iGetPrecioVersionPorClave,
+    iGetVersionesPorAnioMarcaModelo
+} from "@/interfaces/LibroAzul";
 
 const generateYears = () => {
     const currentYear = new Date().getFullYear();
@@ -49,7 +66,43 @@ const steps: Step[] = [
 ]
 
 export default function Cotizador() {
-    const [currentStep, setCurrentStep] = useState<number>(1);
+    useEffect(() => {
+        if (apiKey) return;
+        handleLogin();
+    }, []);
+
+    const handleLogin = async () => {
+        try {
+            const key = await loginAuto();
+
+            setApiKey(key || null);
+
+            console.log('Llave obtenida: ', key);
+
+            if (key) {
+                await loadYears(key);
+            } else {
+                setError('No se pudo obtener la llave');
+            }
+
+        } catch (error) {
+            console.log('Error al obtener la llave: ', error);
+        }
+    }
+
+    const [ currentStep, setCurrentStep ] = useState<number>(1);
+    const [ apiKey, setApiKey ] = useState<string | null>(null);
+    const [ years, setYears ] = useState<iGetAnios[]>([])
+    const [ brands, setBrands ] = useState<iGetMarcasPorAnio[]>([])
+    const [ models, setModels ] = useState<iGetModelosPorAnioMarca[]>([])
+    const [ versions, setVersions ] = useState<iGetVersionesPorAnioMarcaModelo[]>([])
+    const [ selectedYear, setSelectedYear ] = useState<iGetAnios | null>(null)
+    const [ selectedBrand, setSelectedBrand ] = useState<iGetMarcasPorAnio | null>(null)
+    const [ selectedModel, setSelectedModel ] = useState<iGetModelosPorAnioMarca | null>(null)
+    const [ selectedVersion, setSelectedVersion ] = useState<iGetVersionesPorAnioMarcaModelo | null>(null)
+    const [ error, setError ] = useState<string | null>(null);
+    const [ isLoading, setIsLoading ] = useState<boolean>(false);
+
 
     const form = useForm<z.infer<typeof nuevaCotizacionSchema>>({
         resolver: zodResolver(nuevaCotizacionSchema),
@@ -67,8 +120,8 @@ export default function Cotizador() {
             derechoPoliza: "$600",
             vigencia: "Anual",
             meses: 12,
-            inicioVigencia: new Date().toISOString().split("T")[0], // Formato 'yyyy-MM-dd'
-            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+            inicioVigencia: new Date().toISOString().split("T")[ 0 ], // Formato 'yyyy-MM-dd'
+            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[ 0 ],
             tipoSumaAsegurada: "Valor convenido",
             sumaAsegurada: 89000,
             periodoGracia: "14 días",
@@ -91,7 +144,7 @@ export default function Cotizador() {
             fechaInicio.setMonth(fechaInicio.getMonth() + meses);
 
             // Formatear la fecha de fin nuevamente a 'yyyy-MM-dd'
-            form.setValue("finVigencia", fechaInicio.toISOString().split("T")[0]);
+            form.setValue("finVigencia", fechaInicio.toISOString().split("T")[ 0 ]);
         } else {
             console.error("Error al parsear la fecha de inicio.");
         }
@@ -102,14 +155,94 @@ export default function Cotizador() {
     useEffect(() => {
         // Actualizar la fecha de fin cada vez que se cambia el inicio o los meses
         updateFinVigencia();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [form.watch("inicioVigencia"), form.watch("meses")]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ form.watch("inicioVigencia"), form.watch("meses") ]);
 
     const onSubmit = (data: z.infer<typeof nuevaCotizacionSchema>) => {
         console.log(data);
     };
 
-    const years = generateYears();
+    // const years = generateYears();
+
+    const loadYears = async (key: string) => {
+        setIsLoading(true)
+        setError(null)
+
+        console.log("🚀 ~ loadYears ~ key", key)
+
+        try {
+            const yearsData = await getAnios(key)
+
+            if (yearsData) {
+                const validatedYears = getAniosSchema.parse(yearsData)
+                setYears(validatedYears)
+
+                console.log("🚀 ~ loadYears ~ validatedYears", validatedYears)
+            } else {
+                setError('No se pudieron cargar los años')
+            }
+        } catch (error) {
+            setError('Error al cargar los años')
+            setApiKey(null)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleYearSelect = async (yearClave: string) => {
+
+        console.log("🚀 ~ handleYearSelect ~ yearClave", yearClave)
+
+        if (!apiKey) return
+        const year = years.find(y => y.Clave === yearClave)
+
+        if (!year) return
+        setSelectedYear(year)
+        setIsLoading(true)
+        setError(null)
+
+        try {
+            const brandsData = await getMarcasPorAnio(apiKey, year)
+            console.log("🚀 ~ handleYearSelect ~ brandsData:", brandsData)
+
+            if (brandsData) {
+                const validatedBrands = getMarcasPorAnioSchema.parse(brandsData)
+                setBrands(validatedBrands)
+            } else {
+                setError('No se pudieron cargar las marcas :(')
+            }
+        } catch (error) {
+            setError('Error al cargar las marcas')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+
+    const handleBrandSelect = async (brandClave: string) => {
+        console.log("🚀 ~ handleBrandSelect ~ brandClave", brandClave)
+
+        /*   if (!apiKey || !selectedYear) return
+          const brand = brands.find(b => b.Clave === brandClave)
+          if (!brand) return
+          setSelectedBrand(brand)
+          setIsLoading(true)
+          setError(null)
+          try {
+              const modelsData = await getModelosPorAnioMarca(apiKey, selectedYear, brand)
+              if (modelsData) {
+                  const validatedModels = getModelosPorAnioMarcaSchema.parse(modelsData)
+                  setModels(validatedModels)
+  
+              } else {
+                  setError('No se pudieron cargar los modelos')
+              }
+          } catch (error) {
+              setError('Error al cargar los modelos')
+          } finally {
+              setIsLoading(false)
+          } */
+    }
 
     return (
         <div className="bg-white p-6 shadow-md">
@@ -143,18 +276,21 @@ export default function Cotizador() {
                                     <FormItem>
                                         <FormLabel>Año</FormLabel>
                                         <Select
-                                            onValueChange={field.onChange}
+                                            /* onValueChange={field.onChange} */
+                                            onValueChange={handleYearSelect}
                                             defaultValue={field.value ? field.value.toString() : undefined}
+                                            disabled={isLoading}
                                         >
                                             <FormControl>
+                                                {/* Asegúrate de que haya un único hijo en cada nivel */}
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Selecciona año..." />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
                                                 {years.map((year) => (
-                                                    <SelectItem key={year} value={year.toString()}>
-                                                        {year}
+                                                    <SelectItem key={year.Clave} value={year.Clave.toString()}>
+                                                        {year.Nombre}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -163,22 +299,38 @@ export default function Cotizador() {
                                     </FormItem>
                                 )}
                             />
+
+
                             <FormField
                                 control={form.control}
                                 name="marca"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Marca</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Marca"
-                                            />
-                                        </FormControl>
+                                        <Select
+                                            onValueChange={handleBrandSelect}
+                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            disabled={isLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona marca..." />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {brands.map((brand) => (
+                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                        {brand.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
+
                             <FormField
                                 control={form.control}
                                 name="tipo"

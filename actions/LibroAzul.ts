@@ -7,7 +7,25 @@ import {
     iGetPrecioVersionPorClave
 } from '@/interfaces/LibroAzul';
 
+const user = process.env.LIBRO_USER
+const pass = process.env.LIBRO_PASS
+
 export const login = async (user: string, pass: string) => {
+    try {
+        const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: string = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener reglas de negocio: ', error);
+    }
+}
+
+export const loginAuto = async () => {
     try {
         const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
             cache: 'no-store'
