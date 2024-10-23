@@ -18,8 +18,8 @@ export interface iGetApplications {
     id: number;
     nombre: string;
     descripcion: string;
-    icon: string;
-    color: string;
+    icon?: string;
+    color?: string;
     categoria: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos' ;
 }
 
