@@ -99,6 +99,8 @@ export default function Cotizador() {
     const [ selectedBrand, setSelectedBrand ] = useState<iGetMarcasPorAnio | null>(null)
     const [ selectedModel, setSelectedModel ] = useState<iGetModelosPorAnioMarca | null>(null)
     const [ selectedVersion, setSelectedVersion ] = useState<iGetVersionesPorAnioMarcaModelo | null>(null)
+    const [ price, setPrice ] = useState<iGetPrecioVersionPorClave | null>(null)
+
     const [ error, setError ] = useState<string | null>(null);
     const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
@@ -192,6 +194,16 @@ export default function Cotizador() {
 
         console.log("🚀 ~ handleYearSelect ~ yearClave", yearClave)
 
+        //limpiar los datos de los pasos siguientes
+        setBrands([])
+        setModels([])
+        setVersions([])
+        setSelectedBrand(null)
+        setSelectedModel(null)
+        setSelectedVersion(null)
+        setPrice(null)
+
+
         if (!apiKey) return
         const year = years.find(y => y.Clave === yearClave)
 
@@ -200,14 +212,19 @@ export default function Cotizador() {
         setIsLoading(true)
         setError(null)
 
+        //let apiKeyFake = "MTc4IzI4MTEwOC8zMTc2"
+
         try {
             const brandsData = await getMarcasPorAnio(apiKey, year)
             console.log("🚀 ~ handleYearSelect ~ brandsData:", brandsData)
+
+
 
             if (brandsData) {
                 const validatedBrands = getMarcasPorAnioSchema.parse(brandsData)
                 setBrands(validatedBrands)
             } else {
+
                 setError('No se pudieron cargar las marcas :(')
             }
         } catch (error) {
@@ -220,6 +237,14 @@ export default function Cotizador() {
 
     const handleBrandSelect = async (brandClave: string) => {
         console.log("🚀 ~ handleBrandSelect ~ brandClave", brandClave)
+
+        //limpiar los datos de los pasos siguientes
+        setModels([])
+        setVersions([])
+        setSelectedModel(null)
+        setSelectedVersion(null)
+        setPrice(null)
+
 
         if (!apiKey || !selectedYear) return
         const brand = brands.find(b => b.Clave === brandClave)
@@ -246,6 +271,13 @@ export default function Cotizador() {
     }
 
     const handleModelSelect = async (modelClave: string) => {
+
+        //limpiar los datos de los pasos siguientes
+        setVersions([])
+        setSelectedVersion(null)
+        setPrice(null)
+
+
         if (!apiKey || !selectedYear || !selectedBrand) return
         const model = models.find(m => m.Clave === modelClave)
         if (!model) return
@@ -268,6 +300,9 @@ export default function Cotizador() {
     }
 
     const handleVersionSelect = async (versionClave: string) => {
+        //limpiar los datos de los pasos siguientes
+        setPrice(null)
+
         if (!apiKey) return
         const version = versions.find(v => v.Clave === versionClave)
         if (!version) return
@@ -276,9 +311,11 @@ export default function Cotizador() {
         setError(null)
         try {
             const priceData = await getPrecioVersionPorClave(apiKey, version)
+            console.log("🚀 ~ handleVersionSelect ~ priceData", priceData)
             if (priceData) {
                 const validatedPrice = getPrecioVersionPorClaveSchema.parse(priceData)
-                
+                setPrice(validatedPrice)
+
             } else {
                 setError('No se pudo obtener el precio')
             }
@@ -323,7 +360,7 @@ export default function Cotizador() {
                                         <Select
                                             /* onValueChange={field.onChange} */
                                             onValueChange={handleYearSelect}
-                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            defaultValue={selectedYear ? selectedYear.Clave.toString() : undefined}
                                             disabled={isLoading}
                                         >
                                             <FormControl>
@@ -353,7 +390,7 @@ export default function Cotizador() {
                                         <FormLabel>Marca</FormLabel>
                                         <Select
                                             onValueChange={handleBrandSelect}
-                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            defaultValue={selectedBrand ? selectedBrand.Clave.toString() : ""}
                                             disabled={isLoading}
                                         >
                                             <FormControl>
@@ -382,12 +419,12 @@ export default function Cotizador() {
                                         <FormLabel>Modelo</FormLabel>
                                         <Select
                                             onValueChange={handleModelSelect}
-                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            defaultValue={selectedModel ? selectedModel.Clave.toString() : undefined}
                                             disabled={isLoading}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona marca..." />
+                                                    <SelectValue placeholder="Selecciona modelo..." />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -411,12 +448,12 @@ export default function Cotizador() {
                                         <FormLabel>Versión</FormLabel>
                                         <Select
                                             onValueChange={handleVersionSelect}
-                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            defaultValue={selectedVersion ? selectedVersion.Clave.toString() : undefined}
                                             disabled={isLoading}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona modelo..." />
+                                                    <SelectValue placeholder="Selecciona versión..." />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -442,6 +479,7 @@ export default function Cotizador() {
                                             <Input
                                                 {...field}
                                                 placeholder="AMIS"
+
                                             />
                                         </FormControl>
                                         <FormMessage />
