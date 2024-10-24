@@ -75,11 +75,10 @@ export default function Cotizador() {
         try {
             const key = await loginAuto();
 
-            setApiKey(key || null);
-
             console.log('Llave obtenida: ', key);
 
             if (key) {
+                setApiKey(key);
                 await loadYears(key);
             } else {
                 setError('No se pudo obtener la llave');
@@ -222,26 +221,72 @@ export default function Cotizador() {
     const handleBrandSelect = async (brandClave: string) => {
         console.log("🚀 ~ handleBrandSelect ~ brandClave", brandClave)
 
-        /*   if (!apiKey || !selectedYear) return
-          const brand = brands.find(b => b.Clave === brandClave)
-          if (!brand) return
-          setSelectedBrand(brand)
-          setIsLoading(true)
-          setError(null)
-          try {
-              const modelsData = await getModelosPorAnioMarca(apiKey, selectedYear, brand)
-              if (modelsData) {
-                  const validatedModels = getModelosPorAnioMarcaSchema.parse(modelsData)
-                  setModels(validatedModels)
-  
-              } else {
-                  setError('No se pudieron cargar los modelos')
-              }
-          } catch (error) {
-              setError('Error al cargar los modelos')
-          } finally {
-              setIsLoading(false)
-          } */
+        if (!apiKey || !selectedYear) return
+        const brand = brands.find(b => b.Clave === brandClave)
+        if (!brand) return
+        setSelectedBrand(brand)
+        setIsLoading(true)
+        setError(null)
+        try {
+            const modelsData = await getModelosPorAnioMarca(apiKey, selectedYear, brand)
+            console.log("🚀 ~ handleBrandSelect ~ modelsData", modelsData)
+
+            if (modelsData) {
+                const validatedModels = getModelosPorAnioMarcaSchema.parse(modelsData)
+                setModels(validatedModels)
+
+            } else {
+                setError('No se pudieron cargar los modelos')
+            }
+        } catch (error) {
+            setError('Error al cargar los modelos')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleModelSelect = async (modelClave: string) => {
+        if (!apiKey || !selectedYear || !selectedBrand) return
+        const model = models.find(m => m.Clave === modelClave)
+        if (!model) return
+        setSelectedModel(model)
+        setIsLoading(true)
+        setError(null)
+        try {
+            const versionsData = await getVersionesPorAnioMarcaModelo(apiKey, selectedYear, selectedBrand, model)
+            if (versionsData) {
+                const validatedVersions = getVersionesPorAnioMarcaModeloSchema.parse(versionsData)
+                setVersions(validatedVersions)
+            } else {
+                setError('No se pudieron cargar las versiones')
+            }
+        } catch (error) {
+            setError('Error al cargar las versiones')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleVersionSelect = async (versionClave: string) => {
+        if (!apiKey) return
+        const version = versions.find(v => v.Clave === versionClave)
+        if (!version) return
+        setSelectedVersion(version)
+        setIsLoading(true)
+        setError(null)
+        try {
+            const priceData = await getPrecioVersionPorClave(apiKey, version)
+            if (priceData) {
+                const validatedPrice = getPrecioVersionPorClaveSchema.parse(priceData)
+                
+            } else {
+                setError('No se pudo obtener el precio')
+            }
+        } catch (error) {
+            setError('Error al obtener el precio')
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -300,7 +345,6 @@ export default function Cotizador() {
                                 )}
                             />
 
-
                             <FormField
                                 control={form.control}
                                 name="marca"
@@ -330,39 +374,64 @@ export default function Cotizador() {
                                 )}
                             />
 
-
                             <FormField
                                 control={form.control}
                                 name="tipo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Tipo"
-                                            />
-                                        </FormControl>
+                                        <FormLabel>Modelo</FormLabel>
+                                        <Select
+                                            onValueChange={handleModelSelect}
+                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            disabled={isLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona marca..." />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {models.map((brand) => (
+                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                        {brand.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="version"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Versión</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Versión"
-                                            />
-                                        </FormControl>
+                                        <Select
+                                            onValueChange={handleVersionSelect}
+                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                            disabled={isLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona modelo..." />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {versions.map((brand) => (
+                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                        {brand.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="amis"

@@ -7,8 +7,8 @@ import {
     iGetPrecioVersionPorClave
 } from '@/interfaces/LibroAzul';
 
-const user = process.env.LIBRO_USER
-const pass = process.env.LIBRO_PASS
+const user = "demo2410031214" //process.env.LIBRO_USER
+const pass = "DEit*1367" //process.env.LIBRO_PASS
 
 export const login = async (user: string, pass: string) => {
     try {
