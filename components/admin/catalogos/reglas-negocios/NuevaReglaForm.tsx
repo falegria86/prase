@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { nuevaReglaNegocioSchema } from "@/schemas/admin/reglasNegocio/reglasNegocioSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -58,6 +58,10 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
         control: form.control,
         name: "condiciones",  // El nombre del array de condiciones
     });
+
+    useEffect(() => {
+
+    }, [])
 
     const onSubmit = (values: z.infer<typeof nuevaReglaNegocioSchema>) => {
 
@@ -239,7 +243,23 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                             />
                             {/* Si EsGlobal == true, mostrar este campo */}
                             {/* Select de CoberturaID */}
-                            {form.watch("EsGlobal") === false ? (
+                            {form.watch("TipoAplicacion") === 'Global' ? (
+                                <FormField
+                                    control={form.control}
+                                    name="cobertura"
+                                    render={() => (
+                                        <FormItem>
+                                            <FormLabel>Cobertura</FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    value={'N/A'}
+                                                    disabled
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            ) : (
                                 <FormField
                                     control={form.control}
                                     name="cobertura"
@@ -247,7 +267,7 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                         <FormItem>
                                             <FormLabel>Cobertura</FormLabel>
                                             <FormControl>
-                                                <Select onValueChange={(value) => field.onChange({ CoberturaID: Number(value) })}>
+                                                <Select onValueChange={(value) => {field.onChange({ CoberturaID: Number(value) }) }}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Seleccione" />
                                                     </SelectTrigger>
@@ -264,8 +284,6 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                         </FormItem>
                                     )}
                                 />
-                            ) : (
-                                <div></div>
                             )}
 
                             <FormField

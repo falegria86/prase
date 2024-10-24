@@ -86,6 +86,15 @@ export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) =>
 
 export const postReglaNegocio = async (body: iPostReglaNegocio) => {
     try {
+        if (!body) return null;
+
+        if (body.TipoAplicacion === 'Global') {
+            body.EsGlobal = true;
+            body.cobertura = {
+                CoberturaID: 0,     // Inicializando con un objeto vacío con propiedades requeridas
+            };
+        }
+
         const resp = await fetch(`${url}/reglas-negocio`, {
             method: 'POST',
             headers: {
