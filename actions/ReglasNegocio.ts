@@ -66,6 +66,18 @@ export const deleteReglaNegocio = async (id: number) => {
 export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) => {
     
     try {
+
+        if (!body) return null;
+
+        if (body.TipoAplicacion === 'Global') {
+            body.EsGlobal = true;
+            body.cobertura = {
+                CoberturaID: 0,     // Inicializando con un objeto vacío con propiedades requeridas
+            };
+        } else {
+            body.EsGlobal = false;
+        }
+
         const resp = await fetch(`${url}/reglas-negocio/${id}/admin`, {
             method: 'PATCH',
             headers: {
@@ -90,9 +102,9 @@ export const postReglaNegocio = async (body: iPostReglaNegocio) => {
 
         if (body.TipoAplicacion === 'Global') {
             body.EsGlobal = true;
-            body.cobertura = {
-                CoberturaID: 0,     // Inicializando con un objeto vacío con propiedades requeridas
-            };
+            body.cobertura = null;
+        } else {
+            body.EsGlobal = false;
         }
 
         const resp = await fetch(`${url}/reglas-negocio`, {

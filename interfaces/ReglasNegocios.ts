@@ -52,15 +52,20 @@ export interface iPostReglaNegocio {
     EsGlobal: boolean;
     Activa: boolean;
     CodigoPostal: string;
-    cobertura: iPostCobertura;
+    cobertura: iPostCobertura | null;
     condiciones: ICondicionReglaNegocio[];
 }
 
 export interface iPatchReglaNegocio {
     NombreRegla: string;
+    Descripcion: string;
+    TipoAplicacion: string;
+    TipoRegla: string;
     ValorAjuste: number;
+    Condicion: string;
     EsGlobal: boolean;
     Activa: boolean;
-    cobertura: iPostCobertura;
+    CodigoPostal: string;
+    cobertura: iPostCobertura | null;
     condiciones: ICondicionReglaNegocio[];
 }
