@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useForm } from "react-hook-form";
@@ -22,7 +22,6 @@ import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@
 import { nuevaCotizacionSchema } from '@/schemas/cotizadorSchema';
 import { formatDateLocal } from '@/lib/format-date';
 import {
-    login,
     getAnios,
     getMarcasPorAnio,
     getModelosPorAnioMarca,
@@ -39,18 +38,7 @@ import {
     iGetVersionesPorAnioMarcaModelo
 } from "@/interfaces/LibroAzul";
 
-const generateYears = () => {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 70;
-    const endYear = currentYear + 2;
-    const years = [];
 
-    for (let year = endYear; year >= startYear; year--) {
-        years.push(year);
-    }
-
-    return years;
-};
 
 export interface Step {
     title: string
@@ -104,6 +92,7 @@ export default function Cotizador() {
     const [ error, setError ] = useState<string | null>(null);
     const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
+    console.log("🚀 ~ render ~ error", error)
 
     const form = useForm<z.infer<typeof nuevaCotizacionSchema>>({
         resolver: zodResolver(nuevaCotizacionSchema),
@@ -316,6 +305,8 @@ export default function Cotizador() {
                 const validatedPrice = getPrecioVersionPorClaveSchema.parse(priceData)
                 setPrice(validatedPrice)
 
+                console.log(price)
+
             } else {
                 setError('No se pudo obtener el precio')
             }
@@ -443,7 +434,7 @@ export default function Cotizador() {
                             <FormField
                                 control={form.control}
                                 name="version"
-                                render={({ field }) => (
+                                render={({  }) => (
                                     <FormItem>
                                         <FormLabel>Versión</FormLabel>
                                         <Select
