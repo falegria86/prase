@@ -345,11 +345,10 @@ export default function Cotizador() {
                             <FormField
                                 control={form.control}
                                 name="anio"
-                                render={({ field }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormLabel>Año</FormLabel>
                                         <Select
-                                            /* onValueChange={field.onChange} */
                                             onValueChange={handleYearSelect}
                                             defaultValue={selectedYear ? selectedYear.Clave.toString() : undefined}
                                             disabled={isLoading}
@@ -376,7 +375,7 @@ export default function Cotizador() {
                             <FormField
                                 control={form.control}
                                 name="marca"
-                                render={({ field }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormLabel>Marca</FormLabel>
                                         <Select
@@ -405,7 +404,7 @@ export default function Cotizador() {
                             <FormField
                                 control={form.control}
                                 name="tipo"
-                                render={({ field }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormLabel>Modelo</FormLabel>
                                         <Select
