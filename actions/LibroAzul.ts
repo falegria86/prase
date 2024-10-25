@@ -7,7 +7,25 @@ import {
     iGetPrecioVersionPorClave
 } from '@/interfaces/LibroAzul';
 
+const user = "demo2410031214" //process.env.LIBRO_USER
+const pass = "DEit*1367" //process.env.LIBRO_PASS
+
 export const login = async (user: string, pass: string) => {
+    try {
+        const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: string = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener reglas de negocio: ', error);
+    }
+}
+
+export const loginAuto = async () => {
     try {
         const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
             cache: 'no-store'
@@ -25,38 +43,16 @@ export const login = async (user: string, pass: string) => {
 export const getAnios = async (key: string) => {
 
     try {
-        // const resp = await fetch(unescape(`https://api.libroazul.com/Api/Años/?Llave=${key}`), {
-        //     cache: 'no-store'
-        // });
+        const resp = await fetch(`https://api.libroazul.com/Api/A%C3%B1os/?Llave=${key}`, {
+            method: 'POST'
+        });
         if (!key) return null;
-        const resp = [
-            {
-                "Clave": "2018",
-                "Nombre": "2018"
-            },
-            {
-                "Clave": "2017",
-                "Nombre": "2017"
-            },
-            {
-                "Clave": "2016",
-                "Nombre": "2016"
-            },
-            {
-                "Clave": "2015",
-                "Nombre": "2015"
-            },
-            {
-                "Clave": "2014",
-                "Nombre": "2014"
-            }
-        ];
+        
         console.log("🚀 ~ getAnios ~ resp:", resp)
 
-        // if (!resp.ok) return null;
+        if (!resp.ok) return null;
 
-        // const data: iGetAnios[] = await resp.json();
-        const data: iGetAnios[] = resp;
+        const data: iGetAnios[] = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al obtener reglas de negocio: ', error);
