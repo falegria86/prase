@@ -23,9 +23,14 @@ export interface iPostPaqueteResp {
 }
 
 export interface iAsociarPaqueteCobertura {
-    coberturaIds: number[];
+    coberturas: CoberturaPost[];
+}
+
+export interface CoberturaPost {
+    CoberturaID: number;
     obligatoria: boolean;
 }
+
 
 export interface iDeletePaqueteCobertura {
     coberturaIds: number[];

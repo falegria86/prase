@@ -1,57 +1,82 @@
-"use client";
+"use client"
 
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { postAsociarPaqueteCobertura } from "@/actions/CatPaquetesActions";
-import { iGetAllPaquetes, Cobertura } from "@/interfaces/CatPaquetesInterface";
-import { nuevaAsociacionSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
-import { Loader2, SaveIcon } from "lucide-react";
-import Loading from "@/app/(protected)/loading";
+import { postAsociarPaqueteCobertura } from "@/actions/CatPaquetesActions"
+import Loading from "@/app/(protected)/loading"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface"
+import { iGetAllPaquetes, iAsociarPaqueteCobertura } from "@/interfaces/CatPaquetesInterface"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2, SaveIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
+import { useFieldArray, useForm } from "react-hook-form"
+import { z } from "zod"
 
 interface NuevaAsociacionFormProps {
-    paquetes: iGetAllPaquetes[];
-    coberturas: Cobertura[];
+    paquetes: iGetAllPaquetes[]
+    coberturas: iGetCoberturas[]
 }
 
-export const NuevaAsociacionForm = ({ paquetes, coberturas }: NuevaAsociacionFormProps) => {
-    const [isPending, startTransition] = useTransition();
-    const { toast } = useToast();
-    const router = useRouter();
+const nuevaAsociacionSchema = z.object({
+    paqueteId: z.number().min(1, "Selecciona un paquete"),
+    coberturas: z.array(
+        z.object({
+            CoberturaID: z.number(),
+            obligatoria: z.boolean(),
+        })
+    ).min(1, "Selecciona al menos una cobertura"),
+})
 
-    const form = useForm<z.infer<typeof nuevaAsociacionSchema>>({
+type FormValues = z.infer<typeof nuevaAsociacionSchema>
+
+export const NuevaAsociacionForm = ({ paquetes, coberturas }: NuevaAsociacionFormProps) => {
+    const [isPending, startTransition] = useTransition()
+    const router = useRouter()
+    const { toast } = useToast();
+
+    const form = useForm<FormValues>({
         resolver: zodResolver(nuevaAsociacionSchema),
         defaultValues: {
-            paqueteId: paquetes[0].PaqueteCoberturaID ?? 0,
-            coberturaIds: [],
-            obligatoria: false,
+            paqueteId: paquetes && paquetes.length > 0 ? paquetes[0].PaqueteCoberturaID : undefined,
+            coberturas: [],
         },
-    });
+    })
 
-    const coberturaIds = form.watch("coberturaIds");
+    const { fields, append, remove, update } = useFieldArray({
+        control: form.control,
+        name: "coberturas",
+    })
 
     const handleCoberturaChange = (id: number, checked: boolean) => {
-        const updatedCoberturas = checked
-            ? [...coberturaIds, id] // Añadir cobertura si se selecciona
-            : coberturaIds.filter((coberturaId) => coberturaId !== id); // Quitar cobertura si se deselecciona
+        if (checked) {
+            append({ CoberturaID: id, obligatoria: false })
+        } else {
+            const index = fields.findIndex((field) => field.CoberturaID === id)
+            if (index !== -1) {
+                remove(index)
+            }
+        }
+    }
 
-        form.setValue("coberturaIds", updatedCoberturas); // Actualizar valor en el formulario
-    };
+    const handleObligatoriaChange = (id: number, value: boolean) => {
+        const index = fields.findIndex((field) => field.CoberturaID === id)
+        if (index !== -1) {
+            update(index, { ...fields[index], obligatoria: value })
+        }
+    }
 
-    const onSubmit = (values: z.infer<typeof nuevaAsociacionSchema>) => {
+    const onSubmit = (values: FormValues) => {
         startTransition(async () => {
-            const { paqueteId, coberturaIds, obligatoria } = values;
-
             try {
-                const body = { coberturaIds, obligatoria };
-                const response = await postAsociarPaqueteCobertura(paqueteId, body);
+                const payload: iAsociarPaqueteCobertura = {
+                    coberturas: values.coberturas,
+                }
+
+                const response = await postAsociarPaqueteCobertura(values.paqueteId, payload)
 
                 if (!response) {
                     toast({
@@ -64,19 +89,23 @@ export const NuevaAsociacionForm = ({ paquetes, coberturas }: NuevaAsociacionFor
                         title: "Asociación creada",
                         description: "La asociación se ha creado exitosamente.",
                         variant: "default",
-                    });
-                    form.reset();
-                    router.refresh();
+                    })
+                    form.reset()
+                    router.refresh()
                 }
             } catch (error) {
                 toast({
                     title: "Error",
                     description: "Hubo un problema al crear la asociación.",
                     variant: "destructive",
-                });
+                })
             }
-        });
-    };
+        })
+    }
+
+    if (!paquetes || paquetes.length === 0) {
+        return <div>No hay paquetes disponibles.</div>
+    }
 
     return (
         <>
@@ -84,80 +113,66 @@ export const NuevaAsociacionForm = ({ paquetes, coberturas }: NuevaAsociacionFor
             <div className="bg-white p-6 shadow-md max-w-7xl">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                        {/* Select para seleccionar paquete */}
                         <FormField
                             control={form.control}
                             name="paqueteId"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Selecciona un paquete</FormLabel>
-                                    <FormControl>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value.toString()}>
+                                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                        <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Selecciona un paquete" />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                {paquetes.map((paquete) => (
-                                                    <SelectItem key={paquete.PaqueteCoberturaID} value={paquete.PaqueteCoberturaID.toString()}>
-                                                        {paquete.NombrePaquete}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Checkboxes para seleccionar coberturas */}
-                        <FormField
-                            control={form.control}
-                            name="coberturaIds"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel>Selecciona Coberturas</FormLabel>
-                                    <FormControl>
-                                        <div className="space-y-2">
-                                            {coberturas.map((cobertura) => (
-                                                <div key={cobertura.CoberturaID} className="flex items-center gap-2">
-                                                    <Checkbox
-                                                        id={cobertura.CoberturaID.toString()}
-                                                        checked={coberturaIds.includes(cobertura.CoberturaID)}
-                                                        onCheckedChange={(checked) => handleCoberturaChange(cobertura.CoberturaID, checked as boolean)}
-                                                    />
-                                                    <label htmlFor={cobertura.CoberturaID.toString()}>{cobertura.NombreCobertura}</label>
-                                                </div>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {paquetes.map((paquete) => (
+                                                <SelectItem key={paquete.PaqueteCoberturaID} value={paquete.PaqueteCoberturaID.toString()}>
+                                                    {paquete.NombrePaquete}
+                                                </SelectItem>
                                             ))}
-                                        </div>
-                                    </FormControl>
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        {/* Select para campo Obligatoria */}
-                        <FormField
-                            control={form.control}
-                            name="obligatoria"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>¿Es Obligatoria?</FormLabel>
-                                    <FormControl>
-                                        <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecciona si es obligatoria" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="true">Sí</SelectItem>
-                                                <SelectItem value="false">No</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <FormItem>
+                            <FormLabel>Selecciona Coberturas</FormLabel>
+                            <div className="space-y-4">
+                                {coberturas.map((cobertura) => {
+                                    const coberturaField = fields.find((field) => field.CoberturaID === cobertura.CoberturaID)
+                                    return (
+                                        <div key={cobertura.CoberturaID} className="flex items-center gap-4">
+                                            <Checkbox
+                                                id={`cobertura-${cobertura.CoberturaID}`}
+                                                checked={!!coberturaField}
+                                                onCheckedChange={(checked) => handleCoberturaChange(cobertura.CoberturaID, checked as boolean)}
+                                            />
+                                            <label htmlFor={`cobertura-${cobertura.CoberturaID}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                                {cobertura.NombreCobertura}
+                                            </label>
+                                            {coberturaField && (
+                                                <Select
+                                                    onValueChange={(value) => handleObligatoriaChange(cobertura.CoberturaID, value === "true")}
+                                                    value={coberturaField.obligatoria ? "true" : "false"}
+                                                >
+                                                    <SelectTrigger className="w-[180px]">
+                                                        <SelectValue placeholder="¿Es obligatoria?" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="true">Obligatoria</SelectItem>
+                                                        <SelectItem value="false">No obligatoria</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
 
                         <Button type="submit" disabled={isPending} size="lg">
                             {isPending ? (
@@ -176,5 +191,5 @@ export const NuevaAsociacionForm = ({ paquetes, coberturas }: NuevaAsociacionFor
                 </Form>
             </div>
         </>
-    );
-};
+    )
+}
