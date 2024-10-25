@@ -38,7 +38,11 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
         resolver: zodResolver(editReglaNegocioSchema),
         defaultValues: {
             NombreRegla: regla?.NombreRegla || '',      // Inicializa con un valor por defecto si regla está indefinida
+            Descripcion: regla?.Descripcion || '',
+            TipoAplicacion: regla?.TipoAplicacion || '',
+            TipoRegla: regla?.TipoRegla || '',
             ValorAjuste: regla?.ValorAjuste || 0,
+            Condicion: regla?.Condicion || '',
             EsGlobal: regla?.EsGlobal || false,         // Booleano inicializado en false
             Activa: regla?.Activa || false,
             cobertura: {
@@ -105,7 +109,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
         <div className="max-h-[80vh] overflow-y-auto">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-8 pr-2">
+                    className="space-y-8">
                     <div className="grid grid-cols-2 gap-5">
                         <FormField
                             control={form.control}
@@ -115,9 +119,76 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                     <FormLabel>Nombre de la Regla</FormLabel>
                                     <FormControl>
                                         <Input
+                                            defaultValue={regla.NombreRegla}
                                             placeholder="Paquete de cobertura..."
                                             {...field}
                                         />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="Descripcion"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Descripción de la Regla</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            defaultValue={regla.Descripcion}
+                                            placeholder="Descripción de la regla..."
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {/* Select de TipoAplicacion ('Global','CoberturaEspecifica')  */}
+                        <FormField
+                            control={form.control}
+                            name="TipoAplicacion"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de aplicación</FormLabel>
+                                    <FormControl>
+                                        <Select defaultValue={regla.TipoAplicacion} onValueChange={field.onChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Global">Global</SelectItem>
+                                                <SelectItem value="CoberturaEspecifica">Cobertura Específica</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="TipoRegla"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de Regla</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            defaultValue={regla.TipoRegla} 
+                                            onValueChange={field.onChange}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Prima">Prima</SelectItem>
+                                                <SelectItem value="Cobertura">Cobertura</SelectItem>
+                                                <SelectItem value="Deducible">Deducible</SelectItem>
+                                                <SelectItem value="Descuento">Descuento</SelectItem>
+                                                <SelectItem value="Bonificacion">Bonificación</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -132,6 +203,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                     <FormControl>
                                         <Input
                                             type="number"
+                                            defaultValue={regla.ValorAjuste}
                                             placeholder="Valor de ajuste..."
                                             {...field}
                                         />
@@ -142,26 +214,40 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                         />
                         <FormField
                             control={form.control}
-                            name="EsGlobal"
+                            name="Condicion"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Es global</FormLabel>
+                                    <FormLabel>Condición</FormLabel>
                                     <FormControl>
-                                        <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Seleccione" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="true">Sí</SelectItem>
-                                                <SelectItem value="false">No</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <Input
+                                            defaultValue={regla.Condicion}
+                                            placeholder="Condición..."
+                                            {...field}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        {form.watch("EsGlobal") === false ? (
+                        {/* Si EsGlobal == true, mostrar este campo */}
+                        {/* Select de CoberturaID */}
+                        {form.watch("TipoAplicacion") === 'Global' ? (
+                            <FormField
+                                control={form.control}
+                                name="cobertura"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Cobertura</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                value={'N/A'}
+                                                disabled
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        ) : (
                             <FormField
                                 control={form.control}
                                 name="cobertura"
@@ -169,9 +255,9 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                     <FormItem>
                                         <FormLabel>Cobertura</FormLabel>
                                         <FormControl>
-                                            <Select
-                                                value={field.value?.CoberturaID?.toString()}
-                                                onValueChange={(value) => field.onChange({ CoberturaID: Number(value) })}
+                                            <Select 
+                                                defaultValue={field.value.CoberturaID+''}
+                                                onValueChange={(value) => { field.onChange({ CoberturaID: Number(value) }) }}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Seleccione" />
@@ -189,9 +275,8 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                     </FormItem>
                                 )}
                             />
-                        ) : (
-                            <div></div>
                         )}
+
                         <FormField
                             control={form.control}
                             name="Activa"
@@ -199,7 +284,10 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                 <FormItem>
                                     <FormLabel>Activa</FormLabel>
                                     <FormControl>
-                                        <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <Select 
+                                            defaultValue={regla.Activa ? 'true' : 'false'}
+                                            onValueChange={(value) => field.onChange(value === "true")} 
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Seleccione" />
                                             </SelectTrigger>
@@ -213,6 +301,25 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name="CodigoPostal"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Código postal</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            defaultValue={regla.CodigoPostal}
+                                            placeholder="Código postal..."
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                     </div>
                     {/* Campos dinámicos de condiciones */}
                     <h3 className="font-bold text-lg">Condiciones</h3>
@@ -228,6 +335,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                                 <FormLabel>Campo</FormLabel>
                                                 <FormControl>
                                                     <Input
+                                                        defaultValue={item.Campo}
                                                         placeholder="Campo..."
                                                         {...field}
                                                     />

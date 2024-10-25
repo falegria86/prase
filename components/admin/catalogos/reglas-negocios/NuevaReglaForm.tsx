@@ -65,16 +65,10 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
 
     const onSubmit = (values: z.infer<typeof nuevaReglaNegocioSchema>) => {
 
-        const dataToSend = {
-            ...values,
-            cobertura: {
-                CoberturaID: values.EsGlobal == true ? null : values.cobertura.CoberturaID,
-            }
-        };
         // return
         startTransition(async () => {
             try {
-                const resp = await postReglaNegocio(dataToSend)
+                const resp = await postReglaNegocio(values)
 
                 if (!resp) {
                     toast({
@@ -215,27 +209,6 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                                 placeholder="Condición..."
                                                 {...field}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="EsGlobal"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Es global</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="true">Sí</SelectItem>
-                                                    <SelectItem value="false">No</SelectItem>
-                                                </SelectContent>
-                                            </Select>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
