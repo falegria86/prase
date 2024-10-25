@@ -45,6 +45,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
             Condicion: regla?.Condicion || '',
             EsGlobal: regla?.EsGlobal || false,         // Booleano inicializado en false
             Activa: regla?.Activa || false,
+            CodigoPostal: regla?.CodigoPostal || '0',
             cobertura: {
                 CoberturaID: regla?.cobertura?.CoberturaID || 0,   // Referencia a la cobertura de la regla
             },

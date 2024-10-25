@@ -35,9 +35,7 @@ export const editReglaNegocioSchema = z.object({
         Valor: z.string().min(1, {
             message: "El valor es requerido",
         }),
-        CodigoPostal: z.string().min(1, {
-            message: "El código postal es requerido",
-        }),
+        CodigoPostal: z.string() || null, // Hacemos que sea opcional por defecto
     })),
 }).refine((data) => {
     // Si EsGlobal es false, entonces cobertura debe estar presente y CoberturaID no puede ser undefined
@@ -82,9 +80,7 @@ export const nuevaReglaNegocioSchema = z.object({
         Valor: z.string().min(1, {
             message: "El valor es requerido",
         }),
-        CodigoPostal: z.string().min(1, {
-            message: "El código postal es requerido",
-        }),
+        CodigoPostal: z.string() || null, // Hacemos que sea opcional por defecto
     })),
 }).refine((data) => {
     // Si EsGlobal es false, entonces cobertura debe estar presente y CoberturaID no puede ser undefined
