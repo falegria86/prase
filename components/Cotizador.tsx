@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ import {
     getPrecioVersionPorClave,
     loginAuto
 } from "@/actions/LibroAzul";
+import { getAutocompleteSuggestions } from "@/actions/Geoapify";
 import { getAniosSchema, getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getPrecioVersionPorClaveSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema"
 import {
     iGetAnios,
@@ -77,22 +78,47 @@ export default function Cotizador() {
         }
     }
 
-    const [ currentStep, setCurrentStep ] = useState<number>(1);
-    const [ apiKey, setApiKey ] = useState<string | null>(null);
-    const [ years, setYears ] = useState<iGetAnios[]>([])
-    const [ brands, setBrands ] = useState<iGetMarcasPorAnio[]>([])
-    const [ models, setModels ] = useState<iGetModelosPorAnioMarca[]>([])
-    const [ versions, setVersions ] = useState<iGetVersionesPorAnioMarcaModelo[]>([])
-    const [ selectedYear, setSelectedYear ] = useState<iGetAnios | null>(null)
-    const [ selectedBrand, setSelectedBrand ] = useState<iGetMarcasPorAnio | null>(null)
-    const [ selectedModel, setSelectedModel ] = useState<iGetModelosPorAnioMarca | null>(null)
-    const [ selectedVersion, setSelectedVersion ] = useState<iGetVersionesPorAnioMarcaModelo | null>(null)
-    const [ price, setPrice ] = useState<iGetPrecioVersionPorClave | null>(null)
+    const [currentStep, setCurrentStep] = useState<number>(1);
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [years, setYears] = useState<iGetAnios[]>([])
+    const [brands, setBrands] = useState<iGetMarcasPorAnio[]>([])
+    const [models, setModels] = useState<iGetModelosPorAnioMarca[]>([])
+    const [versions, setVersions] = useState<iGetVersionesPorAnioMarcaModelo[]>([])
+    const [selectedYear, setSelectedYear] = useState<iGetAnios | null>(null)
+    const [selectedBrand, setSelectedBrand] = useState<iGetMarcasPorAnio | null>(null)
+    const [selectedModel, setSelectedModel] = useState<iGetModelosPorAnioMarca | null>(null)
+    const [selectedVersion, setSelectedVersion] = useState<iGetVersionesPorAnioMarcaModelo | null>(null)
+    const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null)
+    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<any[]>([]);
+    const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false);
 
-    const [ error, setError ] = useState<string | null>(null);
-    const [ isLoading, setIsLoading ] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    console.log("🚀 ~ render ~ error", error)
+    const fetchAutocompleteSuggestions = (query: string) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        // Configurar el debounce
+        debounceRef.current = setTimeout(async () => {
+            if (!query) return;
+
+            setIsAutocompleteLoading(true);
+            try {
+                const suggestions = await getAutocompleteSuggestions(query);
+
+                if (suggestions) {
+                    setAutocompleteSuggestions(suggestions);
+                } else {
+                    setAutocompleteSuggestions([]);
+                }
+            } catch (error) {
+                console.error("Error fetching autocomplete suggestions:", error);
+            } finally {
+                setIsAutocompleteLoading(false);
+            }
+        }, 300); // 300ms de delay antes de hacer la petición
+    };
 
     const form = useForm<z.infer<typeof nuevaCotizacionSchema>>({
         resolver: zodResolver(nuevaCotizacionSchema),
@@ -110,8 +136,8 @@ export default function Cotizador() {
             derechoPoliza: "$600",
             vigencia: "Anual",
             meses: 12,
-            inicioVigencia: new Date().toISOString().split("T")[ 0 ], // Formato 'yyyy-MM-dd'
-            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[ 0 ],
+            inicioVigencia: new Date().toISOString().split("T")[0], // Formato 'yyyy-MM-dd'
+            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
             tipoSumaAsegurada: "Valor convenido",
             sumaAsegurada: 89000,
             periodoGracia: "14 días",
@@ -134,7 +160,7 @@ export default function Cotizador() {
             fechaInicio.setMonth(fechaInicio.getMonth() + meses);
 
             // Formatear la fecha de fin nuevamente a 'yyyy-MM-dd'
-            form.setValue("finVigencia", fechaInicio.toISOString().split("T")[ 0 ]);
+            form.setValue("finVigencia", fechaInicio.toISOString().split("T")[0]);
         } else {
             console.error("Error al parsear la fecha de inicio.");
         }
@@ -146,7 +172,7 @@ export default function Cotizador() {
         // Actualizar la fecha de fin cada vez que se cambia el inicio o los meses
         updateFinVigencia();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ form.watch("inicioVigencia"), form.watch("meses") ]);
+    }, [form.watch("inicioVigencia"), form.watch("meses")]);
 
     const onSubmit = (data: z.infer<typeof nuevaCotizacionSchema>) => {
         console.log(data);
@@ -289,33 +315,46 @@ export default function Cotizador() {
     }
 
     const handleVersionSelect = async (versionClave: string) => {
-        //limpiar los datos de los pasos siguientes
-        setPrice(null)
+        setPrice(null);
 
-        if (!apiKey) return
-        const version = versions.find(v => v.Clave === versionClave)
-        if (!version) return
-        setSelectedVersion(version)
-        setIsLoading(true)
-        setError(null)
+        if (!apiKey) return;
+        const version = versions.find((v) => v.Clave === versionClave);
+        if (!version) return;
+
+        setSelectedVersion(version);
+        setIsLoading(true);
+        setError(null);
+
         try {
-            const priceData = await getPrecioVersionPorClave(apiKey, version)
-            console.log("🚀 ~ handleVersionSelect ~ priceData", priceData)
-            if (priceData) {
-                const validatedPrice = getPrecioVersionPorClaveSchema.parse(priceData)
-                setPrice(validatedPrice)
+            const priceData = await getPrecioVersionPorClave(apiKey, version);
+            console.log("🚀 ~ handleVersionSelect ~ priceData", priceData);
 
-                console.log(price)
+            if (priceData) {
+                // Asegúrate de convertir las cadenas a números
+                const validatedPrice: iGetPrecioVersionPorClave = {
+                    Venta: priceData.Venta,   // Convierte 'Venta' a número
+                    Compra: priceData.Compra, // Convierte 'Compra' a número
+                    Moneda: priceData.Moneda
+                };
+
+                setPrice(validatedPrice); // Asigna el precio validado al estado
 
             } else {
-                setError('No se pudo obtener el precio')
+                setError('No se pudo obtener el precio');
             }
         } catch (error) {
-            setError('Error al obtener el precio')
+            setError('Error al obtener el precio');
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN',
+        }).format(value);
+    };
 
     return (
         <div className="bg-white p-6 shadow-md">
@@ -433,7 +472,7 @@ export default function Cotizador() {
                             <FormField
                                 control={form.control}
                                 name="version"
-                                render={({  }) => (
+                                render={({ }) => (
                                     <FormItem>
                                         <FormLabel>Versión</FormLabel>
                                         <Select
@@ -455,6 +494,20 @@ export default function Cotizador() {
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
+
+                                        {/* Aquí mostramos el precio una vez seleccionado */}
+                                        {price && (
+                                            <div className="mt-4 p-4 bg-green-100 rounded-lg shadow-md">
+                                                <h2 className="text-lg font-bold">Precio:</h2>
+                                                <p className="text-xl font-semibold text-green-800">
+                                                    Venta: {formatCurrency(price.Venta)}
+                                                </p>
+                                                <p className="text-xl font-semibold text-green-800">
+                                                    Compra: {formatCurrency(price.Compra)}
+                                                </p>
+                                            </div>
+                                        )}
+
                                     </FormItem>
                                 )}
                             />
@@ -523,12 +576,37 @@ export default function Cotizador() {
                                             <Input
                                                 {...field}
                                                 placeholder="Ubicación"
+                                                onChange={(e) => {
+                                                    field.onChange(e.target.value);
+                                                    fetchAutocompleteSuggestions(e.target.value); // Llama a la función con debounce
+                                                }}
+                                                value={field.value}
                                             />
                                         </FormControl>
                                         <FormMessage />
+
+                                        {/* Mostrar sugerencias de autocompletar */}
+                                        {autocompleteSuggestions.length > 0 && (
+                                            <ul className="mt-2 bg-white border border-gray-300 rounded-md">
+                                                {autocompleteSuggestions.map((suggestion, index) => (
+                                                    <li
+                                                        key={index}
+                                                        className="p-2 hover:bg-gray-200 cursor-pointer"
+                                                        onClick={() => {
+                                                            // Actualizar el campo de ubicación con la sugerencia seleccionada
+                                                            form.setValue("ubicacion", suggestion.properties.formatted);
+                                                            setAutocompleteSuggestions([]); // Limpiar sugerencias
+                                                        }}
+                                                    >
+                                                        {suggestion.properties.formatted}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </FormItem>
                                 )}
                             />
+
                         </div>
                     )}
 

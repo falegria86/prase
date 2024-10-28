@@ -21,7 +21,7 @@ export interface iGetVersionesPorAnioMarcaModelo {
 }
 
 export interface iGetPrecioVersionPorClave {
-    Venta: string;
-    Compra: string;
+    Venta: number;
+    Compra: number;
     Moneda: string;
 }
