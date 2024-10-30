@@ -18,37 +18,36 @@ import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
-import { nuevaMonedaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
-import { postMoneda } from "@/actions/CatMonedasActions";
+import { postUsoVehiculo } from "@/actions/CatVehiculosActions";
+import { nuevoUsoVehiculoSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 
-export const NuevaMonedaForm = () => {
+export const NuevoUsoVehiculoForm = () => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<z.infer<typeof nuevaMonedaSchema>>({
-        resolver: zodResolver(nuevaMonedaSchema),
+    const form = useForm<z.infer<typeof nuevoUsoVehiculoSchema>>({
+        resolver: zodResolver(nuevoUsoVehiculoSchema),
         defaultValues: {
             Nombre: "",
-            Abreviacion: "",
         },
     });
 
-    const onSubmit = (values: z.infer<typeof nuevaMonedaSchema>) => {
+    const onSubmit = (values: z.infer<typeof nuevoUsoVehiculoSchema>) => {
         startTransition(async () => {
             try {
-                const resp = await postMoneda(values);
+                const resp = await postUsoVehiculo(values);
 
                 if (!resp) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al crear la moneda.",
+                        description: "Hubo un problema al crear el uso de vehículo.",
                         variant: "destructive",
                     });
                 } else {
                     toast({
-                        title: "Moneda creada",
-                        description: "La moneda se ha creado exitosamente.",
+                        title: "Uso de vehículo creado",
+                        description: "El uso de vehículo se ha creado exitosamente.",
                         variant: "default",
                     });
                     form.reset();
@@ -57,7 +56,7 @@ export const NuevaMonedaForm = () => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al crear la moneda.",
+                    description: "Hubo un problema al crear el uso de vehículo.",
                     variant: "destructive",
                 });
             }
@@ -75,28 +74,15 @@ export const NuevaMonedaForm = () => {
                             name="Nombre"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Nombre de la moneda</FormLabel>
+                                    <FormLabel>Nombre del uso de vehículo</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej. Dólar Americano" {...field} />
+                                        <Input placeholder="Ej. Comercial, Particular" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="Abreviacion"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Abreviación</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej. USD" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="submit" disabled={isPending} size="lg" className="mt-8">
+                        <Button type="submit" disabled={isPending} size="lg">
                             {isPending ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

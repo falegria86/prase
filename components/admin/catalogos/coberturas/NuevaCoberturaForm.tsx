@@ -22,8 +22,9 @@ import Loading from "@/app/(protected)/loading";
 import { nuevaCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
+import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
 
-export const NuevaCoberturaForm = ({ tiposMoneda }: { tiposMoneda: iGetTiposMoneda[] }) => {
+export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoneda: iGetTiposMoneda[], tiposDeducible: iGetTiposDeducible[] }) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -45,6 +46,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda }: { tiposMoneda: iGetTiposMone
             SinValor: false,
             AplicaSumaAsegurada: false,
             tipoMoneda: 0,
+            tipoDeducible: 0,
         },
     });
 
@@ -52,7 +54,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda }: { tiposMoneda: iGetTiposMone
         const formattedData = {
             ...values,
             tipoDeducible: {
-                TipoDeducibleID: 1,
+                TipoDeducibleID: values.tipoDeducible,
             },
             tipoMoneda: {
                 TipoMonedaID: values.tipoMoneda,
@@ -336,12 +338,39 @@ export const NuevaCoberturaForm = ({ tiposMoneda }: { tiposMoneda: iGetTiposMone
                                                 defaultValue={field.value ? field.value.toString() : undefined}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione" />
+                                                    <SelectValue placeholder="Seleccione tipo de moneda..." />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {tiposMoneda.map((tipo) => (
                                                         <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>
                                                             {tipo.Abreviacion}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="tipoDeducible"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tipo de Deducible</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                defaultValue={field.value ? field.value.toString() : undefined}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione tipo de deducible..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tiposDeducible.map((tipo) => (
+                                                        <SelectItem key={tipo.TipoDeducibleID} value={tipo.TipoDeducibleID.toString()}>
+                                                            {tipo.Nombre}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>

@@ -84,7 +84,10 @@ export const nuevaCoberturaSchema = z.object({
     }),
     tipoMoneda: z.coerce.number().min(1, {
         message: 'El tipo de moneda es requerido'
-    })
+    }),
+    tipoDeducible: z.coerce.number().min(1, {
+        message: 'El tipo de deducible es requerido'
+    }),
 });
 
 
@@ -150,4 +153,12 @@ export const editMonedaSchema = z.object({
 export const nuevaMonedaSchema = z.object({
     Nombre: z.string().min(1, "El nombre es requerido"),
     Abreviacion: z.string().min(1, "La abreviación es requerida"),
+});
+
+export const nuevoUsoVehiculoSchema = z.object({
+    Nombre: z.string().min(1, "El nombre es requerido"),
+});
+
+export const nuevoTipoDeducibleSchema = z.object({
+    Nombre: z.string().min(1, "El nombre es requerido"),
 });

@@ -265,7 +265,7 @@ export const NuevoClienteForm = () => {
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit" disabled={isPending} size="lg" className="rounded-md w-full">
+                            <Button type="submit" disabled={isPending} size="lg">
                                 {isPending ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />

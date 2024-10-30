@@ -1,5 +1,11 @@
 "use client"
 
+import { useTransition } from "react"
+import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Loader2, SaveIcon } from "lucide-react"
 import Loading from "@/app/(protected)/loading"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,14 +18,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, SaveIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useTransition } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 //schemas
@@ -280,7 +278,7 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                 )}
                             />
                         </div>
-                        <Button type="submit" disabled={isPending} size="lg" className="rounded-md w-full">
+                        <Button type="submit" disabled={isPending} size="lg">
                             {isPending ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

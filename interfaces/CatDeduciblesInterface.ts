@@ -23,3 +23,12 @@ export interface iPostDeducibleResp {
     Rango: number;
     DeducibleID: number;
 }
+
+export interface iGetTiposDeducible {
+    TipoDeducibleID: number;
+    Nombre: string;
+}
+
+export interface iPostTipoDeducible {
+    Nombre: string;
+}

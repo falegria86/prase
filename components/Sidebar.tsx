@@ -14,7 +14,7 @@ export default function Sidebar() {
     const [isAdminOpen, setIsAdminOpen] = useState(false);
 
     return (
-        <aside className="w-64 bg-white shadow-lg p-4 flex flex-col">
+        <aside className="w-64 bg-white shadow-lg p-4 flex flex-col fixed h-screen">
             <div className="flex items-center justify-center mb-8">
                 <Image
                     src='/prase-logo.png'
@@ -99,7 +99,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
-                                    Catálogo Paquetes
+                                    Cat Paquetes
                                 </Button>
                             </Link>
                             <Link href="/admin/catalogos-deducibles" passHref>
@@ -108,7 +108,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
-                                    Catálogo Deducibles
+                                    Cat Deducibles
                                 </Button>
                             </Link>
                             <Link href="/admin/catalogos-coberturas" passHref>
@@ -117,7 +117,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
-                                    Catálogo Coberturas
+                                    Cat Coberturas
                                 </Button>
                             </Link>
                             <Link href="/admin/catalogos-monedas" passHref>
@@ -126,7 +126,34 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
-                                    Catálogo Monedas
+                                    Cat Monedas
+                                </Button>
+                            </Link>
+                            <Link href="/admin/catalogos-tipos-deducible" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-tipos-deducible' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Cat Tipos Deducible
+                                </Button>
+                            </Link>
+                            <Link href="/admin/catalogos-usos-vehiculo" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-usos-vehiculo' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Cat Usos de Vehículo
+                                </Button>
+                            </Link>
+                            <Link href="/admin/catalogos-tipos-vehiculo" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-tipos-vehiculo' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Cat Tipos de Vehículo
                                 </Button>
                             </Link>
                             <Link href="/admin/tipos-sumas-aseguradas" passHref>

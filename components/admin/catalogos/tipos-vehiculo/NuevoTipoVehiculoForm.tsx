@@ -18,37 +18,47 @@ import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
-import { nuevaMonedaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
-import { postMoneda } from "@/actions/CatMonedasActions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { postTipoVehiculo } from "@/actions/CatVehiculosActions";
 
-export const NuevaMonedaForm = () => {
+const nuevoTipoVehiculoSchema = z.object({
+    Nombre: z.string().min(1, "El nombre es requerido"),
+    UsoID: z.number().min(1, "Debe seleccionar un uso de vehículo"),
+});
+
+interface NuevoTipoVehiculoFormProps {
+    usosVehiculo: iGetUsosVehiculo[];
+}
+
+export const NuevoTipoVehiculoForm = ({ usosVehiculo }: NuevoTipoVehiculoFormProps) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
 
-    const form = useForm<z.infer<typeof nuevaMonedaSchema>>({
-        resolver: zodResolver(nuevaMonedaSchema),
+    const form = useForm<z.infer<typeof nuevoTipoVehiculoSchema>>({
+        resolver: zodResolver(nuevoTipoVehiculoSchema),
         defaultValues: {
             Nombre: "",
-            Abreviacion: "",
+            UsoID: undefined,
         },
     });
 
-    const onSubmit = (values: z.infer<typeof nuevaMonedaSchema>) => {
+    const onSubmit = (values: z.infer<typeof nuevoTipoVehiculoSchema>) => {
         startTransition(async () => {
             try {
-                const resp = await postMoneda(values);
+                const resp = await postTipoVehiculo(values);
 
                 if (!resp) {
                     toast({
                         title: "Error",
-                        description: "Hubo un problema al crear la moneda.",
+                        description: "Hubo un problema al crear el tipo de vehículo.",
                         variant: "destructive",
                     });
                 } else {
                     toast({
-                        title: "Moneda creada",
-                        description: "La moneda se ha creado exitosamente.",
+                        title: "Tipo de vehículo creado",
+                        description: "El tipo de vehículo se ha creado exitosamente.",
                         variant: "default",
                     });
                     form.reset();
@@ -57,7 +67,7 @@ export const NuevaMonedaForm = () => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al crear la moneda.",
+                    description: "Hubo un problema al crear el tipo de vehículo.",
                     variant: "destructive",
                 });
             }
@@ -75,9 +85,9 @@ export const NuevaMonedaForm = () => {
                             name="Nombre"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Nombre de la moneda</FormLabel>
+                                    <FormLabel>Nombre del tipo de vehículo</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej. Dólar Americano" {...field} />
+                                        <Input placeholder="Ej. Sedán, SUV" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -85,18 +95,32 @@ export const NuevaMonedaForm = () => {
                         />
                         <FormField
                             control={form.control}
-                            name="Abreviacion"
+                            name="UsoID"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Abreviación</FormLabel>
+                                    <FormLabel>Uso del vehículo</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej. USD" {...field} />
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            defaultValue={field.value ? field.value.toString() : undefined}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione el uso del vehículo" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {usosVehiculo.map((uso) => (
+                                                    <SelectItem key={uso.UsoID} value={uso.UsoID.toString()}>
+                                                        {uso.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" disabled={isPending} size="lg" className="mt-8">
+                        <Button type="submit" disabled={isPending} size="lg">
                             {isPending ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
