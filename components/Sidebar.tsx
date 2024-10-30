@@ -120,6 +120,15 @@ export default function Sidebar() {
                                     Catálogo Coberturas
                                 </Button>
                             </Link>
+                            <Link href="/admin/catalogos-monedas" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-monedas' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Catálogo Monedas
+                                </Button>
+                            </Link>
                             <Link href="/admin/tipos-sumas-aseguradas" passHref>
                                 <Button
                                     variant={pathname === '/admin/tipos-sumas-aseguradas' ? 'link' : 'ghost'}

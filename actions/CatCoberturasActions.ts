@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetCoberturas, iPatchCobertura, iPostCobertura, iPostCoberturaResp } from "@/interfaces/CatCoberturasInterface";
+import { iGetCoberturas, iGetTiposMoneda, iPatchCobertura, iPostCobertura, iPostCoberturaResp } from "@/interfaces/CatCoberturasInterface";
 
 const url = process.env.API_URL;
 

@@ -30,7 +30,7 @@ import {
     loginAuto
 } from "@/actions/LibroAzul";
 import { getAutocompleteSuggestions } from "@/actions/Geoapify";
-import { getAniosSchema, getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getPrecioVersionPorClaveSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema"
+import { getAniosSchema, getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema"
 import {
     iGetAnios,
     iGetMarcasPorAnio,
@@ -72,7 +72,6 @@ export default function Cotizador() {
             } else {
                 setError('No se pudo obtener la llave');
             }
-
         } catch (error) {
             console.log('Error al obtener la llave: ', error);
         }
@@ -89,8 +88,8 @@ export default function Cotizador() {
     const [selectedModel, setSelectedModel] = useState<iGetModelosPorAnioMarca | null>(null)
     const [selectedVersion, setSelectedVersion] = useState<iGetVersionesPorAnioMarcaModelo | null>(null)
     const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<any[]>([]);
-    const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false);
 
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -103,7 +102,6 @@ export default function Cotizador() {
         debounceRef.current = setTimeout(async () => {
             if (!query) return;
 
-            setIsAutocompleteLoading(true);
             try {
                 const suggestions = await getAutocompleteSuggestions(query);
 
@@ -114,8 +112,6 @@ export default function Cotizador() {
                 }
             } catch (error) {
                 console.error("Error fetching autocomplete suggestions:", error);
-            } finally {
-                setIsAutocompleteLoading(false);
             }
         }, 300); // 300ms de delay antes de hacer la petición
     };
@@ -232,8 +228,6 @@ export default function Cotizador() {
         try {
             const brandsData = await getMarcasPorAnio(apiKey, year)
             console.log("🚀 ~ handleYearSelect ~ brandsData:", brandsData)
-
-
 
             if (brandsData) {
                 const validatedBrands = getMarcasPorAnioSchema.parse(brandsData)
@@ -357,431 +351,447 @@ export default function Cotizador() {
     };
 
     return (
-        <div className="bg-white p-6 shadow-md">
-            <StepIndicator steps={steps} currentStep={currentStep} />
+        <>
+            {error ? (
+                <div>Ha occurido un error.</div>
+            ) : (
 
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    {currentStep === 1 && (
-                        <div className="space-y-6">
-                            <VehicleUseSelector
-                                selectedUse={form.watch("uso")}
-                                setSelectedUse={(use) => form.setValue("uso", use)}
-                                setSelectedType={(type) => form.setValue("tipoVehiculo", type)}
-                            />
-                            {form.watch("uso") && (
-                                <VehicleTypeSelector
-                                    selectedUse={form.watch("uso")}
-                                    selectedType={form.watch("tipoVehiculo")}
-                                    setSelectedType={(type) => form.setValue("tipoVehiculo", type)}
-                                />
-                            )}
-                        </div>
-                    )}
+                <div className="bg-white p-6 shadow-md">
+                    <StepIndicator steps={steps} currentStep={currentStep} />
 
-                    {currentStep === 2 && (
-                        <div className="grid grid-cols-3 gap-5">
-                            <FormField
-                                control={form.control}
-                                name="anio"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Año</FormLabel>
-                                        <Select
-                                            onValueChange={handleYearSelect}
-                                            defaultValue={selectedYear ? selectedYear.Clave.toString() : undefined}
-                                            disabled={isLoading}
-                                        >
-                                            <FormControl>
-                                                {/* Asegúrate de que haya un único hijo en cada nivel */}
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona año..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {years.map((year) => (
-                                                    <SelectItem key={year.Clave} value={year.Clave.toString()}>
-                                                        {year.Nombre}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="marca"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Marca</FormLabel>
-                                        <Select
-                                            onValueChange={handleBrandSelect}
-                                            defaultValue={selectedBrand ? selectedBrand.Clave.toString() : ""}
-                                            disabled={isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona marca..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {brands.map((brand) => (
-                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
-                                                        {brand.Nombre}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="tipo"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Modelo</FormLabel>
-                                        <Select
-                                            onValueChange={handleModelSelect}
-                                            defaultValue={selectedModel ? selectedModel.Clave.toString() : undefined}
-                                            disabled={isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona modelo..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {models.map((brand) => (
-                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
-                                                        {brand.Nombre}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="version"
-                                render={({ }) => (
-                                    <FormItem>
-                                        <FormLabel>Versión</FormLabel>
-                                        <Select
-                                            onValueChange={handleVersionSelect}
-                                            defaultValue={selectedVersion ? selectedVersion.Clave.toString() : undefined}
-                                            disabled={isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona versión..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {versions.map((brand) => (
-                                                    <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
-                                                        {brand.Nombre}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-
-                                        {/* Aquí mostramos el precio una vez seleccionado */}
-                                        {price && (
-                                            <div className="mt-4 p-4 bg-green-100 rounded-lg shadow-md">
-                                                <h2 className="text-lg font-bold">Precio:</h2>
-                                                <p className="text-xl font-semibold text-green-800">
-                                                    Venta: {formatCurrency(price.Venta)}
-                                                </p>
-                                                <p className="text-xl font-semibold text-green-800">
-                                                    Compra: {formatCurrency(price.Compra)}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="amis"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>AMIS</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="AMIS"
-
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="unidadSalvamento"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Unidad de salvamento</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona unidad..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="si">Sí</SelectItem>
-                                                <SelectItem value="no">No</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="serie"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Número de serie</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Número de serie (opcional)"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="ubicacion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Ubicación</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Ubicación"
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.value);
-                                                    fetchAutocompleteSuggestions(e.target.value); // Llama a la función con debounce
-                                                }}
-                                                value={field.value}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-
-                                        {/* Mostrar sugerencias de autocompletar */}
-                                        {autocompleteSuggestions.length > 0 && (
-                                            <ul className="mt-2 bg-white border border-gray-300 rounded-md">
-                                                {autocompleteSuggestions.map((suggestion, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                                                        onClick={() => {
-                                                            // Actualizar el campo de ubicación con la sugerencia seleccionada
-                                                            form.setValue("ubicacion", suggestion.properties.formatted);
-                                                            setAutocompleteSuggestions([]); // Limpiar sugerencias
-                                                        }}
-                                                    >
-                                                        {suggestion.properties.formatted}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </FormItem>
-                                )}
-                            />
-
-                        </div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <div className="grid grid-cols-2 gap-5">
-                            <div>
-                                <FormItem>
-                                    <FormLabel>Derecho de póliza</FormLabel>
-                                    <FormControl>
-                                        <Input value={form.watch("derechoPoliza")} disabled />
-                                    </FormControl>
-                                </FormItem>
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name="vigencia"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Vigencia</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona vigencia" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="Anual">Anual</SelectItem>
-                                                <SelectItem value="Por meses">Por meses</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            {form.watch("vigencia") === "Por meses" && (
-                                <FormField
-                                    control={form.control}
-                                    name="meses"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Meses</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} type="number" placeholder="Meses" />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                            {currentStep === 1 && (
+                                <div className="space-y-6">
+                                    <VehicleUseSelector
+                                        selectedUse={form.watch("uso")}
+                                        setSelectedUse={(use) => form.setValue("uso", use)}
+                                        setSelectedType={(type) => form.setValue("tipoVehiculo", type)}
+                                    />
+                                    {form.watch("uso") && (
+                                        <VehicleTypeSelector
+                                            selectedUse={form.watch("uso")}
+                                            selectedType={form.watch("tipoVehiculo")}
+                                            setSelectedType={(type) => form.setValue("tipoVehiculo", type)}
+                                        />
                                     )}
-                                />
+                                </div>
                             )}
-                            <FormField
-                                control={form.control}
-                                name="inicioVigencia"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Inicio de vigencia</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                type="date"
-                                                value={field.value}
-                                                onChange={(e) => {
-                                                    field.onChange(e.target.value); // Almacena el valor en formato 'yyyy-MM-dd'
-                                                    updateFinVigencia(); // Actualiza el fin de vigencia cuando cambia el inicio
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormItem>
-                                <FormLabel>Fin de vigencia</FormLabel>
-                                <FormControl>
-                                    <Input value={formatDateLocal(new Date(form.watch("finVigencia")))} disabled />
-                                </FormControl>
-                            </FormItem>
-                            <FormField
-                                control={form.control}
-                                name="tipoSumaAsegurada"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tipo de suma asegurada</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona tipo de suma" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="Valor convenido">Valor convenido</SelectItem>
-                                                <SelectItem value="Valor comercial">Valor comercial</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="sumaAsegurada"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Suma asegurada</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} type="number" placeholder="Suma asegurada" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="periodoGracia"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Período de gracia</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona período" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="14 días">14 días</SelectItem>
-                                                <SelectItem value="30 días">30 días</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormItem>
-                                <FormLabel>Moneda</FormLabel>
-                                <FormControl>
-                                    <Input value="Pesos" disabled />
-                                </FormControl>
-                            </FormItem>
-                            <FormField
-                                control={form.control}
-                                name="nombreAsegurado"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Nombre del asegurado (opcional)</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} placeholder="Nombre del asegurado (opcional)" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
 
-                    <div className="flex gap-5 mt-8">
-                        <Button onClick={prevStep} disabled={currentStep === 1}>
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Anterior
-                        </Button>
-                        {currentStep < steps.length ? (
-                            <Button
-                                onClick={nextStep}
-                                disabled={currentStep === 1 && (!form.watch("uso") || !form.watch("tipoVehiculo"))}
-                            >
-                                Siguiente
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        ) : (
-                            <Button type="submit">
-                                Enviar
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        )}
-                    </div>
-                </form>
-            </Form>
-        </div>
+                            {currentStep === 2 && (
+                                <div className="grid grid-cols-3 gap-5">
+                                    <FormField
+                                        control={form.control}
+                                        name="anio"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Año</FormLabel>
+                                                <FormControl>
+                                                    <Select
+                                                        onValueChange={(value) => {
+                                                            field.onChange(Number(value));
+                                                            handleYearSelect(value);
+                                                        }}
+                                                        defaultValue={field.value ? field.value.toString() : undefined}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecciona año..." />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {years.map((year) => (
+                                                                <SelectItem key={year.Clave} value={year.Clave.toString()}>
+                                                                    {year.Nombre}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="marca"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Marca</FormLabel>
+                                                <FormControl>
+                                                    <Select
+                                                        onValueChange={(value) => {
+                                                            field.onChange(value)
+                                                            handleBrandSelect(value)
+                                                        }}
+                                                        defaultValue={field.value ? field.value.toString() : ""}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecciona marca..." />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {brands.map((brand) => (
+                                                                <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                                    {brand.Nombre}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="tipo"
+                                        render={() => (
+                                            <FormItem>
+                                                <FormLabel>Modelo</FormLabel>
+                                                <Select
+                                                    onValueChange={handleModelSelect}
+                                                    defaultValue={selectedModel ? selectedModel.Clave.toString() : undefined}
+                                                    disabled={isLoading}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona modelo..." />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {models.map((brand) => (
+                                                            <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                                {brand.Nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="version"
+                                        render={({ }) => (
+                                            <FormItem>
+                                                <FormLabel>Versión</FormLabel>
+                                                <Select
+                                                    onValueChange={handleVersionSelect}
+                                                    defaultValue={selectedVersion ? selectedVersion.Clave.toString() : undefined}
+                                                    disabled={isLoading}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona versión..." />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {versions.map((brand) => (
+                                                            <SelectItem key={brand.Clave} value={brand.Clave.toString()}>
+                                                                {brand.Nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+
+                                                {/* Aquí mostramos el precio una vez seleccionado */}
+                                                {price && (
+                                                    <div className="mt-4 p-4 bg-green-100 rounded-lg shadow-md">
+                                                        <h2 className="text-lg font-bold">Precio:</h2>
+                                                        <p className="text-xl font-semibold text-green-800">
+                                                            Venta: {formatCurrency(price.Venta)}
+                                                        </p>
+                                                        <p className="text-xl font-semibold text-green-800">
+                                                            Compra: {formatCurrency(price.Compra)}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="amis"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>AMIS</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="AMIS"
+
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="unidadSalvamento"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Unidad de salvamento</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona unidad..." />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="si">Sí</SelectItem>
+                                                        <SelectItem value="no">No</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="serie"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Número de serie</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="Número de serie (opcional)"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="ubicacion"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Ubicación</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="Ubicación"
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.value);
+                                                            fetchAutocompleteSuggestions(e.target.value); // Llama a la función con debounce
+                                                        }}
+                                                        value={field.value}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+
+                                                {/* Mostrar sugerencias de autocompletar */}
+                                                {autocompleteSuggestions.length > 0 && (
+                                                    <ul className="mt-2 bg-white border border-gray-300 rounded-md">
+                                                        {autocompleteSuggestions.map((suggestion, index) => (
+                                                            <li
+                                                                key={index}
+                                                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                                                                onClick={() => {
+                                                                    // Actualizar el campo de ubicación con la sugerencia seleccionada
+                                                                    form.setValue("ubicacion", suggestion.properties.formatted);
+                                                                    setAutocompleteSuggestions([]); // Limpiar sugerencias
+                                                                }}
+                                                            >
+                                                                {suggestion.properties.formatted}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                </div>
+                            )}
+
+                            {currentStep === 3 && (
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div>
+                                        <FormItem>
+                                            <FormLabel>Derecho de póliza</FormLabel>
+                                            <FormControl>
+                                                <Input value={form.watch("derechoPoliza")} disabled />
+                                            </FormControl>
+                                        </FormItem>
+                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="vigencia"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Vigencia</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona vigencia" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="Anual">Anual</SelectItem>
+                                                        <SelectItem value="Por meses">Por meses</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {form.watch("vigencia") === "Por meses" && (
+                                        <FormField
+                                            control={form.control}
+                                            name="meses"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Meses</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} type="number" placeholder="Meses" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
+                                    <FormField
+                                        control={form.control}
+                                        name="inicioVigencia"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Inicio de vigencia</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        type="date"
+                                                        value={field.value}
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.value); // Almacena el valor en formato 'yyyy-MM-dd'
+                                                            updateFinVigencia(); // Actualiza el fin de vigencia cuando cambia el inicio
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormItem>
+                                        <FormLabel>Fin de vigencia</FormLabel>
+                                        <FormControl>
+                                            <Input value={formatDateLocal(new Date(form.watch("finVigencia")))} disabled />
+                                        </FormControl>
+                                    </FormItem>
+                                    <FormField
+                                        control={form.control}
+                                        name="tipoSumaAsegurada"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Tipo de suma asegurada</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona tipo de suma" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="Valor convenido">Valor convenido</SelectItem>
+                                                        <SelectItem value="Valor comercial">Valor comercial</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="sumaAsegurada"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Suma asegurada</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} type="number" placeholder="Suma asegurada" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="periodoGracia"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Período de gracia</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona período" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="14 días">14 días</SelectItem>
+                                                        <SelectItem value="30 días">30 días</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormItem>
+                                        <FormLabel>Moneda</FormLabel>
+                                        <FormControl>
+                                            <Input value="Pesos" disabled />
+                                        </FormControl>
+                                    </FormItem>
+                                    <FormField
+                                        control={form.control}
+                                        name="nombreAsegurado"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Nombre del asegurado (opcional)</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="Nombre del asegurado (opcional)" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="flex gap-5 mt-8">
+                                <Button onClick={prevStep} disabled={currentStep === 1}>
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Anterior
+                                </Button>
+                                {currentStep < steps.length ? (
+                                    <Button
+                                        onClick={nextStep}
+                                        disabled={currentStep === 1 && (!form.watch("uso") || !form.watch("tipoVehiculo"))}
+                                    >
+                                        Siguiente
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                ) : (
+                                    <Button type="submit">
+                                        Enviar
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                        </form>
+                    </Form>
+                </div>
+            )}
+        </>
     )
 }

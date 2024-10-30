@@ -1,9 +1,18 @@
 import { getCoberturas } from "@/actions/CatCoberturasActions";
+import { getTiposMoneda } from "@/actions/CatMonedasActions";
 import { NuevaCoberturaForm } from "@/components/admin/catalogos/coberturas/NuevaCoberturaForm";
 import { TableCoberturas } from "@/components/admin/catalogos/coberturas/TableCoberturas";
 
 export default async function CatalogoPaquetesPage() {
     const coberturas = await getCoberturas();
+    console.log(coberturas)
+    const tiposMoneda = await getTiposMoneda();
+
+    if (!tiposMoneda) {
+        return (
+            <div>Error al obtener los tipos de moneda, no se puede continuar.</div>
+        )
+    }
 
     return (
         <>
@@ -18,7 +27,9 @@ export default async function CatalogoPaquetesPage() {
             )}
 
             <h3 className="text-2xl font-bold mt-16 mb-6">Nuevo Paquete</h3>
-            <NuevaCoberturaForm />
+            <NuevaCoberturaForm
+                tiposMoneda={tiposMoneda}
+            />
         </>
     )
 }

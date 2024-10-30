@@ -13,22 +13,39 @@ export interface iGetCoberturas {
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
+    tipoDeducible: TipoDeducible | null;
+    tipoMoneda: iGetTiposMoneda | null;
+}
+
+export interface TipoDeducible {
+    TipoDeducibleID: number;
+    Nombre: string;
 }
 
 export interface iPostCobertura {
     NombreCobertura: string;
     Descripcion: string;
-    PrimaBase: string;
-    SumaAseguradaMin: string;
-    SumaAseguradaMax: string;
-    DeducibleMin: string;
-    DeducibleMax: string;
-    PorcentajePrima: string;
-    RangoSeleccion: string;
+    PrimaBase: number;
+    SumaAseguradaMin: number;
+    SumaAseguradaMax: number;
+    DeducibleMin: number;
+    DeducibleMax: number;
+    PorcentajePrima: number;
+    RangoSeleccion: number;
     EsCoberturaEspecial: boolean;
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
+    tipoDeducible: TipoDeduciblePost;
+    tipoMoneda: TipoMonedaPost;
+}
+
+export interface TipoDeduciblePost {
+    TipoDeducibleID: number;
+}
+
+export interface TipoMonedaPost {
+    TipoMonedaID: number;
 }
 
 export interface iPostCoberturaResp {
@@ -61,4 +78,10 @@ export interface iPatchCobertura {
     Variable?: boolean;
     SinValor?: boolean;
     AplicaSumaAsegurada?: boolean;
+}
+
+export interface iGetTiposMoneda {
+    TipoMonedaID: number;
+    Nombre: string;
+    Abreviacion: string;
 }

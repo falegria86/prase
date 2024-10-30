@@ -177,7 +177,8 @@ export default function LibroAzulForm() {
             const priceData = await getPrecioVersionPorClave(apiKey, version)
             if (priceData) {
                 const validatedPrice = getPrecioVersionPorClaveSchema.parse(priceData)
-                setPrice(validatedPrice)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setPrice(validatedPrice as any)
                 setStep(5)
             } else {
                 setError('No se pudo obtener el precio')
@@ -332,9 +333,9 @@ export default function LibroAzulForm() {
                         <div className="bg-blue-50 p-4 rounded-lg text-center">
                             <h3 className="text-lg font-semibold mb-2 text-blue-800">Precio estimado:</h3>
                             <div className="flex justify-center items-center space-x-2">
-                                <p className="text-2xl font-bold text-green-600">Venta: ${parseInt(price.Venta).toLocaleString()} {price.Moneda}</p>
+                                <p className="text-2xl font-bold text-green-600">Venta: ${price.Venta.toLocaleString()} {price.Moneda}</p>
                             </div>
-                            <p className="text-sm text-blue-600 mt-1">Compra: ${parseInt(price.Compra).toLocaleString()} {price.Moneda}</p>
+                            <p className="text-sm text-blue-600 mt-1">Compra: ${price.Compra.toLocaleString()} {price.Moneda}</p>
                         </div>
                     )}
                     {isLoading && (

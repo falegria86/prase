@@ -49,26 +49,26 @@ export const nuevaCoberturaSchema = z.object({
     Descripcion: z.string().min(1, {
         message: 'Descripción es requerida',
     }),
-    PrimaBase: z.string().min(1, {
-        message: 'Prima base es requerida',
+    PrimaBase: z.coerce.number().min(1, {
+        message: 'Prima base es requerida y debe ser un número válido',
     }),
-    SumaAseguradaMin: z.string().min(1, {
-        message: 'Suma asegurada mínima es requerida',
+    SumaAseguradaMin: z.coerce.number().min(1, {
+        message: 'Suma asegurada mínima es requerida y debe ser un número válido',
     }),
-    SumaAseguradaMax: z.string().min(1, {
-        message: 'Suma asegurada máxima es requerida',
+    SumaAseguradaMax: z.coerce.number().min(1, {
+        message: 'Suma asegurada máxima es requerida y debe ser un número válido',
     }),
-    DeducibleMin: z.string().min(1, {
-        message: 'Deducible mínimo es requerido',
+    DeducibleMin: z.coerce.number().min(1, {
+        message: 'Deducible mínimo es requerido y debe ser un número válido',
     }),
-    DeducibleMax: z.string().min(1, {
-        message: 'Deducible máximo es requerido',
+    DeducibleMax: z.coerce.number().min(1, {
+        message: 'Deducible máximo es requerido y debe ser un número válido',
     }),
-    PorcentajePrima: z.string().min(1, {
-        message: 'Porcentaje de prima es requerido',
+    PorcentajePrima: z.coerce.number().min(1, {
+        message: 'Porcentaje de prima es requerido y debe ser un número válido',
     }),
-    RangoSeleccion: z.string().min(1, {
-        message: 'Rango de selección es requerido',
+    RangoSeleccion: z.coerce.number().min(1, {
+        message: 'Rango de selección es requerido y debe ser un número válido',
     }),
     EsCoberturaEspecial: z.boolean({
         message: 'EsCoberturaEspecial es requerido',
@@ -82,7 +82,11 @@ export const nuevaCoberturaSchema = z.object({
     AplicaSumaAsegurada: z.boolean({
         message: 'AplicaSumaAsegurada es requerido',
     }),
+    tipoMoneda: z.coerce.number().min(1, {
+        message: 'El tipo de moneda es requerido'
+    })
 });
+
 
 export const editCoberturaSchema = z.object({
     NombreCobertura: z.string(),
@@ -102,8 +106,14 @@ export const editCoberturaSchema = z.object({
 
 export const nuevaAsociacionSchema = z.object({
     paqueteId: z.coerce.number().min(1, { message: "Paquete es requerido" }),
-    coberturaIds: z.array(z.number()).min(1, "Debe seleccionar al menos una cobertura"),
-    obligatoria: z.boolean(),
+    coberturas: z
+        .array(
+            z.object({
+                CoberturaID: z.number(),
+                obligatoria: z.boolean(),
+            })
+        )
+        .min(1, { message: "Debe seleccionar al menos una cobertura" }),
 });
 
 export const nuevoGrupoSchema = z.object({
@@ -130,4 +140,14 @@ export const editApplicationSchema = z.object({
     icon: z.string(),
     color: z.string(),
     categoria: z.enum(['Administración', 'Catalogos', 'Cotizaciones', 'Siniestros', 'Reportería', 'Control de Cajas', 'Recursos Humanos']),
+});
+
+export const editMonedaSchema = z.object({
+    Nombre: z.string().optional(),
+    Abreviacion: z.string().optional(),
+});
+
+export const nuevaMonedaSchema = z.object({
+    Nombre: z.string().min(1, "El nombre es requerido"),
+    Abreviacion: z.string().min(1, "La abreviación es requerida"),
 });

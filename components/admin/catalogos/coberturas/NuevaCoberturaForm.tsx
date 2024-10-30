@@ -21,8 +21,9 @@ import { postCobertura } from "@/actions/CatCoberturasActions";
 import Loading from "@/app/(protected)/loading";
 import { nuevaCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 
-export const NuevaCoberturaForm = () => {
+export const NuevaCoberturaForm = ({ tiposMoneda }: { tiposMoneda: iGetTiposMoneda[] }) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -32,24 +33,35 @@ export const NuevaCoberturaForm = () => {
         defaultValues: {
             NombreCobertura: '',
             Descripcion: '',
-            PrimaBase: '',
-            SumaAseguradaMin: '',
-            SumaAseguradaMax: '',
-            DeducibleMin: '',
-            DeducibleMax: '',
-            PorcentajePrima: '',
-            RangoSeleccion: '',
+            PrimaBase: 0,
+            SumaAseguradaMin: 0,
+            SumaAseguradaMax: 0,
+            DeducibleMin: 0,
+            DeducibleMax: 0,
+            PorcentajePrima: 0,
+            RangoSeleccion: 0,
             EsCoberturaEspecial: false,
             Variable: false,
             SinValor: false,
             AplicaSumaAsegurada: false,
+            tipoMoneda: 0,
         },
     });
 
     const onSubmit = (values: z.infer<typeof nuevaCoberturaSchema>) => {
+        const formattedData = {
+            ...values,
+            tipoDeducible: {
+                TipoDeducibleID: 1,
+            },
+            tipoMoneda: {
+                TipoMonedaID: values.tipoMoneda,
+            }
+        };
+
         startTransition(async () => {
             try {
-                const resp = await postCobertura(values);
+                const resp = await postCobertura(formattedData);
 
                 if (!resp) {
                     toast({
@@ -312,6 +324,34 @@ export const NuevaCoberturaForm = () => {
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="tipoMoneda"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tipo de Moneda</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                defaultValue={field.value ? field.value.toString() : undefined}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tiposMoneda.map((tipo) => (
+                                                        <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>
+                                                            {tipo.Abreviacion}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                         </div>
                         <Button type="submit" disabled={isPending} size="lg" className="mt-8">
                             {isPending ? (

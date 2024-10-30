@@ -2,7 +2,6 @@
 
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { Edit, Trash2 } from "lucide-react";
 import {
     Table,
@@ -35,37 +34,37 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
-import { deletePaqueteCobertura } from "@/actions/CatCoberturasActions";
+import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import Loading from "@/app/(protected)/loading";
-import { EditarCoberturaForm } from "./EditarCoberturaForm";
+import { EditarMonedaForm } from "./EditarMonedaForm";
+import { deleteMoneda } from "@/actions/CatMonedasActions";
 
 interface Props {
-    coberturas: iGetCoberturas[];
+    monedas: iGetTiposMoneda[];
 }
 
-export const TableCoberturas = ({ coberturas }: Props) => {
+export const TableMonedas = ({ monedas }: Props) => {
     const [isPending, startTransition] = useTransition();
-    const [selectedCobertura, setSelectedCobertura] = useState<iGetCoberturas | null>(null);
-    const [editCobertura, setEditCobertura] = useState<iGetCoberturas | null>(null);
-    const [editCoberturaModalOpen, setEditCoberturaModalOpen] = useState(false);
+    const [selectedMoneda, setSelectedMoneda] = useState<iGetTiposMoneda | null>(null);
+    const [editMoneda, setEditMoneda] = useState<iGetTiposMoneda | null>(null);
+    const [editMonedaModalOpen, setEditMonedaModalOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
-    const handleSelectCobertura = (cobertura: iGetCoberturas) => {
-        setSelectedCobertura(cobertura);
+    const handleSelectMoneda = (moneda: iGetTiposMoneda) => {
+        setSelectedMoneda(moneda);
     };
 
     const handleDelete = async () => {
-        if (!selectedCobertura) return;
+        if (!selectedMoneda) return;
 
         startTransition(async () => {
             try {
-                await deletePaqueteCobertura(selectedCobertura.CoberturaID);
+                await deleteMoneda(selectedMoneda.TipoMonedaID);
 
                 toast({
-                    title: "Cobertura eliminada",
-                    description: `La cobertura ${selectedCobertura.NombreCobertura} se ha eliminado exitosamente.`,
+                    title: "Moneda eliminada",
+                    description: `La moneda ${selectedMoneda.Nombre} se ha eliminado exitosamente.`,
                     variant: "default",
                 });
 
@@ -73,7 +72,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: "Hubo un problema al eliminar la cobertura.",
+                    description: "Hubo un problema al eliminar la moneda.",
                     variant: "destructive",
                 });
             }
@@ -88,8 +87,8 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente la cobertura{" "}
-                            <strong>{selectedCobertura?.NombreCobertura}</strong> y eliminará todos sus datos.
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente la moneda{" "}
+                            <strong>{selectedMoneda?.Nombre}</strong> y eliminará todos sus datos.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -103,24 +102,16 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px]">ID</TableHead>
-                            <TableHead>Cobertura</TableHead>
-                            <TableHead>Descripción</TableHead>
-                            <TableHead>Prima Base</TableHead>
-                            <TableHead>Porcentaje Prima</TableHead>
-                            <TableHead>Tipo Moneda</TableHead>
+                            <TableHead>Nombre</TableHead>
+                            <TableHead>Abreviación</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {coberturas.map((cobertura) => (
-                            <TableRow key={cobertura.CoberturaID}>
-                                <TableCell className="font-medium">{cobertura.CoberturaID}</TableCell>
-                                <TableCell>{cobertura.NombreCobertura}</TableCell>
-                                <TableCell>{cobertura.Descripcion}</TableCell>
-                                <TableCell>{cobertura.PrimaBase}</TableCell>
-                                <TableCell>{cobertura.PorcentajePrima}%</TableCell>
-                                <TableCell>{cobertura.tipoMoneda?.Abreviacion}</TableCell>
+                        {monedas.map((moneda) => (
+                            <TableRow key={moneda.TipoMonedaID}>
+                                <TableCell className="font-medium">{moneda.Nombre}</TableCell>
+                                <TableCell>{moneda.Abreviacion}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
                                         <TooltipTrigger>
@@ -128,14 +119,12 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                                                 size={16}
                                                 className="text-gray-600 cursor-pointer"
                                                 onClick={() => {
-                                                    setEditCobertura(cobertura);
-                                                    setEditCoberturaModalOpen(true);
+                                                    setEditMoneda(moneda);
+                                                    setEditMonedaModalOpen(true);
                                                 }}
                                             />
                                         </TooltipTrigger>
-                                        <TooltipContent>
-                                            Editar cobertura
-                                        </TooltipContent>
+                                        <TooltipContent>Editar moneda</TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
                                         <TooltipTrigger>
@@ -143,13 +132,11 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                                                 <Trash2
                                                     size={16}
                                                     className="text-gray-600 cursor-pointer"
-                                                    onClick={() => handleSelectCobertura(cobertura)}
+                                                    onClick={() => handleSelectMoneda(moneda)}
                                                 />
                                             </AlertDialogTrigger>
                                         </TooltipTrigger>
-                                        <TooltipContent>
-                                            Eliminar cobertura
-                                        </TooltipContent>
+                                        <TooltipContent>Eliminar moneda</TooltipContent>
                                     </Tooltip>
                                 </TableCell>
                             </TableRow>
@@ -158,20 +145,26 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                 </Table>
             </AlertDialog>
 
-            {/* Modal para editar cobertura */}
-            <Dialog open={editCoberturaModalOpen} onOpenChange={() => {
-                setEditCobertura(null);
-                setEditCoberturaModalOpen(false);
-            }}>
+            {/* Modal para editar moneda */}
+            <Dialog
+                open={editMonedaModalOpen}
+                onOpenChange={() => {
+                    setEditMoneda(null);
+                    setEditMonedaModalOpen(false);
+                }}
+            >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Editar Cobertura</DialogTitle>
+                        <DialogTitle>Editar Moneda</DialogTitle>
                     </DialogHeader>
-                    {editCobertura && (
-                        <EditarCoberturaForm cobertura={editCobertura} onSave={() => {
-                            setEditCobertura(null);
-                            setEditCoberturaModalOpen(false);
-                        }} />
+                    {editMoneda && (
+                        <EditarMonedaForm
+                            moneda={editMoneda}
+                            onSave={() => {
+                                setEditMoneda(null);
+                                setEditMonedaModalOpen(false);
+                            }}
+                        />
                     )}
                 </DialogContent>
             </Dialog>
