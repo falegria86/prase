@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -189,6 +189,7 @@ export const RegistrarForm = ({ groups }: { groups: iGetGroups[] }) => {
                             />
                         </div>
                         <Button type="submit" className="mt-5">
+                            <UserPlus className="w-4 h-4 mr-2" />
                             Registrar
                         </Button>
                     </form>

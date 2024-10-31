@@ -20,7 +20,7 @@ export interface iGetApplications {
     descripcion: string;
     icon?: string;
     color?: string;
-    categoria: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos' ;
+    categoria: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos';
 }
 
 export interface iPostApplication {
@@ -28,7 +28,7 @@ export interface iPostApplication {
     descripcion: string;
     icon: string;
     color: string;
-    categoria: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos' ;
+    categoria: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos';
 }
 
 export interface iPostApplicationResp {
@@ -42,13 +42,25 @@ export interface iPatchApplication {
     descripcion?: string;
     icon?: string;
     color?: string;
-    categoria?: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos' ;
+    categoria?: 'Administración' | 'Catalogos' | 'Cotizaciones' | 'Siniestros' | 'Reportería' | 'Control de Cajas' | 'Recursos Humanos';
+}
+
+export interface iGetUsers {
+    UsuarioID: number;
+    NombreUsuario: string;
+    Contrasena: string;
+    grupo: number | null;
 }
 
 export interface iPostUsuario {
     username: string;
     password: string;
     idGroup: number;
+}
+
+export interface iPatchUsuario {
+    password?: string;
+    idGroup?: number;
 }
 
 export interface iApplication {

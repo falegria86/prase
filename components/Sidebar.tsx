@@ -156,6 +156,15 @@ export default function Sidebar() {
                                     Cat Tipos de Vehículo
                                 </Button>
                             </Link>
+                            <Link href="/admin/catalogos-tipos-pago" passHref>
+                                <Button
+                                    variant={pathname === '/admin/catalogos-tipos-pago' ? 'link' : 'ghost'}
+                                    className="w-full justify-start text-sm"
+                                >
+                                    <List className="mr-2 h-3 w-3" />
+                                    Cat Tipos de Pago
+                                </Button>
+                            </Link>
                             <Link href="/admin/tipos-sumas-aseguradas" passHref>
                                 <Button
                                     variant={pathname === '/admin/tipos-sumas-aseguradas' ? 'link' : 'ghost'}

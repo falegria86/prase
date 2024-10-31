@@ -162,3 +162,8 @@ export const nuevoUsoVehiculoSchema = z.object({
 export const nuevoTipoDeducibleSchema = z.object({
     Nombre: z.string().min(1, "El nombre es requerido"),
 });
+
+export const nuevoTipoPagoSchema = z.object({
+    Descripcion: z.string().min(1, "La descripción es requerida"),
+    PorcentajeAjuste: z.coerce.number().min(0, "Porcentaje ajuste es requerido"),
+});

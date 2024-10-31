@@ -14,4 +14,13 @@ export const registrarUsuarioSchema = z.object({
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],
-})
+});
+
+export const editarUsuarioSchema = z.object({
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+    idGroup: z.number().min(1, "Debe seleccionar un grupo"),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+});
