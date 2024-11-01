@@ -13,7 +13,7 @@ export default async function UsuariosPage() {
     if (!usuarios || usuarios.length === 0) {
         return <h4 className="text-red-500">Hubo un error al obtener los usuarios.</h4>;
     }
-
+    console.log(usuarios)
     return (
         <>
             <h2 className="text-3xl font-bold mb-6">Usuarios</h2>
