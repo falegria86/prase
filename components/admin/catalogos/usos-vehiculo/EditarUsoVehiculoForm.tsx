@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { patchUsoVehiculo } from "@/actions/CatVehiculosActions";
 
 const editarUsoVehiculoSchema = z.object({

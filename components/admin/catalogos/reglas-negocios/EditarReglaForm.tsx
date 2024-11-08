@@ -52,15 +52,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                     Valor: condicion.Valor || '',
                     CodigoPostal: condicion.CodigoPostal || '',
                 }))
-                : [
-                    {
-                        CondicionID: 0,
-                        Campo: '',        // Inicializando con un objeto vacío con propiedades requeridas
-                        Operador: '',
-                        Valor: '',
-                        CodigoPostal: '',
-                    }
-                ],
+                : [],
         },
     });
 
@@ -309,7 +301,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                         ))}
                         <Button
                             type="button"
-                            onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '' })}
+                            onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
                             variant="default"
                             className="rounded-md mt-5"
                         >

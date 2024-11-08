@@ -128,7 +128,7 @@ export default function LibroAzulForm() {
         setIsLoading(true)
         setError(null)
         try {
-            const modelsData = await getModelosPorAnioMarca(apiKey, selectedYear, brand)
+            const modelsData = await getModelosPorAnioMarca(apiKey, selectedYear.Clave, brand)
             if (modelsData) {
                 const validatedModels = getModelosPorAnioMarcaSchema.parse(modelsData)
                 setModels(validatedModels)
@@ -151,7 +151,7 @@ export default function LibroAzulForm() {
         setIsLoading(true)
         setError(null)
         try {
-            const versionsData = await getVersionesPorAnioMarcaModelo(apiKey, selectedYear, selectedBrand, model)
+            const versionsData = await getVersionesPorAnioMarcaModelo(apiKey, selectedYear.Clave, selectedBrand.Clave, model)
             if (versionsData) {
                 const validatedVersions = getVersionesPorAnioMarcaModeloSchema.parse(versionsData)
                 setVersions(validatedVersions)

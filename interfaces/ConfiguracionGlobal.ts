@@ -12,7 +12,7 @@ export interface IPatchConfiguracionGlobal {
 export interface IGetAllConfiguracionGlobal {
     ConfiguracionID: number;
     NombreConfiguracion: string;
-    ValorConfiguracion: number;
+    ValorConfiguracion: string;
     Descripcion: string;
     UltimaActualizacion: string;
 }

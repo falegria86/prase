@@ -19,7 +19,7 @@ import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { postTipoVehiculo } from "@/actions/CatVehiculosActions";
 
 const nuevoTipoVehiculoSchema = z.object({

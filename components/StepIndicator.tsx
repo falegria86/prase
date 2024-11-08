@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Car, Truck, Bus, FileText } from 'lucide-react'
-import { Step } from './Cotizador'
+import { Step } from './cotizador/Cotizador'
 
 const iconMap: { [key: string]: React.ElementType } = {
   Car, Truck, Bus, FileText

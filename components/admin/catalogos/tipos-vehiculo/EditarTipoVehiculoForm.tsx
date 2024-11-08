@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { patchTipoVehiculo } from "@/actions/CatVehiculosActions";
 
 const editarTipoVehiculoSchema = z.object({

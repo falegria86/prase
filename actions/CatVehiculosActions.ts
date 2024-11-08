@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetTiposVehiculo, iGetUsosVehiculo, iPatchTipoVehiculo, iPostTipoVehiculo, iPostUsoVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetTiposVehiculo, iGetUsosVehiculo, iPatchTipoVehiculo, iPostTipoVehiculo, iPostUsoVehiculo } from "@/interfaces/CatVehiculosInterface";
 
 const url = process.env.API_URL;
 

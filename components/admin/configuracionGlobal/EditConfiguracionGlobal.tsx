@@ -34,7 +34,7 @@ export const EditarConfiguracionGlobal = ({ configuracion, onSave }: EditarConfi
     const form = useForm<z.infer<typeof editConfiguracionGlobalSchema>>({
         resolver: zodResolver(editConfiguracionGlobalSchema),
         defaultValues: {
-            ValorConfiguracion: configuracion.ValorConfiguracion,
+            ValorConfiguracion: Number(configuracion.ValorConfiguracion),
             Descripcion: configuracion.Descripcion,
         },
     })
@@ -43,7 +43,7 @@ export const EditarConfiguracionGlobal = ({ configuracion, onSave }: EditarConfi
         startTransition(async () => {
             try {
                 const resp = await patchConfiguracionGlobal(configuracion.ConfiguracionID, values);
-                
+
                 if (!resp) {
                     toast({
                         title: "Error",

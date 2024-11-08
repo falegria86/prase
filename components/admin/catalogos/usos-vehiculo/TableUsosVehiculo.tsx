@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
-import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { deleteUsoVehiculo } from "@/actions/CatVehiculosActions";
 import { EditarUsoVehiculoForm } from "./EditarUsoVehiculoForm";
 

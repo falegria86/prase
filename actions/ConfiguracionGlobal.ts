@@ -22,6 +22,21 @@ export const getAllConfiguracionGlobal = async () => {
     }
 }
 
+export const getConfiguracionGlobalByName = async (name: string) => {
+    try {
+        const resp = await fetch(`${url}/configuraciones-sistema/nombre/${name}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: IGetAllConfiguracionGlobal = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener configuración global: ', error);
+    }
+}
+
 export const postConfiguracionGlobal = async (body: IPostConfiguracionGlobal) => {
     try {
         const resp = await fetch(`${url}/configuraciones-sistema`, {

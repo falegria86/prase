@@ -16,14 +16,15 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { SaveIcon, Loader2, X, Plus } from "lucide-react"
+import { SaveIcon, Loader2, Plus, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { postReglaNegocio } from "@/actions/ReglasNegocio"
 import Loading from "@/app/(protected)/loading"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { iGetAllCobertura } from "@/interfaces/ReglasNegocios"
+import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface"
 
-export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertura[] }) => {
+export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: iGetAllCobertura[], tiposMoneda: iGetTiposMoneda[] }) => {
     const [isPending, startTransition] = useTransition()
     const { toast } = useToast();
     const router = useRouter();
@@ -31,43 +32,37 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
     const form = useForm<z.infer<typeof nuevaReglaNegocioSchema>>({
         resolver: zodResolver(nuevaReglaNegocioSchema),
         defaultValues: {
-            NombreRegla: '',         // Cadenas vacías para valores string
+            NombreRegla: '',
             Descripcion: '',
             TipoAplicacion: '',
             TipoRegla: '',
             ValorAjuste: 0,
             Condicion: '',
-            EsGlobal: false,         // Booleanos inicializados en false
+            EsGlobal: false,
             Activa: false,
             CodigoPostal: '',
             cobertura: {
-                CoberturaID: 0,     // Inicializando con un objeto vacío con propiedades requeridas
+                CoberturaID: 0,
             },
-            condiciones: [
-                {
-                    Campo: '',        // Inicializando con un objeto vacío con propiedades requeridas
-                    Operador: '',
-                    Valor: '',
-                    CodigoPostal: '',
-                }
-            ]
+            condiciones: [],
         },
-    })
-    // Configurar useFieldArray para manejar condiciones dinámicamente
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: "condiciones",  // El nombre del array de condiciones
     });
 
-    const onSubmit = (values: z.infer<typeof nuevaReglaNegocioSchema>) => {
+    const { fields, append, remove } = useFieldArray(
+        {
+            control: form.control,
+            name: "condiciones",
+        }
+    );
 
+    const onSubmit = (values: z.infer<typeof nuevaReglaNegocioSchema>) => {
         const dataToSend = {
             ...values,
             cobertura: {
                 CoberturaID: values.EsGlobal == true ? null : values.cobertura.CoberturaID,
             }
         };
-        // return
+
         startTransition(async () => {
             try {
                 const resp = await postReglaNegocio(dataToSend)
@@ -239,7 +234,7 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                             />
                             {/* Si EsGlobal == true, mostrar este campo */}
                             {/* Select de CoberturaID */}
-                            {form.watch("EsGlobal") === false ? (
+                            {form.watch("EsGlobal") === false && (
                                 <FormField
                                     control={form.control}
                                     name="cobertura"
@@ -249,7 +244,7 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                             <FormControl>
                                                 <Select onValueChange={(value) => field.onChange({ CoberturaID: Number(value) })}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Seleccione" />
+                                                        <SelectValue placeholder="Seleccione cobertura..." />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {coberturas && coberturas.map((cobertura) => (
@@ -264,8 +259,6 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                         </FormItem>
                                     )}
                                 />
-                            ) : (
-                                <div></div>
                             )}
 
                             <FormField
@@ -312,7 +305,6 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                         <h3 className="font-bold text-lg">Condiciones</h3>
                         <div className="space-y-5">
                             {fields.map((item, index) => (
-
                                 <div key={item.id} className="grid grid-cols-12 gap-5 items-center border-t pt-5">
                                     <div className="col-span-4">
                                         <FormField
@@ -342,7 +334,7 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                                     <FormControl className="w-full">
                                                         <Select onValueChange={field.onChange}>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Seleccione" />
+                                                                <SelectValue placeholder="Seleccione operador..." />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="<=">Menor o Igual Que</SelectItem>
@@ -350,6 +342,30 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                                                 <SelectItem value="<">Menor Que</SelectItem>
                                                                 <SelectItem value=">">Mayor Que</SelectItem>
                                                                 <SelectItem value="=">Igual Que</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                    <div className="col-span-4">
+                                        <FormField
+                                            control={form.control}
+                                            name={`condiciones.${index}.tipoMoneda`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Tipo de moneda</FormLabel>
+                                                    <FormControl className="w-full">
+                                                        <Select onValueChange={(value) => field.onChange(Number(value))}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {tiposMoneda.map(tipo => (
+                                                                    <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
+                                                                ))}
                                                             </SelectContent>
                                                         </Select>
                                                     </FormControl>
@@ -376,12 +392,12 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                                     <div className="flex items-end justify-end  mt-auto">
                                         <Button
                                             type="button"
-                                            variant="destructive"
+                                            variant="ghost"
                                             size="icon"
                                             onClick={() => remove(index)}
                                             className="rounded-md"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
                                     <div className="col-span-4">
@@ -403,7 +419,7 @@ export const NuevaReglaForm = ({ coberturas = [] }: { coberturas: iGetAllCobertu
                             ))}
                             <Button
                                 type="button"
-                                onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '' })}
+                                onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
                                 variant="default"
                                 className="rounded-md"
                             >

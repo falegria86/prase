@@ -7,12 +7,13 @@ import {
     iGetPrecioVersionPorClave
 } from '@/interfaces/LibroAzul';
 
-const user = "demo2410031214" //process.env.LIBRO_USER
-const pass = "DEit*1367" //process.env.LIBRO_PASS
+const user = process.env.LIBRO_USER;
+const pass = process.env.LIBRO_PASS;
+const url = process.env.API_LIBRO_AZUL;
 
 export const login = async (user: string, pass: string) => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
+        const resp = await fetch(`${url}/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
             cache: 'no-store'
         });
 
@@ -27,7 +28,7 @@ export const login = async (user: string, pass: string) => {
 
 export const loginAuto = async () => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
+        const resp = await fetch(`${url}/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
             cache: 'no-store'
         });
 
@@ -43,12 +44,11 @@ export const loginAuto = async () => {
 export const getAnios = async (key: string) => {
 
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/A%C3%B1os/?Llave=${key}`, {
+        const resp = await fetch(`${url}/A%C3%B1os/?Llave=${key}`, {
             method: 'POST'
         });
+
         if (!key) return null;
-        
-        console.log("🚀 ~ getAnios ~ resp:", resp)
 
         if (!resp.ok) return null;
 
@@ -61,7 +61,7 @@ export const getAnios = async (key: string) => {
 
 export const getMarcasPorAnio = async (key: string, anio: iGetAnios) => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Marcas/?Llave=${key}&ClaveAnio=${anio.Clave}`, {
+        const resp = await fetch(`${url}/Marcas/?Llave=${key}&ClaveAnio=${anio.Clave}`, {
             method: 'POST'
         });
 
@@ -74,9 +74,9 @@ export const getMarcasPorAnio = async (key: string, anio: iGetAnios) => {
     }
 }
 
-export const getModelosPorAnioMarca = async (key: string, anio: iGetAnios, marca: iGetMarcasPorAnio) => {
+export const getModelosPorAnioMarca = async (key: string, anio: string, marca: iGetMarcasPorAnio) => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Modelos/?Llave=${key}&ClaveAnio=${anio.Clave}&ClaveMarca=${marca.Clave}`, {
+        const resp = await fetch(`${url}/Modelos/?Llave=${key}&ClaveAnio=${anio}&ClaveMarca=${marca.Clave}`, {
             method: 'POST'
         });
 
@@ -89,9 +89,9 @@ export const getModelosPorAnioMarca = async (key: string, anio: iGetAnios, marca
     }
 }
 
-export const getVersionesPorAnioMarcaModelo = async (key: string, anio: iGetAnios, marca: iGetMarcasPorAnio, modelo: iGetModelosPorAnioMarca) => {
+export const getVersionesPorAnioMarcaModelo = async (key: string, anio: string, marca: string, modelo: iGetModelosPorAnioMarca) => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Versiones/?Llave=${key}&ClaveAnio=${anio.Clave}&ClaveMarca=${marca.Clave}&ClaveModelo=${modelo.Clave}`, {
+        const resp = await fetch(`${url}/Versiones/?Llave=${key}&ClaveAnio=${anio}&ClaveMarca=${marca}&ClaveModelo=${modelo.Clave}`, {
             method: 'POST'
         });
 
@@ -106,7 +106,7 @@ export const getVersionesPorAnioMarcaModelo = async (key: string, anio: iGetAnio
 
 export const getPrecioVersionPorClave = async (key: string, version: iGetVersionesPorAnioMarcaModelo) => {
     try {
-        const resp = await fetch(`https://api.libroazul.com/Api/Precio/?Llave=${key}&ClaveVersion=${version.Clave}`, {
+        const resp = await fetch(`${url}/Precio/?Llave=${key}&ClaveVersion=${version.Clave}`, {
             method: 'POST'
         });
 

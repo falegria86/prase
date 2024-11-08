@@ -1,3 +1,4 @@
+import { getTiposMoneda } from "@/actions/CatMonedasActions";
 import { getAllReglasNegocio, getAllCoberturas } from "@/actions/ReglasNegocio"
 import { NuevaReglaForm } from "@/components/admin/catalogos/reglas-negocios/NuevaReglaForm";
 import { TableReglasNegocio } from "@/components/admin/catalogos/reglas-negocios/TableReglasNegocio";
@@ -5,6 +6,15 @@ import { TableReglasNegocio } from "@/components/admin/catalogos/reglas-negocios
 export default async function ReglasNegocioPage() {
     const reglas = await getAllReglasNegocio();
     const coberturas = await getAllCoberturas();
+    const tiposMoneda = await getTiposMoneda();
+
+    if (!tiposMoneda || tiposMoneda.length === 0) {
+        return (
+            <div>
+                Hubo un error al obtener los tipos de moneda.
+            </div>
+        )
+    }
 
     return (
         <>
@@ -20,7 +30,10 @@ export default async function ReglasNegocioPage() {
             )}
 
             <h3 className="text-2xl font-bold mt-16 mb-6">Nueva Regla de Negocio</h3>
-            <NuevaReglaForm coberturas={coberturas || []} />
+            <NuevaReglaForm
+                coberturas={coberturas || []}
+                tiposMoneda={tiposMoneda}
+            />
 
         </>
     )

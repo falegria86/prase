@@ -24,7 +24,8 @@ export const editReglaNegocioSchema = z.object({
         }),
         CodigoPostal: z.string().min(1, {
             message: "El código postal es requerido"
-        })
+        }),
+        tipoMoneda: z.coerce.number(),
     })),
 }).refine((data) => {
     // Si EsGlobal es true, entonces cobertura debe estar presente y no vacía
@@ -71,7 +72,8 @@ export const nuevaReglaNegocioSchema = z.object({
         }),
         CodigoPostal: z.string().min(1, {
             message: "El código postal es requerido"
-        })
+        }),
+        tipoMoneda: z.coerce.number(),
     })),
 }).refine((data) => {
     // Si EsGlobal es true, entonces cobertura debe estar presente y no vacía

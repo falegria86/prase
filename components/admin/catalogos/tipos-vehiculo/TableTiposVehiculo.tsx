@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
-import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterace";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { deleteTipoVehiculo } from "@/actions/CatVehiculosActions";
 import { EditarTipoVehiculoForm } from "./EditarTipoVehiculoForm";
 
