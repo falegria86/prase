@@ -1,4 +1,5 @@
 "use server";
+
 import {
     iGetAllReglaNegocio,
     iPostReglaNegocio,
@@ -64,7 +65,7 @@ export const deleteReglaNegocio = async (id: number) => {
 }
 
 export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) => {
-    
+
     try {
         const resp = await fetch(`${url}/reglas-negocio/${id}/admin`, {
             method: 'PATCH',
@@ -117,5 +118,35 @@ export const getAllCoberturas = async () => {
         return data;
     } catch (error) {
         console.log('Error al obtener coberturas: ', error);
+    }
+}
+
+export const getReglasGlobales = async () => {
+    try {
+        const resp = await fetch(`${url}/reglas-negocio/regla-global?global=true`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetAllReglaNegocio[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener reglas de negocio: ', error);
+    }
+}
+
+export const getReglasByCoberturaId = async (idCobertura: number) => {
+    try {
+        const resp = await fetch(`${url}/reglas-negocio/reglas-por-cobertura/${idCobertura}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetAllReglaNegocio[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener reglas de negocio: ', error);
     }
 }

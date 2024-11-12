@@ -18,13 +18,13 @@ interface CotizacionDataFormProps {
     setIsSumaAseguradaValid: (isValid: boolean) => void;
 }
 
-export default function CotizacionDataForm({
+export const CotizacionDataForm = ({
     form,
     tiposSumas,
     price,
     updateFinVigencia,
     setIsSumaAseguradaValid
-}: CotizacionDataFormProps) {
+}: CotizacionDataFormProps) => {
     const [sumaAsegurada, setSumaAsegurada] = useState({
         min: -1,
         max: -1,
@@ -70,7 +70,6 @@ export default function CotizacionDataForm({
             setIsSumaAseguradaValid(isValid);
         }
     }, [form.watch("SumaAsegurada"), sumaAsegurada.min, sumaAsegurada.max, isSumaAseguradaDisabled]);
-
 
     return (
         <div className="grid grid-cols-2 gap-5">

@@ -25,7 +25,22 @@ export interface iGetAllCobertura {
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
+    IndiceSiniestralidad: null;
+    tipoDeducible: TipoDeducible | null;
+    tipoMoneda: TipoMoneda | null;
 }
+
+export interface TipoDeducible {
+    TipoDeducibleID: number;
+    Nombre: string;
+}
+
+export interface TipoMoneda {
+    TipoMonedaID: number;
+    Nombre: string;
+    Abreviacion: string;
+}
+
 
 export interface iGetAllReglaNegocio {
     ReglaID: number;

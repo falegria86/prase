@@ -45,5 +45,10 @@ export const nuevaCotizacionSchema = z.object({
             PorcentajePrimaAplicado: z.number().min(0, { message: "Porcentaje prima aplicado es requerido" }),
             ValorAseguradoUsado: z.number().min(1, { message: "Valor asegurado usado es requerido" }),
         })
-    ).optional()
+    ).optional(),
+
+    //Extras usados para manejar info interna
+    versionNombre: z.string(),
+    marcaNombre: z.string(),
+    modeloNombre: z.string(),
 });

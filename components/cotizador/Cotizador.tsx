@@ -15,13 +15,17 @@ import { formatDateLocal } from '@/lib/format-date';
 import { getMarcasPorAnio, getModelosPorAnioMarca, getVersionesPorAnioMarcaModelo, getPrecioVersionPorClave } from "@/actions/LibroAzul";
 import { getAutocompleteSuggestions } from "@/actions/Geoapify";
 import { getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema";
-import VehicleDataForm from './VehicleDataForm';
-import CotizacionDataForm from './CotizacionDataForm';
 import { iGetAnios, iGetMarcasPorAnio, iGetModelosPorAnioMarca, iGetPrecioVersionPorClave, iGetVersionesPorAnioMarcaModelo } from "@/interfaces/LibroAzul";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from '@/interfaces/CatVehiculosInterface';
 // import { iGetTipoPagos } from '@/interfaces/CatTipoPagos';
 import { iGetTiposSumasAseguradas } from '@/interfaces/CatTiposSumasInterface';
 import { Feature } from '@/interfaces/GeoApifyInterface';
+import { CotizacionDataForm } from './CotizacionDataForm';
+import { VehicleDataForm } from './VehicleDataForm';
+import { CoberturasForm } from './CoberturasForm';
+import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from '@/interfaces/CatPaquetesInterface';
+import { iGetCoberturas } from '@/interfaces/CatCoberturasInterface';
+import { iGetAllReglaNegocio } from '@/interfaces/ReglasNegocios';
 
 export interface Step {
     title: string
@@ -45,6 +49,10 @@ interface Props {
     // tiposPagos: iGetTipoPagos[];
     tiposSumas: iGetTiposSumasAseguradas[];
     derechoPoliza: string;
+    paquetesCobertura: iGetAllPaquetes[];
+    coberturas: iGetCoberturas[];
+    asociaciones: iGetAsociacionPaqueteCobertura[];
+    reglasGlobales: iGetAllReglaNegocio[];
 }
 
 export default function Cotizador({
@@ -56,6 +64,10 @@ export default function Cotizador({
     // tiposPagos,
     tiposSumas,
     derechoPoliza,
+    paquetesCobertura,
+    coberturas,
+    asociaciones,
+    reglasGlobales,
 }: Props) {
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [isStepValid, setIsStepValid] = useState<boolean>(false);
@@ -81,7 +93,7 @@ export default function Cotizador({
             TipoSumaAseguradaID: 0,
             SumaAsegurada: 0,
             PeriodoGracia: 0,
-            PaqueteCoberturaID: 0,
+            // PaqueteCoberturaID: 0,
             UsoVehiculo: 0,
             TipoVehiculo: 0,
             AMIS: "",
@@ -99,7 +111,10 @@ export default function Cotizador({
             vigencia: "Anual",
             inicioVigencia: new Date().toISOString().split("T")[0],
             finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-            detalles: []
+            detalles: [],
+            versionNombre: "",
+            marcaNombre: "",
+            modeloNombre: "",
         }
     });
 
@@ -166,6 +181,7 @@ export default function Cotizador({
         if (!brand) return;
 
         form.setValue("Marca", brandClave);
+        form.setValue("marcaNombre", brand.Nombre);
         setIsLoading(true);
         setError(null);
 
@@ -188,6 +204,7 @@ export default function Cotizador({
         if (!model) return;
 
         form.setValue("Submarca", modelClave);
+        form.setValue("modeloNombre", model.Nombre)
         setIsLoading(true);
         setError(null);
 
@@ -209,6 +226,7 @@ export default function Cotizador({
         if (!version) return;
 
         form.setValue("Version", versionClave);
+        form.setValue("versionNombre", version.Nombre);
         setIsLoading(true);
         setError(null);
 
@@ -337,6 +355,16 @@ export default function Cotizador({
                                     tiposSumas={tiposSumas}
                                     price={price}
                                     setIsSumaAseguradaValid={setIsSumaAseguradaValid}
+                                />
+                            )}
+
+                            {currentStep === 4 && (
+                                <CoberturasForm
+                                    form={form}
+                                    paquetesCobertura={paquetesCobertura}
+                                    coberturas={coberturas}
+                                    asociaciones={asociaciones}
+                                    reglasGlobales={reglasGlobales}
                                 />
                             )}
 

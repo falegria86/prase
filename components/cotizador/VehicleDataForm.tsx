@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { iGetAnios, iGetMarcasPorAnio, iGetModelosPorAnioMarca, iGetPrecioVersionPorClave, iGetVersionesPorAnioMarcaModelo } from "@/interfaces/LibroAzul";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import { Feature } from "@/interfaces/GeoApifyInterface";
+import LocationCombobox from "./LocationCombobox";
 
 interface VehicleDataFormProps {
     form: UseFormReturn<z.infer<typeof nuevaCotizacionSchema>>;
@@ -32,7 +33,7 @@ interface VehicleDataFormProps {
     formatCurrency: (value: number) => string;
 }
 
-export default function VehicleDataForm({
+export const VehicleDataForm = ({
     form,
     years,
     brands,
@@ -48,7 +49,7 @@ export default function VehicleDataForm({
     fetchAutocompleteSuggestions,
     setAutocompleteSuggestions,
     formatCurrency
-}: VehicleDataFormProps) {
+}: VehicleDataFormProps) => {
     const [isBrandEnabled, setIsBrandEnabled] = useState(false);
     const [isModelEnabled, setIsModelEnabled] = useState(false);
     const [isVersionEnabled, setIsVersionEnabled] = useState(false);
@@ -262,42 +263,11 @@ export default function VehicleDataForm({
             />
 
             {/* Ubicación (CP) con Autocompletado */}
-            <FormField
-                control={form.control}
-                name="CP"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Ubicación (CP)</FormLabel>
-                        <FormControl>
-                            <Input
-                                {...field}
-                                placeholder="Código postal"
-                                onChange={(e) => {
-                                    field.onChange(e.target.value);
-                                    fetchAutocompleteSuggestions(e.target.value);
-                                }}
-                                value={field.value}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        {autocompleteSuggestions.length > 0 && (
-                            <ul className="mt-2 bg-white border border-gray-300 rounded-md">
-                                {autocompleteSuggestions.map((suggestion, index) => (
-                                    <li
-                                        key={index}
-                                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                                        onClick={() => {
-                                            form.setValue("CP", suggestion.properties.formatted);
-                                            setAutocompleteSuggestions([]);
-                                        }}
-                                    >
-                                        {suggestion.properties.formatted}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </FormItem>
-                )}
+            <LocationCombobox
+                form={form}
+                fetchAutocompleteSuggestions={fetchAutocompleteSuggestions}
+                autocompleteSuggestions={autocompleteSuggestions}
+                setAutocompleteSuggestions={setAutocompleteSuggestions}
             />
         </div>
     );

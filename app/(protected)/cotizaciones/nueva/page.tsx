@@ -1,8 +1,11 @@
+import { getCoberturas } from "@/actions/CatCoberturasActions";
+import { getAllPaquetes, getAsociacionPaquetesCobertura } from "@/actions/CatPaquetesActions";
 import { getTiposSumasAseguradas } from "@/actions/CatSumasAseguradasActions";
 import { getTipoPagos } from "@/actions/CatTipoPagos";
 import { getTiposVehiculo, getUsoVehiculo } from "@/actions/CatVehiculosActions";
 import { getConfiguracionGlobalByName } from "@/actions/ConfiguracionGlobal";
 import { getAnios, loginAuto } from "@/actions/LibroAzul";
+import { getReglasGlobales } from "@/actions/ReglasNegocio";
 import Cotizador from "@/components/cotizador/Cotizador";
 
 export default async function NuevaCotizacionPage() {
@@ -15,26 +18,34 @@ export default async function NuevaCotizacionPage() {
                 keyAuto,
                 tiposSumas,
                 derechoPoliza,
+                paquetesCobertura,
+                coberturas,
+                asociaciones,
+                reglasGlobales,
             ] = await Promise.all([
                 getTiposVehiculo(),
                 getUsoVehiculo(),
                 getTipoPagos(),
                 loginAuto(),
                 getTiposSumasAseguradas(),
-                getConfiguracionGlobalByName("Derecho de poliza")
+                getConfiguracionGlobalByName("Derecho de poliza"),
+                getAllPaquetes(),
+                getCoberturas(),
+                getAsociacionPaquetesCobertura(),
+                getReglasGlobales(),
             ]);
 
-            return { tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza };
+            return { tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales };
         } catch (error) {
             console.log("Error al obtener tipos y usos de vehiculo: ", error);
             throw new Error("No se pudo obtener uno o más recursos necesarios para cargar la página.");
         }
     };
 
-    let tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza;
+    let tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales;
 
     try {
-        ({ tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza } = await fetchData());
+        ({ tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales } = await fetchData());
     } catch (error) {
         return (
             <div className="text-red-600">
@@ -89,6 +100,42 @@ export default async function NuevaCotizacionPage() {
         );
     }
 
+    if (!paquetesCobertura || paquetesCobertura.length === 0) {
+        return (
+            <div className="text-red-600">
+                <h2>Error al obtener los paquetes de cobertura</h2>
+                <p>No se pudo cargar la lista de los paquetes de cobertura. Intenta recargar la página.</p>
+            </div>
+        );
+    }
+
+    if (!coberturas || coberturas.length === 0) {
+        return (
+            <div className="text-red-600">
+                <h2>Error al obtener las coberturas</h2>
+                <p>No se pudo cargar la lista de coberturas. Intenta recargar la página.</p>
+            </div>
+        );
+    }
+
+    if (!asociaciones || asociaciones.length === 0) {
+        return (
+            <div className="text-red-600">
+                <h2>Error al obtener las asociaciones</h2>
+                <p>No se pudo cargar la lista de asociaciones entre paquetes y coberturas. Intenta recargar la página.</p>
+            </div>
+        );
+    }
+
+    if (!reglasGlobales || reglasGlobales.length === 0) {
+        return (
+            <div className="text-red-600">
+                <h2>Error al obtener las reglas globales</h2>
+                <p>No se pudo cargar la lista de reglas globales. Intenta recargar la página.</p>
+            </div>
+        );
+    }
+
     const years = await getAnios(keyAuto);
 
     if (!years) {
@@ -99,6 +146,7 @@ export default async function NuevaCotizacionPage() {
             </div>
         );
     }
+
 
     return (
         <>
@@ -111,6 +159,10 @@ export default async function NuevaCotizacionPage() {
                 usuarioID={1} //TODO: Cambiar por el que retorne el login
                 tiposSumas={tiposSumas}
                 derechoPoliza={derechoPoliza?.ValorConfiguracion ?? "0"}
+                paquetesCobertura={paquetesCobertura}
+                coberturas={coberturas}
+                asociaciones={asociaciones}
+                reglasGlobales={reglasGlobales}
             />
         </>
     );
