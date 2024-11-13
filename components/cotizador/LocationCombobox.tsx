@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, ChevronsUpDown, Loader2, MapPin, X } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,101 +15,217 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from "@/components/ui/form";
-import { UseFormReturn } from "react-hook-form";
+import { Badge } from "@/components/ui/badge";
 import { Feature } from "@/interfaces/GeoApifyInterface";
-import { z } from "zod";
-import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
+import { getAutocompleteSuggestions } from "@/actions/Geoapify";
 
 interface LocationComboboxProps {
-    form: UseFormReturn<z.infer<typeof nuevaCotizacionSchema>>;
-    fetchAutocompleteSuggestions: (query: string) => void;
-    autocompleteSuggestions: Feature[];
-    setAutocompleteSuggestions: React.Dispatch<React.SetStateAction<Feature[]>>;
+    form: UseFormReturn<any>;
+    onLocationSelect?: (location: Feature) => void;
 }
 
-const LocationCombobox: React.FC<LocationComboboxProps> = ({
-    form,
-    fetchAutocompleteSuggestions,
-    autocompleteSuggestions,
-    setAutocompleteSuggestions
-}) => {
-    const [open, setOpen] = useState<boolean>(false);
-    const [searchQuery, setSearchQuery] = useState<string>("");
+const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [locations, setLocations] = useState<Feature[]>([]);
+    const [selectedLocation, setSelectedLocation] = useState<Feature | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const handleSearch = useCallback((value: string) => {
-        setSearchQuery(value);
-        fetchAutocompleteSuggestions(value);
-    }, [fetchAutocompleteSuggestions]);
+    const searchLocations = useCallback(
+        async (query: string) => {
+            if (!query || query.length < 3) {
+                setLocations([]);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const suggestions = await getAutocompleteSuggestions(query);
+                setLocations(suggestions || []);
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+                setLocations([]);
+            } finally {
+                setLoading(false);
+            }
+        },
+        []
+    );
+
+    const debouncedSearch = useCallback(
+        (value: string) => {
+            const timer = setTimeout(() => searchLocations(value), 300);
+            return () => clearTimeout(timer);
+        },
+        [searchLocations]
+    );
+
+    const handleSelect = (location: Feature) => {
+        const postcode = location.properties.postcode;
+        if (!postcode) return;
+
+        form.setValue("CP", postcode, { shouldValidate: true });
+        setSelectedLocation(location);
+        setOpen(false);
+        onLocationSelect?.(location);
+    };
+
+    const clearSelection = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        form.setValue("CP", "", { shouldValidate: true });
+        setSelectedLocation(null);
+        setSearchTerm("");
+        setLocations([]);
+    };
+
+    useEffect(() => {
+        const currentCP = form.getValues("CP");
+        if (currentCP && !selectedLocation) {
+            searchLocations(currentCP);
+        }
+    }, [form, selectedLocation, searchLocations]);
 
     return (
         <FormField
             control={form.control}
             name="CP"
             render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Ubicación (CP)</FormLabel>
-                    <FormControl>
-                        <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>
+                <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center gap-2">
+                        Código Postal
+                    </FormLabel>
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <FormControl>
                                 <Button
                                     variant="outline"
                                     role="combobox"
                                     aria-expanded={open}
-                                    className="w-full justify-between"
+                                    className={cn(
+                                        "w-full justify-between",
+                                        !field.value && "text-muted-foreground"
+                                    )}
                                 >
-                                    {field.value || "Buscar ubicación..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    {selectedLocation ? (
+                                        <div className="flex items-center gap-2 text-left">
+                                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">
+                                                    CP: {selectedLocation.properties.postcode}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground truncate">
+                                                    {selectedLocation.properties.formatted}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        "Buscar ubicación..."
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {field.value && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                                onClick={clearSelection}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        )}
+                                        <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                                    </div>
                                 </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                                <Command>
-                                    <CommandInput
-                                        placeholder="Buscar código postal..."
-                                        value={searchQuery}
-                                        onValueChange={handleSearch}
-                                    />
-                                    <CommandList>
-                                        <CommandEmpty>No se encontraron ubicaciones.</CommandEmpty>
-                                        <CommandGroup>
-                                            {autocompleteSuggestions.map((suggestion, index) => (
+                            </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                            <Command>
+                                <CommandInput
+                                    placeholder="Buscar por código postal o dirección..."
+                                    value={searchTerm}
+                                    onValueChange={(value) => {
+                                        setSearchTerm(value);
+                                        debouncedSearch(value);
+                                    }}
+                                />
+                                <CommandList>
+                                    {loading && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="flex items-center justify-center py-6"
+                                        >
+                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                        </motion.div>
+                                    )}
+
+                                    {!loading && locations.length === 0 && (
+                                        <CommandEmpty>
+                                            {searchTerm.length < 3
+                                                ? "Ingresa al menos 3 caracteres..."
+                                                : "No se encontraron ubicaciones"}
+                                        </CommandEmpty>
+                                    )}
+
+                                    {!loading && locations.length > 0 && (
+                                        <CommandGroup heading="Ubicaciones encontradas">
+                                            {locations.map((location) => (
                                                 <CommandItem
-                                                    key={`${suggestion.properties.formatted}-${index}`}
-                                                    value={suggestion.properties.formatted}
-                                                    onSelect={(value: string) => {
-                                                        form.setValue("CP", value);
-                                                        setSearchQuery("");
-                                                        setAutocompleteSuggestions([]);
-                                                        setOpen(false);
-                                                    }}
+                                                    key={location.properties.place_id}
+                                                    value={location.properties.place_id}
+                                                    onSelect={() => handleSelect(location)}
                                                 >
-                                                    <Check
-                                                        className={cn(
-                                                            "mr-2 h-4 w-4",
-                                                            field.value === suggestion.properties.formatted
-                                                                ? "opacity-100"
-                                                                : "opacity-0"
-                                                        )}
-                                                    />
-                                                    {suggestion.properties.formatted}
+                                                    <div className="flex items-start gap-2">
+                                                        <Check
+                                                            className={cn(
+                                                                "h-4 w-4 mt-1",
+                                                                selectedLocation?.properties.place_id ===
+                                                                    location.properties.place_id
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <div className="font-medium">
+                                                                CP: {location.properties.postcode}
+                                                            </div>
+                                                            <div className="text-sm text-muted-foreground">
+                                                                {location.properties.formatted}
+                                                            </div>
+                                                            <div className="flex gap-2 mt-1">
+                                                                {location.properties.country_code && (
+                                                                    <Badge variant="secondary" className="text-xs">
+                                                                        {location.properties.country_code.toUpperCase()}
+                                                                    </Badge>
+                                                                )}
+                                                                {location.properties.state && (
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        {location.properties.state}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                    </FormControl>
+                                    )}
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                     <FormMessage />
                 </FormItem>
             )}

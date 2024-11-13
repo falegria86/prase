@@ -7,163 +7,254 @@ import { getConfiguracionGlobalByName } from "@/actions/ConfiguracionGlobal";
 import { getAnios, loginAuto } from "@/actions/LibroAzul";
 import { getReglasGlobales } from "@/actions/ReglasNegocio";
 import Cotizador from "@/components/cotizador/Cotizador";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import type {
+    iGetTiposVehiculo,
+    iGetUsosVehiculo
+} from "@/interfaces/CatVehiculosInterface";
+import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import type { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
+import type { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
+import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import type { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+import type { IGetAllConfiguracionGlobal } from "@/interfaces/ConfiguracionGlobal";
+import { iGetAnios } from "@/interfaces/LibroAzul";
 
-export default async function NuevaCotizacionPage() {
-    const fetchData = async () => {
-        try {
-            const [
-                tiposVehiculo,
-                usosVehiculo,
-                tiposPagos,
-                keyAuto,
-                tiposSumas,
-                derechoPoliza,
-                paquetesCobertura,
-                coberturas,
-                asociaciones,
-                reglasGlobales,
-            ] = await Promise.all([
-                getTiposVehiculo(),
-                getUsoVehiculo(),
-                getTipoPagos(),
-                loginAuto(),
-                getTiposSumasAseguradas(),
-                getConfiguracionGlobalByName("Derecho de poliza"),
-                getAllPaquetes(),
-                getCoberturas(),
-                getAsociacionPaquetesCobertura(),
-                getReglasGlobales(),
-            ]);
+interface ApiResponse<T> {
+    data: T | null;
+    error?: string;
+}
 
-            return { tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales };
-        } catch (error) {
-            console.log("Error al obtener tipos y usos de vehiculo: ", error);
-            throw new Error("No se pudo obtener uno o más recursos necesarios para cargar la página.");
+// Componente para mensajes de error
+const ErrorMessage = ({ title, message }: { title: string; message: string }) => (
+    <Alert variant="destructive">
+        <AlertCircle className="h-5 w-5" />
+        <AlertTitle>{title}</AlertTitle>
+        <AlertDescription>{message}</AlertDescription>
+    </Alert>
+);
+
+// Función helper para validar respuestas de la API
+const validateApiResponse = <T,>(
+    response: T | null,
+    resourceName: string
+): ApiResponse<T> => {
+    if (!response) {
+        return {
+            data: null,
+            error: `Error al obtener ${resourceName}`
+        };
+    }
+
+    if (Array.isArray(response) && response.length === 0) {
+        return {
+            data: null,
+            error: `No hay datos disponibles para ${resourceName}`
+        };
+    }
+
+    return { data: response };
+};
+
+export default async function CotizadorPage() {
+    // Función para cargar datos con manejo de errores
+    const loadData = async () => {
+        const responses = await Promise.allSettled([
+            getTiposVehiculo(),
+            getUsoVehiculo(),
+            getTipoPagos(),
+            loginAuto(),
+            getTiposSumasAseguradas(),
+            getConfiguracionGlobalByName("Derecho de poliza"),
+            getAllPaquetes(),
+            getCoberturas(),
+            getAsociacionPaquetesCobertura(),
+            getReglasGlobales(),
+        ]);
+
+        const errors: string[] = [];
+        const data = {
+            tiposVehiculo: null as iGetTiposVehiculo[] | null,
+            usosVehiculo: null as iGetUsosVehiculo[] | null,
+            tiposPagos: null as iGetTipoPagos[] | null,
+            keyAuto: null as string | null,
+            tiposSumas: null as iGetTiposSumasAseguradas[] | null,
+            derechoPoliza: null as IGetAllConfiguracionGlobal | null,
+            paquetesCobertura: null as iGetAllPaquetes[] | null,
+            coberturas: null as iGetCoberturas[] | null,
+            asociaciones: null as iGetAsociacionPaqueteCobertura[] | null,
+            reglasGlobales: null as iGetAllReglaNegocio[] | null,
+            years: null as iGetAnios[] | null,
+        };
+
+        // Procesar las respuestas iniciales
+        for (let i = 0; i < responses.length; i++) {
+            const response = responses[i];
+
+            if (response.status === 'fulfilled') {
+                const validationResult = validateApiResponse(
+                    response.value,
+                    getResourceName(i)
+                );
+
+                if (validationResult.error) {
+                    errors.push(validationResult.error);
+                } else {
+                    switch (i) {
+                        case 0:
+                            data.tiposVehiculo = validationResult.data as iGetTiposVehiculo[];
+                            break;
+                        case 1:
+                            data.usosVehiculo = validationResult.data as iGetUsosVehiculo[];
+                            break;
+                        case 2:
+                            data.tiposPagos = validationResult.data as iGetTipoPagos[];
+                            break;
+                        case 3:
+                            data.keyAuto = validationResult.data as string;
+                            break;
+                        case 4:
+                            data.tiposSumas = validationResult.data as iGetTiposSumasAseguradas[];
+                            break;
+                        case 5:
+                            data.derechoPoliza = validationResult.data as IGetAllConfiguracionGlobal;
+                            break;
+                        case 6:
+                            data.paquetesCobertura = validationResult.data as iGetAllPaquetes[];
+                            break;
+                        case 7:
+                            data.coberturas = validationResult.data as iGetCoberturas[];
+                            break;
+                        case 8:
+                            data.asociaciones = validationResult.data as iGetAsociacionPaqueteCobertura[];
+                            break;
+                        case 9:
+                            data.reglasGlobales = validationResult.data as iGetAllReglaNegocio[];
+                            break;
+                    }
+                }
+            } else {
+                errors.push(`Error al cargar ${getResourceName(i)}: ${response.reason}`);
+            }
         }
+
+        // Obtener años solo si tenemos keyAuto
+        if (data.keyAuto) {
+            try {
+                const yearsData = await getAnios(data.keyAuto);
+                const yearsValidation = validateApiResponse(yearsData, "años disponibles");
+
+                if (yearsValidation.error) {
+                    errors.push(yearsValidation.error);
+                } else {
+                    data.years = yearsValidation.data as iGetAnios[];
+                }
+            } catch (error) {
+                errors.push(`Error al obtener años: ${error}`);
+            }
+        }
+
+        return { data, errors };
     };
 
-    let tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales;
-
     try {
-        ({ tiposVehiculo, usosVehiculo, tiposPagos, keyAuto, tiposSumas, derechoPoliza, paquetesCobertura, coberturas, asociaciones, reglasGlobales } = await fetchData());
+        const { data, errors } = await loadData();
+
+        // Si hay errores críticos, mostrar mensaje de error
+        if (errors.length > 0 && isCriticalError(errors)) {
+            return (
+                <div className="container mx-auto py-6 space-y-4">
+                    {errors.map((error, index) => (
+                        <ErrorMessage
+                            key={index}
+                            title="Error al cargar datos"
+                            message={error}
+                        />
+                    ))}
+                </div>
+            );
+        }
+
+        // Validar datos críticos
+        if (!data.tiposVehiculo || !data.usosVehiculo || !data.keyAuto) {
+            return (
+                <ErrorMessage
+                    title="Error crítico"
+                    message="No se pudieron cargar los datos esenciales del cotizador"
+                />
+            );
+        }
+
+        return (
+            <main className="container py-6">
+                <h1 className="text-3xl font-bold mb-6">Cotizador de Seguros</h1>
+
+                {/* Mostrar advertencias no críticas si existen */}
+                {errors.length > 0 && (
+                    <div className="mb-6 space-y-2">
+                        {errors.map((error, index) => (
+                            <Alert key={index}>
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        ))}
+                    </div>
+                )}
+
+                <Cotizador
+                    apiKey={data.keyAuto}
+                    tiposVehiculo={data.tiposVehiculo}
+                    usosVehiculo={data.usosVehiculo}
+                    years={data.years!}
+                    tiposPagos={data.tiposPagos || []}
+                    tiposSumas={data.tiposSumas || []}
+                    derechoPoliza={data.derechoPoliza?.ValorConfiguracion ?? "0"}
+                    paquetesCobertura={data.paquetesCobertura || []}
+                    coberturas={data.coberturas || []}
+                    asociaciones={data.asociaciones || []}
+                    reglasGlobales={data.reglasGlobales || []}
+                    usuarioID={1}
+                />
+            </main>
+        );
     } catch (error) {
+        console.error('Error al cargar el cotizador:', error);
         return (
-            <div className="text-red-600">
-                <h2>Error al cargar los datos</h2>
-                <p>Por favor, intenta recargar la página o contacta a soporte si el problema persiste.</p>
-            </div>
-        );
-    }
-
-    if (!tiposVehiculo || tiposVehiculo.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener los tipos de vehículo</h2>
-                <p>No se pudo cargar la información de tipos de vehículo. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!usosVehiculo || usosVehiculo.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener los usos de vehículo</h2>
-                <p>No se pudo cargar la información de usos de vehículo. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!tiposPagos || tiposPagos.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener los tipos de pago</h2>
-                <p>No se pudo cargar la información de tipos de pago. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!keyAuto) {
-        return (
-            <div className="text-red-600">
-                <h2>Error en la autenticación de Libro Azul</h2>
-                <p>No se pudo obtener la clave de autenticación. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!tiposSumas || tiposSumas.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener las sumas aseguradas</h2>
-                <p>No se pudo cargar la información de sumas aseguradas. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!paquetesCobertura || paquetesCobertura.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener los paquetes de cobertura</h2>
-                <p>No se pudo cargar la lista de los paquetes de cobertura. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!coberturas || coberturas.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener las coberturas</h2>
-                <p>No se pudo cargar la lista de coberturas. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!asociaciones || asociaciones.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener las asociaciones</h2>
-                <p>No se pudo cargar la lista de asociaciones entre paquetes y coberturas. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    if (!reglasGlobales || reglasGlobales.length === 0) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener las reglas globales</h2>
-                <p>No se pudo cargar la lista de reglas globales. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-    const years = await getAnios(keyAuto);
-
-    if (!years) {
-        return (
-            <div className="text-red-600">
-                <h2>Error al obtener los años de los vehículos</h2>
-                <p>No se pudo cargar la lista de años de los vehículos. Intenta recargar la página.</p>
-            </div>
-        );
-    }
-
-
-    return (
-        <>
-            <h2 className="text-3xl font-bold mb-6">Cotizador</h2>
-            <Cotizador
-                apiKey={keyAuto}
-                tiposVehiculo={tiposVehiculo}
-                usosVehiculo={usosVehiculo}
-                years={years}
-                usuarioID={1} //TODO: Cambiar por el que retorne el login
-                tiposSumas={tiposSumas}
-                derechoPoliza={derechoPoliza?.ValorConfiguracion ?? "0"}
-                paquetesCobertura={paquetesCobertura}
-                coberturas={coberturas}
-                asociaciones={asociaciones}
-                reglasGlobales={reglasGlobales}
+            <ErrorMessage
+                title="Error inesperado"
+                message="Ha ocurrido un error inesperado al cargar el cotizador"
             />
-        </>
-    );
+        );
+    }
 }
+
+const getResourceName = (index: number): string => {
+    const resources = [
+        "tipos de vehículo",
+        "usos de vehículo",
+        "tipos de pago",
+        "autenticación",
+        "tipos de suma asegurada",
+        "derecho de póliza",
+        "paquetes de cobertura",
+        "coberturas",
+        "asociaciones",
+        "reglas globales",
+        "años de vehículos"
+    ];
+    return resources[index];
+};
+
+const isCriticalError = (errors: string[]): boolean => {
+    const criticalResources = [
+        "tipos de vehículo",
+        "usos de vehículo",
+        "autenticación"
+    ];
+    return errors.some(error =>
+        criticalResources.some(resource =>
+            error.toLowerCase().includes(resource)
+        )
+    );
+};

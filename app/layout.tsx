@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { LazyMotion, domAnimation } from "framer-motion"
 import "./globals.css";
 import {
   TooltipProvider,
@@ -32,10 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
-        <Toaster />
+        <LazyMotion features={domAnimation}>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+          <Toaster />
+        </LazyMotion>
         <div id="portal-root"></div>
       </body>
     </html>

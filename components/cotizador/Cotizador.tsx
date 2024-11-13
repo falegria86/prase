@@ -1,87 +1,65 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import type { z } from "zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import StepIndicator from '../StepIndicator';
-import VehicleUseSelector from './VehicleUseSelector';
-import VehicleTypeSelector from './VehicleTypeSelector';
+import { motion, AnimatePresence } from "framer-motion";
 import { Form } from "@/components/ui/form";
-import { nuevaCotizacionSchema } from '@/schemas/cotizadorSchema';
-import { formatDateLocal } from '@/lib/format-date';
-import { getMarcasPorAnio, getModelosPorAnioMarca, getVersionesPorAnioMarcaModelo, getPrecioVersionPorClave } from "@/actions/LibroAzul";
-import { getAutocompleteSuggestions } from "@/actions/Geoapify";
-import { getMarcasPorAnioSchema, getModelosPorAnioMarcaSchema, getVersionesPorAnioMarcaModeloSchema } from "@/schemas/libroAzulSchema";
-import { iGetAnios, iGetMarcasPorAnio, iGetModelosPorAnioMarca, iGetPrecioVersionPorClave, iGetVersionesPorAnioMarcaModelo } from "@/interfaces/LibroAzul";
-import { iGetTiposVehiculo, iGetUsosVehiculo } from '@/interfaces/CatVehiculosInterface';
-// import { iGetTipoPagos } from '@/interfaces/CatTipoPagos';
-import { iGetTiposSumasAseguradas } from '@/interfaces/CatTiposSumasInterface';
-import { Feature } from '@/interfaces/GeoApifyInterface';
-import { CotizacionDataForm } from './CotizacionDataForm';
-import { VehicleDataForm } from './VehicleDataForm';
-import { CoberturasForm } from './CoberturasForm';
-import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from '@/interfaces/CatPaquetesInterface';
-import { iGetCoberturas } from '@/interfaces/CatCoberturasInterface';
-import { iGetAllReglaNegocio } from '@/interfaces/ReglasNegocios';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
+import type { Step } from "@/types/cotizador";
+import VehicleDataStep from "./VehicleDataStep";
+import QuoteDataStep from "./QuoteDataStep";
+import CoverageStep from "./CoverageStep";
+import QuoteSummaryStep from "./QuoteSummaryStep";
+import VehicleUseStep from "./VehicleUseStep";
+import { StepIndicator } from "./StepIndicator";
 
-export interface Step {
-    title: string
-    icon: string
+type FormData = z.infer<typeof nuevaCotizacionSchema>;
+
+interface CotizadorProps {
+    apiKey: string;
+    tiposVehiculo: any[];
+    usosVehiculo: any[];
+    years: any[];
+    usuarioID: number;
+    tiposPagos: any[];
+    tiposSumas: any[];
+    derechoPoliza: string;
+    paquetesCobertura: any[];
+    coberturas: any[];
+    asociaciones: any[];
+    reglasGlobales: any[];
 }
 
 const steps: Step[] = [
-    { title: 'Origen y uso', icon: 'Car' },
-    { title: 'Datos del vehículo', icon: 'Truck' },
-    { title: 'Datos de cotización', icon: 'Bus' },
-    { title: 'Coberturas', icon: 'FileText' },
-    { title: 'Resumen', icon: 'FileText' },
+    { title: "Origen y uso", icon: "Car" },
+    { title: "Datos del vehículo", icon: "Truck" },
+    { title: "Datos de cotización", icon: "FileText" },
+    { title: "Coberturas", icon: "Shield" },
+    { title: "Resumen", icon: "CheckCircle" },
 ];
 
-interface Props {
-    apiKey: string;
-    tiposVehiculo: iGetTiposVehiculo[];
-    usosVehiculo: iGetUsosVehiculo[];
-    years: iGetAnios[];
-    usuarioID: number;
-    // tiposPagos: iGetTipoPagos[];
-    tiposSumas: iGetTiposSumasAseguradas[];
-    derechoPoliza: string;
-    paquetesCobertura: iGetAllPaquetes[];
-    coberturas: iGetCoberturas[];
-    asociaciones: iGetAsociacionPaqueteCobertura[];
-    reglasGlobales: iGetAllReglaNegocio[];
-}
-
-export default function Cotizador({
+export const Cotizador = ({
     apiKey,
     tiposVehiculo,
     usosVehiculo,
     years,
     usuarioID,
-    // tiposPagos,
+    tiposPagos,
     tiposSumas,
     derechoPoliza,
     paquetesCobertura,
     coberturas,
     asociaciones,
     reglasGlobales,
-}: Props) {
-    const [currentStep, setCurrentStep] = useState<number>(1);
-    const [isStepValid, setIsStepValid] = useState<boolean>(false);
-    const [isSumaAseguradaValid, setIsSumaAseguradaValid] = useState<boolean>(true);
-    const [brands, setBrands] = useState<iGetMarcasPorAnio[]>([]);
-    const [models, setModels] = useState<iGetModelosPorAnioMarca[]>([]);
-    const [versions, setVersions] = useState<iGetVersionesPorAnioMarcaModelo[]>([]);
-    const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null);
-    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<Feature[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+}: CotizadorProps) => {
+    const [currentStep, setCurrentStep] = useState(1);
+    const [isStepValid, setIsStepValid] = useState(false);
 
-    const form = useForm<z.infer<typeof nuevaCotizacionSchema>>({
+    const form = useForm<FormData>({
         resolver: zodResolver(nuevaCotizacionSchema),
         defaultValues: {
             UsuarioID: usuarioID,
@@ -93,11 +71,11 @@ export default function Cotizador({
             TipoSumaAseguradaID: 0,
             SumaAsegurada: 0,
             PeriodoGracia: 0,
-            // PaqueteCoberturaID: 0,
             UsoVehiculo: 0,
             TipoVehiculo: 0,
             AMIS: "",
             meses: 12,
+            vigencia: "Anual",
             NombrePersona: "",
             UnidadSalvamento: false,
             VIN: "",
@@ -106,289 +84,145 @@ export default function Cotizador({
             Submarca: "",
             Modelo: "",
             Version: "",
-            minSumaAsegurada: -1,
-            maxSumaAsegurada: -1,
-            vigencia: "Anual",
             inicioVigencia: new Date().toISOString().split("T")[0],
-            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+            finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                .toISOString()
+                .split("T")[0],
             detalles: [],
             versionNombre: "",
             marcaNombre: "",
             modeloNombre: "",
-        }
+        },
     });
 
-    const updateFinVigencia = () => {
-        const inicioVigencia = form.getValues("inicioVigencia");
-        const meses = Number(form.getValues("meses"));
-        const fechaInicio = new Date(inicioVigencia);
-
-        if (!isNaN(fechaInicio.getTime())) {
-            fechaInicio.setMonth(fechaInicio.getMonth() + meses);
-            form.setValue("finVigencia", fechaInicio.toISOString().split("T")[0]);
-        }
-    };
-
-    useEffect(() => {
-        updateFinVigencia();
-    }, [form.watch("inicioVigencia"), form.watch("meses")]);
-
-    const fetchAutocompleteSuggestions = (query: string) => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-
-        debounceRef.current = setTimeout(async () => {
-            if (!query) return;
-
-            try {
-                const suggestions = await getAutocompleteSuggestions(query);
-                setAutocompleteSuggestions(suggestions || []);
-            } catch (error) {
-                console.error("Error fetching autocomplete suggestions:", error);
-            }
-        }, 300);
-    };
-
-    const handleYearSelect = async (yearClave: string) => {
-        form.setValue("Marca", "");
-        setModels([]);
-        setVersions([]);
-        setPrice(null);
-
-        const year = years.find(y => y.Clave === yearClave);
-        if (!year) return;
-
-        form.setValue("Modelo", yearClave);
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const brandsData = await getMarcasPorAnio(apiKey, year);
-            const validatedBrands = getMarcasPorAnioSchema.parse(brandsData);
-            setBrands(validatedBrands || []);
-        } catch (error) {
-            setError('Error al cargar las marcas.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleBrandSelect = async (brandClave: string) => {
-        setModels([]);
-        setVersions([]);
-        setPrice(null);
-
-        const brand = brands.find(b => b.Clave === brandClave);
-        if (!brand) return;
-
-        form.setValue("Marca", brandClave);
-        form.setValue("marcaNombre", brand.Nombre);
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const modelsData = await getModelosPorAnioMarca(apiKey, form.getValues("Modelo"), brand);
-            const validatedModels = getModelosPorAnioMarcaSchema.parse(modelsData);
-            setModels(validatedModels || []);
-        } catch (error) {
-            setError('Error al cargar los modelos.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleModelSelect = async (modelClave: string) => {
-        setVersions([]);
-        setPrice(null);
-
-        const model = models.find(m => m.Clave === modelClave);
-        if (!model) return;
-
-        form.setValue("Submarca", modelClave);
-        form.setValue("modeloNombre", model.Nombre)
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const versionsData = await getVersionesPorAnioMarcaModelo(apiKey, form.getValues("Modelo"), form.getValues("Marca") as string, model);
-            const validatedVersions = getVersionesPorAnioMarcaModeloSchema.parse(versionsData);
-            setVersions(validatedVersions || []);
-        } catch (error) {
-            setError('Error al cargar las versiones.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleVersionSelect = async (versionClave: string) => {
-        setPrice(null);
-
-        const version = versions.find((v) => v.Clave === versionClave);
-        if (!version) return;
-
-        form.setValue("Version", versionClave);
-        form.setValue("versionNombre", version.Nombre);
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const priceData = await getPrecioVersionPorClave(apiKey, version);
-            const validatedPrice = priceData ? { Venta: priceData.Venta, Compra: priceData.Compra, Moneda: priceData.Moneda } : null;
-            setPrice(validatedPrice);
-        } catch (error) {
-            setError('Error al obtener el precio.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const stepFields: Record<number, (keyof z.infer<typeof nuevaCotizacionSchema>)[]> = {
+    // Validación de campos por paso
+    const stepFields: Record<number, (keyof FormData)[]> = {
         1: ["UsoVehiculo", "TipoVehiculo"],
-        2: ["Modelo", "Marca", "Submarca", "Version", "AMIS", "UnidadSalvamento", "CP"],
-        3: ["DerechoPoliza", "TipoSumaAseguradaID", "SumaAsegurada", "PeriodoGracia", "NombrePersona", "inicioVigencia", "finVigencia"]
+        2: ["Modelo", "Marca", "Submarca", "Version", "AMIS", "CP"],
+        3: [
+            "TipoSumaAseguradaID",
+            "SumaAsegurada",
+            "PeriodoGracia",
+            "NombrePersona",
+            "inicioVigencia",
+        ],
+        4: ["PaqueteCoberturaID", "detalles"],
+        5: [], // Paso de resumen no requiere validación adicional
     };
 
-    useEffect(() => {
-        const fields = stepFields[currentStep];
-
-        const validateStep = async () => {
-            const isValid = await form.trigger(fields);
-            setIsStepValid(isValid);
-        };
-
-        validateStep();
-
-        const subscription = form.watch(async () => {
-            const isValid = await form.trigger(fields);
-            setIsStepValid(isValid);
-        });
-
-        return () => subscription.unsubscribe();
-    }, [currentStep, form]);
-
-
-    const nextStep = async () => {
+    // Manejadores de navegación entre pasos
+    const handleNext = async () => {
         const fields = stepFields[currentStep];
         const isValid = await form.trigger(fields);
 
         if (isValid) {
-            setIsStepValid(false);
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+            setIsStepValid(false);
         }
     };
 
-    const prevStep = async () => {
-        const previousStep = Math.max(currentStep - 1, 1);
-        const fields = stepFields[previousStep];
-
-        const isValid = await form.trigger(fields);
-        setIsStepValid(isValid);
-
-        setCurrentStep(previousStep);
+    const handlePrevious = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 1));
+        const fields = stepFields[currentStep - 1];
+        form.trigger(fields).then(setIsStepValid);
     };
 
-
-    const onSubmit = async (data: z.infer<typeof nuevaCotizacionSchema>) => {
-        console.log(data);
+    // Manejador de envío del formulario
+    const onSubmit = async (data: FormData) => {
         try {
-            console.log("Datos de la cotización a enviar:", data);
+            console.log("Enviando cotización:", data);
+            // Aquí implementarías la lógica de envío a tu API
         } catch (error) {
             console.error("Error al enviar la cotización:", error);
         }
     };
 
+    // Renderizado condicional del paso actual
+    const renderStep = () => {
+        const props = {
+            form,
+            apiKey,
+            tiposVehiculo,
+            usosVehiculo,
+            years,
+            tiposPagos,
+            tiposSumas,
+            paquetesCobertura,
+            coberturas,
+            asociaciones,
+            reglasGlobales,
+            setIsStepValid,
+        };
+
+        switch (currentStep) {
+            case 1:
+                return <VehicleUseStep {...props} />;
+            case 2:
+                return <VehicleDataStep {...props} />;
+            case 3:
+                return <QuoteDataStep {...props} />;
+            case 4:
+                return <CoverageStep {...props} />;
+            case 5:
+                return <QuoteSummaryStep {...props} />;
+            default:
+                return null;
+        }
+    };
+
     return (
-        <>
-            {error ? (
-                <div>Ha ocurrido un error.</div>
-            ) : (
-                <div className="bg-white p-6 shadow-md max-w-7xl">
-                    <StepIndicator steps={steps} currentStep={currentStep} />
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)}>
-                            {currentStep === 1 && (
-                                <div className="space-y-6">
-                                    <VehicleUseSelector
-                                        usosVehiculo={usosVehiculo}
-                                        selectedUse={form.watch("UsoVehiculo")}
-                                        setSelectedUse={(use) => form.setValue("UsoVehiculo", use)}
-                                        setSelectedType={(type) => form.setValue("TipoVehiculo", type)}
-                                    />
-                                    {form.watch("UsoVehiculo") !== 0 && (
-                                        <VehicleTypeSelector
-                                            selectedUse={form.watch("UsoVehiculo")}
-                                            selectedType={form.watch("TipoVehiculo")}
-                                            setSelectedType={(type) => {
-                                                console.log(type)
-                                                form.setValue("TipoVehiculo", type);
-                                            }}
-                                            tiposVehiculo={tiposVehiculo}
-                                        />
-                                    )}
-                                </div>
-                            )}
+        <div className="">
+            <StepIndicator steps={steps} currentStep={currentStep} />
 
-                            {currentStep === 2 && (
-                                <VehicleDataForm
-                                    form={form}
-                                    years={years}
-                                    brands={brands}
-                                    models={models}
-                                    versions={versions}
-                                    price={price}
-                                    isLoading={isLoading}
-                                    autocompleteSuggestions={autocompleteSuggestions}
-                                    handleYearSelect={handleYearSelect}
-                                    handleBrandSelect={handleBrandSelect}
-                                    handleModelSelect={handleModelSelect}
-                                    handleVersionSelect={handleVersionSelect}
-                                    fetchAutocompleteSuggestions={fetchAutocompleteSuggestions}
-                                    setAutocompleteSuggestions={setAutocompleteSuggestions}
-                                    formatCurrency={(value) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)}
-                                />
-                            )}
+            <div className="mt-8 bg-white rounded-lg shadow-lg">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 p-6">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentStep}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {renderStep()}
+                            </motion.div>
+                        </AnimatePresence>
 
-                            {currentStep === 3 && price && (
-                                <CotizacionDataForm
-                                    form={form}
-                                    updateFinVigencia={updateFinVigencia}
-                                    formatDateLocal={formatDateLocal}
-                                    tiposSumas={tiposSumas}
-                                    price={price}
-                                    setIsSumaAseguradaValid={setIsSumaAseguradaValid}
-                                />
-                            )}
+                        <div className="flex justify-between pt-6 border-t">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handlePrevious}
+                                disabled={currentStep === 1}
+                                className="flex items-center"
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Anterior
+                            </Button>
 
-                            {currentStep === 4 && (
-                                <CoberturasForm
-                                    form={form}
-                                    paquetesCobertura={paquetesCobertura}
-                                    coberturas={coberturas}
-                                    asociaciones={asociaciones}
-                                    reglasGlobales={reglasGlobales}
-                                />
-                            )}
-
-                            <div className="flex gap-5 mt-8">
-                                <Button onClick={prevStep} disabled={currentStep === 1}>
-                                    <ArrowLeft className="mr-2 h-4 w-4" />
-                                    Anterior
+                            {currentStep < steps.length ? (
+                                <Button
+                                    type="button"
+                                    onClick={handleNext}
+                                    disabled={!isStepValid}
+                                    className="flex items-center"
+                                >
+                                    Siguiente
+                                    <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
-                                {currentStep < steps.length ? (
-                                    <Button onClick={nextStep} disabled={!isStepValid || !isSumaAseguradaValid}>
-                                        Siguiente
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                ) : (
-                                    <Button type="submit">
-                                        Enviar
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                        </form>
-                    </Form>
-                </div>
-            )}
-        </>
+                            ) : (
+                                <Button type="submit" className="flex items-center">
+                                    Finalizar cotización
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    </form>
+                </Form>
+            </div>
+        </div>
     );
-}
+};
+
+export default Cotizador;
