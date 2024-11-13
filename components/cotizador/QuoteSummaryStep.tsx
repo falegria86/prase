@@ -156,7 +156,7 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                 <span>
-                                    Del {formatDate(formData.inicioVigencia)} al{" "}
+                                    Del {formatDate(formData.inicioVigencia.toISOString())} al{" "}
                                     {formatDate(formData.finVigencia)}
                                 </span>
                             </div>

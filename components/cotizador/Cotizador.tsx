@@ -16,22 +16,29 @@ import CoverageStep from "./CoverageStep";
 import QuoteSummaryStep from "./QuoteSummaryStep";
 import VehicleUseStep from "./VehicleUseStep";
 import { StepIndicator } from "./StepIndicator";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
+import { iGetAnios } from "@/interfaces/LibroAzul";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
+import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
 interface CotizadorProps {
     apiKey: string;
-    tiposVehiculo: any[];
-    usosVehiculo: any[];
-    years: any[];
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
+    years: iGetAnios[];
     usuarioID: number;
-    tiposPagos: any[];
-    tiposSumas: any[];
+    tiposPagos: iGetTipoPagos[];
+    tiposSumas: iGetTiposSumasAseguradas[];
     derechoPoliza: string;
-    paquetesCobertura: any[];
-    coberturas: any[];
-    asociaciones: any[];
-    reglasGlobales: any[];
+    paquetesCobertura: iGetAllPaquetes[];
+    coberturas: iGetCoberturas[];
+    asociaciones: iGetAsociacionPaqueteCobertura[];
+    reglasGlobales: iGetAllReglaNegocio[];
 }
 
 const steps: Step[] = [
@@ -84,7 +91,7 @@ export const Cotizador = ({
             Submarca: "",
             Modelo: "",
             Version: "",
-            inicioVigencia: new Date().toISOString().split("T")[0],
+            inicioVigencia: new Date(),
             finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
                 .toISOString()
                 .split("T")[0],

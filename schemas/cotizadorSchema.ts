@@ -70,9 +70,7 @@ export const nuevaCotizacionSchema = z.object({
     maxSumaAsegurada: z.coerce.number(),
 
     // Fechas
-    inicioVigencia: z.string()
-        .min(1, "El inicio de vigencia es requerido")
-        .refine((date) => new Date(date) >= new Date(), "La fecha de inicio debe ser posterior a hoy"),
+    inicioVigencia: z.date(),
     finVigencia: z.string()
         .min(1, "El fin de vigencia es requerido"),
 

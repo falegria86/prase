@@ -46,7 +46,7 @@ export interface iGetAllReglaNegocio {
     ReglaID: number;
     NombreRegla: string;
     Descripcion: string;
-    TipoAplicacion: string;
+    TipoAplicacion: "PORCENTAJE" | "MONTO";
     TipoRegla: string;
     ValorAjuste: number;
     Condicion: string;

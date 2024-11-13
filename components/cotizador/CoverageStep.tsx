@@ -33,7 +33,6 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-    CardFooter,
 } from "@/components/ui/card";
 import {
     Alert,
@@ -47,7 +46,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { StepProps } from "@/types/cotizador";
+import { Cobertura, StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
 import { Separator } from "../ui/separator";
 
@@ -85,7 +84,7 @@ export const CoverageStep = ({
     const [bonificacion, setBonificacion] = useState(0);
 
     const calculatePremium = (
-        cobertura: any,
+        cobertura: Cobertura,
         selectedSumaAsegurada: number,
         selectedDeducible: number
     ) => {
@@ -176,8 +175,16 @@ export const CoverageStep = ({
         const newCoverages = coverages.map((coverage) => {
             if (coverage.CoberturaID === coberturaId) {
                 const newSumaAsegurada = parseFloat(value);
+
+                // Verificar que 'coberturas' y el resultado de 'find' no sean undefined
+                const coberturaFound = coberturas?.find((c) => c.CoberturaID === coberturaId);
+                if (!coberturaFound) {
+                    console.error(`Cobertura con ID ${coberturaId} no encontrada.`);
+                    return coverage; // Retornar el coverage actual sin cambios
+                }
+
                 const nuevaPrima = calculatePremium(
-                    coberturas?.find((c) => c.CoberturaID === coberturaId),
+                    coberturaFound,
                     newSumaAsegurada,
                     coverage.MontoDeducible
                 );
@@ -203,8 +210,16 @@ export const CoverageStep = ({
         const newCoverages = coverages.map((coverage) => {
             if (coverage.CoberturaID === coberturaId) {
                 const newDeducible = parseInt(value);
+
+                // Verificar que 'coberturas' y el resultado de 'find' no sean undefined
+                const coberturaFound = coberturas?.find((c) => c.CoberturaID === coberturaId);
+                if (!coberturaFound) {
+                    console.error(`Cobertura con ID ${coberturaId} no encontrada.`);
+                    return coverage; // Retornar el coverage actual sin cambios
+                }
+
                 const nuevaPrima = calculatePremium(
-                    coberturas?.find((c) => c.CoberturaID === coberturaId),
+                    coberturaFound,
                     coverage.MontoSumaAsegurada,
                     newDeducible
                 );

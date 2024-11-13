@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { z } from "zod";
+import { motion } from "framer-motion";
 import { Check, ChevronsUpDown, Loader2, MapPin, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -29,11 +30,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Feature } from "@/interfaces/GeoApifyInterface";
 import { getAutocompleteSuggestions } from "@/actions/Geoapify";
+import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 
 interface LocationComboboxProps {
-    form: UseFormReturn<any>;
+    form: UseFormReturn<FormData>;
     onLocationSelect?: (location: Feature) => void;
 }
+
+type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
 const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => {
     const [open, setOpen] = useState(false);

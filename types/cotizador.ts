@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import { UseFormReturn } from "react-hook-form";
-import { iGetAnios } from "@/interfaces/LibroAzul";
+import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 
 export interface Brand {
     Clave: string;
@@ -40,7 +40,7 @@ export interface StepProps {
     usosVehiculo?: UsoVehiculo[];
     years?: Year[];
     tiposPagos?: TipoPago[];
-    tiposSumas?: TipoSumaAsegurada[];
+    tiposSumas?: iGetTiposSumasAseguradas[];
     paquetesCobertura?: PaqueteCobertura[];
     coberturas?: Cobertura[];
     asociaciones?: AsociacionPaqueteCobertura[];

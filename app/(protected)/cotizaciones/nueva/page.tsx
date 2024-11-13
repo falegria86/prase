@@ -177,7 +177,19 @@ export default async function CotizadorPage() {
         }
 
         // Validar datos críticos
-        if (!data.tiposVehiculo || !data.usosVehiculo || !data.keyAuto) {
+        if (
+            !data.tiposVehiculo ||
+            !data.usosVehiculo ||
+            !data.keyAuto ||
+            !data.years ||
+            !data.tiposPagos ||
+            !data.tiposSumas ||
+            !data.derechoPoliza ||
+            !data.paquetesCobertura ||
+            !data.coberturas ||
+            !data.asociaciones ||
+            !data.reglasGlobales
+        ) {
             return (
                 <ErrorMessage
                     title="Error crítico"
@@ -206,14 +218,14 @@ export default async function CotizadorPage() {
                     apiKey={data.keyAuto}
                     tiposVehiculo={data.tiposVehiculo}
                     usosVehiculo={data.usosVehiculo}
-                    years={data.years!}
-                    tiposPagos={data.tiposPagos || []}
-                    tiposSumas={data.tiposSumas || []}
-                    derechoPoliza={data.derechoPoliza?.ValorConfiguracion ?? "0"}
-                    paquetesCobertura={data.paquetesCobertura || []}
-                    coberturas={data.coberturas || []}
-                    asociaciones={data.asociaciones || []}
-                    reglasGlobales={data.reglasGlobales || []}
+                    years={data.years}
+                    tiposPagos={data.tiposPagos}
+                    tiposSumas={data.tiposSumas}
+                    derechoPoliza={data.derechoPoliza.ValorConfiguracion}
+                    paquetesCobertura={data.paquetesCobertura}
+                    coberturas={data.coberturas}
+                    asociaciones={data.asociaciones}
+                    reglasGlobales={data.reglasGlobales}
                     usuarioID={1}
                 />
             </main>

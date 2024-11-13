@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { format, addDays, addMonths, startOfDay, isValid } from "date-fns";
+import { format, addMonths, startOfDay, isValid, parse } from "date-fns";
 import { es } from 'date-fns/locale';
 import {
     Select,
@@ -53,15 +53,16 @@ export const QuoteDataStep = ({
 
     // Función para normalizar fechas
     const normalizeDate = (date: Date | string): Date => {
-        const parsedDate = typeof date === 'string' ? new Date(date) : date;
+        const parsedDate = typeof date === 'string' ? parse(date, 'yyyy-MM-dd', new Date()) : date;
         return startOfDay(parsedDate);
     };
+
 
     // Inicializar valores por defecto
     useEffect(() => {
         if (!inicioVigencia) {
             const today = normalizeDate(new Date());
-            const todayStr = format(today, 'yyyy-MM-dd');
+            const todayStr = new Date();
 
             form.setValue("inicioVigencia", todayStr, { shouldValidate: true });
             form.setValue("vigencia", "Anual", { shouldValidate: true });
@@ -128,7 +129,7 @@ export const QuoteDataStep = ({
 
     // Efecto para validación continua
     useEffect(() => {
-        const subscription = form.watch((value, { name, type }) => {
+        const subscription = form.watch((_, { name }) => {
             if (name) {
                 validateFields();
             }
@@ -150,7 +151,7 @@ export const QuoteDataStep = ({
         if (tipo?.toLowerCase().includes("convenido")) {
             minimo = vehiclePrice * 0.985;
             maximo = vehiclePrice * 1.015;
-            mensaje = `Rango permitido: ${formatCurrency(minimo)} - ${formatCurrency(maximo)}`;
+            mensaje = `Rango_permitido ${formatCurrency(minimo)} - ${formatCurrency(maximo)}`;
             disableSumaAsegurada = false;
             form.setValue("SumaAsegurada", minimo, {
                 shouldValidate: true
@@ -282,14 +283,14 @@ export const QuoteDataStep = ({
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "w-full pl-3 text-left font-normal",
+                                                "px-3 text-left font-normal h-12 rounded-md",
                                                 !field.value && "text-muted-foreground"
                                             )}
                                         >
                                             {field.value ? (
-                                                format(new Date(field.value), "PPP", { locale: es })
+                                                format(field.value, "dd/MM/yyyy")
                                             ) : (
-                                                <span>Selecciona una fecha</span>
+                                                <span>Elige la fecha para agendar al empleado...</span>
                                             )}
                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                         </Button>
@@ -301,14 +302,14 @@ export const QuoteDataStep = ({
                                         selected={field.value ? new Date(field.value) : undefined}
                                         onSelect={(date) => {
                                             if (date) {
-                                                const dateStr = format(date, 'yyyy-MM-dd');
-                                                field.onChange(dateStr);
+                                                field.onChange(date);
                                                 updateFinVigencia(
-                                                    dateStr,
+                                                    date,
                                                     vigencia === "Anual" ? 12 : meses || 1
                                                 );
                                             }
                                         }}
+
                                         disabled={(date) => date < startOfDay(new Date())}
                                         initialFocus
                                         locale={es}

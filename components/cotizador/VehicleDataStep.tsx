@@ -33,6 +33,7 @@ import {
     iGetPrecioVersionPorClave
 } from "@/interfaces/LibroAzul";
 import LocationCombobox from "./LocationCombobox";
+import { Feature } from "@/interfaces/GeoApifyInterface";
 
 export const VehicleDataStep = ({
     form,
@@ -69,6 +70,7 @@ export const VehicleDataStep = ({
             })
         );
 
+        console.log(validationErrors)
         const isValid = validationResults.every(Boolean);
         setIsStepValid?.(isValid);
 
@@ -77,7 +79,7 @@ export const VehicleDataStep = ({
 
     // Efecto para validación continua
     useEffect(() => {
-        const subscription = form.watch((value, { name, type }) => {
+        const subscription = form.watch((_, { name }) => {
             if (name) {
                 validateFields();
             }
@@ -208,7 +210,7 @@ export const VehicleDataStep = ({
         }
     };
 
-    const handleLocationSelect = (location: any) => {
+    const handleLocationSelect = (location: Feature) => {
         const postcode = location.properties.postcode;
         if (postcode) {
             form.setValue("CP", postcode, {
