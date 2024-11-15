@@ -127,50 +127,48 @@ export const VehicleUseStep = ({
                 </motion.div>
 
                 {/* Sección de tipo de vehículo */}
-                <AnimatePresence mode="wait">
-                    {showTypeSelector && (
-                        <motion.div
-                            variants={itemVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                        >
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <CardTitle>Tipo de Vehículo</CardTitle>
-                                            <CardDescription>
-                                                Selecciona el tipo específico de vehículo
-                                            </CardDescription>
-                                        </div>
-                                        {isTypeValid && (
-                                            <motion.div
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
-                                                className="flex items-center gap-2 text-green-600"
-                                            >
-                                                <CheckCircle2 className="h-5 w-5" />
-                                                <span className="text-sm font-medium">
-                                                    Tipo seleccionado
-                                                </span>
-                                            </motion.div>
-                                        )}
+                {showTypeSelector && (
+                    <motion.div
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                    >
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Tipo de Vehículo</CardTitle>
+                                        <CardDescription>
+                                            Selecciona el tipo específico de vehículo
+                                        </CardDescription>
                                     </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <VehicleTypeSelector
-                                        selectedUse={selectedUse}
-                                        selectedType={selectedType}
-                                        setSelectedType={handleTypeSelect}
-                                        tiposVehiculo={tiposVehiculo || []}
-                                        onValidationChange={setIsTypeValid}
-                                    />
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                    {isTypeValid && (
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="flex items-center gap-2 text-green-600"
+                                        >
+                                            <CheckCircle2 className="h-5 w-5" />
+                                            <span className="text-sm font-medium">
+                                                Tipo seleccionado
+                                            </span>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <VehicleTypeSelector
+                                    selectedUse={selectedUse}
+                                    selectedType={selectedType}
+                                    setSelectedType={handleTypeSelect}
+                                    tiposVehiculo={tiposVehiculo || []}
+                                    onValidationChange={setIsTypeValid}
+                                />
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
 
                 {/* Mensajes informativos */}
                 <AnimatePresence>

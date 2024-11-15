@@ -1,9 +1,5 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { format, addMonths, startOfDay, isValid, parse } from "date-fns";
-import { es } from 'date-fns/locale';
 import {
     Select,
     SelectContent,
@@ -21,21 +17,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { StepProps } from "@/types/cotizador";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, CalendarIcon } from "lucide-react";
+import { CalendarIcon, Info } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { es } from "date-fns/locale";
+import { Calendar } from "../ui/calendar";
 
 export const QuoteDataStep = ({
     form,
     tiposSumas,
-    setIsStepValid
+    setIsStepValid,
 }: StepProps) => {
     const [sumaAsegurada, setSumaAsegurada] = useState({
         min: -1,
@@ -46,54 +40,33 @@ export const QuoteDataStep = ({
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
     const vehiclePrice = form.watch("SumaAsegurada");
-    const selectedTipoSuma = form.watch("TipoSumaAseguradaID");
     const vigencia = form.watch("vigencia");
     const meses = form.watch("meses");
     const inicioVigencia = form.watch("inicioVigencia");
 
-    // Función para normalizar fechas
-    const normalizeDate = (date: Date | string): Date => {
-        const parsedDate = typeof date === 'string' ? parse(date, 'yyyy-MM-dd', new Date()) : date;
-        return startOfDay(parsedDate);
+    // Date handling functions
+    const getNextMonthDate = (date: Date, monthsToAdd: number) => {
+        const newDate = new Date(date);
+        newDate.setMonth(newDate.getMonth() + monthsToAdd);
+        return newDate;
     };
 
+    const updateFinVigencia = () => {
+        const inicioVigencia = form.watch("inicioVigencia");
+        const vigencia = form.watch("vigencia");
+        const meses = form.watch("meses");
 
-    // Inicializar valores por defecto
-    useEffect(() => {
-        if (!inicioVigencia) {
-            const today = normalizeDate(new Date());
-            const todayStr = new Date();
+        if (!inicioVigencia) return;
 
-            form.setValue("inicioVigencia", todayStr, { shouldValidate: true });
-            form.setValue("vigencia", "Anual", { shouldValidate: true });
-            form.setValue("meses", 12, { shouldValidate: true });
+        const monthsToAdd = vigencia === "Anual" ? 12 : (meses || 1);
+        const startDate = new Date(inicioVigencia);
+        const endDate = getNextMonthDate(startDate, monthsToAdd);
 
-            const endDate = addMonths(today, 12);
-            form.setValue("finVigencia", format(endDate, 'yyyy-MM-dd'), {
-                shouldValidate: true
-            });
-        }
-    }, []);
-
-    const updateFinVigencia = (startDate: string | Date, months: number) => {
-        const fechaInicio = normalizeDate(startDate);
-        if (!isValid(fechaInicio)) return;
-
-        const fechaFin = addMonths(fechaInicio, months);
-        form.setValue("finVigencia", format(fechaFin, 'yyyy-MM-dd'), {
+        form.setValue("finVigencia", endDate.toISOString().split('T')[0], {
             shouldValidate: true
         });
     };
 
-    // Efecto para actualizar fecha fin cuando cambian inicio o duración
-    useEffect(() => {
-        if (inicioVigencia) {
-            const mesesVigencia = vigencia === "Anual" ? 12 : meses || 1;
-            updateFinVigencia(inicioVigencia, mesesVigencia);
-        }
-    }, [inicioVigencia, vigencia, meses]);
-
-    // Validación de campos
     const validateFields = async () => {
         const fieldsToValidate = [
             "TipoSumaAseguradaID",
@@ -127,7 +100,27 @@ export const QuoteDataStep = ({
         return isValid;
     };
 
-    // Efecto para validación continua
+    // Initialize default values
+    useEffect(() => {
+        if (!inicioVigencia) {
+            const today = new Date();
+            form.setValue("inicioVigencia", today, { shouldValidate: true });
+            form.setValue("vigencia", "Anual", { shouldValidate: true });
+            form.setValue("meses", 12, { shouldValidate: true });
+
+            const initialEndDate = getNextMonthDate(today, 12);
+            form.setValue("finVigencia", initialEndDate.toISOString().split('T')[0], {
+                shouldValidate: true
+            });
+        }
+    }, []);
+
+    // Update end date when start date or duration changes
+    useEffect(() => {
+        updateFinVigencia();
+    }, [inicioVigencia, vigencia, meses]);
+
+    // Validate fields when they change
     useEffect(() => {
         const subscription = form.watch((_, { name }) => {
             if (name) {
@@ -151,7 +144,7 @@ export const QuoteDataStep = ({
         if (tipo?.toLowerCase().includes("convenido")) {
             minimo = vehiclePrice * 0.985;
             maximo = vehiclePrice * 1.015;
-            mensaje = `Rango_permitido ${formatCurrency(minimo)} - ${formatCurrency(maximo)}`;
+            mensaje = `Rango permitido ${formatCurrency(minimo)} - ${formatCurrency(maximo)}`;
             disableSumaAsegurada = false;
             form.setValue("SumaAsegurada", minimo, {
                 shouldValidate: true
@@ -212,9 +205,7 @@ export const QuoteDataStep = ({
                                     field.onChange(value);
                                     const newMeses = value === "Anual" ? 12 : 1;
                                     form.setValue("meses", newMeses, { shouldValidate: true });
-                                    if (inicioVigencia) {
-                                        updateFinVigencia(inicioVigencia, newMeses);
-                                    }
+                                    updateFinVigencia();
                                 }}
                                 value={field.value}
                             >
@@ -245,9 +236,7 @@ export const QuoteDataStep = ({
                                     onValueChange={(value) => {
                                         const numValue = Number(value);
                                         field.onChange(numValue);
-                                        if (inicioVigencia) {
-                                            updateFinVigencia(inicioVigencia, numValue);
-                                        }
+                                        updateFinVigencia();
                                     }}
                                     value={field.value?.toString()}
                                 >
@@ -283,14 +272,14 @@ export const QuoteDataStep = ({
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "px-3 text-left font-normal h-12 rounded-md",
+                                                "w-full pl-3 text-left font-normal",
                                                 !field.value && "text-muted-foreground"
                                             )}
                                         >
                                             {field.value ? (
-                                                format(field.value, "dd/MM/yyyy")
+                                                format(field.value, "PPP", { locale: es })
                                             ) : (
-                                                <span>Elige la fecha para agendar al empleado...</span>
+                                                <span>Selecciona una fecha</span>
                                             )}
                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                         </Button>
@@ -299,18 +288,14 @@ export const QuoteDataStep = ({
                                 <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar
                                         mode="single"
-                                        selected={field.value ? new Date(field.value) : undefined}
+                                        selected={field.value}
                                         onSelect={(date) => {
-                                            if (date) {
-                                                field.onChange(date);
-                                                updateFinVigencia(
-                                                    date,
-                                                    vigencia === "Anual" ? 12 : meses || 1
-                                                );
-                                            }
+                                            field.onChange(date);
+                                            updateFinVigencia();
                                         }}
-
-                                        disabled={(date) => date < startOfDay(new Date())}
+                                        disabled={(date) =>
+                                            date < new Date()
+                                        }
                                         initialFocus
                                         locale={es}
                                     />
@@ -321,7 +306,7 @@ export const QuoteDataStep = ({
                     )}
                 />
 
-                {/* Fin de Vigencia (Solo lectura) */}
+                {/* Fin de Vigencia */}
                 <FormField
                     control={form.control}
                     name="finVigencia"
@@ -329,11 +314,7 @@ export const QuoteDataStep = ({
                         <FormItem>
                             <FormLabel>Fin de vigencia</FormLabel>
                             <FormControl>
-                                <Input
-                                    {...field}
-                                    disabled
-                                    value={field.value ? format(new Date(field.value), "PPP", { locale: es }) : ''}
-                                />
+                                <Input {...field} type="date" disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -389,12 +370,8 @@ export const QuoteDataStep = ({
                                     placeholder="Suma asegurada"
                                     disabled={isSumaAseguradaDisabled}
                                     onChange={(e) => {
-                                        const value = Number(e.target.value);
-                                        field.onChange(value);
-                                        if (!isSumaAseguradaDisabled && sumaAsegurada.min >= 0 && sumaAsegurada.max > 0) {
-                                            const isValid = value >= sumaAsegurada.min && value <= sumaAsegurada.max;
-                                            setIsStepValid?.(isValid);
-                                        }
+                                        field.onChange(Number(e.target.value));
+                                        validateFields();
                                     }}
                                 />
                             </FormControl>
@@ -415,7 +392,7 @@ export const QuoteDataStep = ({
                             <FormLabel>Período de gracia</FormLabel>
                             <Select
                                 onValueChange={(value) => field.onChange(parseInt(value))}
-                                defaultValue={field.value ? field.value.toString() : undefined}
+                                value={field.value?.toString()}
                             >
                                 <FormControl>
                                     <SelectTrigger>
@@ -458,35 +435,6 @@ export const QuoteDataStep = ({
                 />
             </motion.div>
 
-            {/* Información adicional del tipo de suma */}
-            {selectedTipoSuma && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertDescription>
-                            {tiposSumas?.find(
-                                (tipo) => tipo.TipoSumaAseguradaID === selectedTipoSuma
-                            )?.DescripcionSuma}
-                        </AlertDescription>
-                    </Alert>
-                </motion.div>
-            )}
-
-            {/* Mensajes de validación */}
-            {Object.keys(validationErrors).map(field =>
-                validationErrors[field] && (
-                    <Alert key={field} variant="destructive">
-                        <AlertDescription>
-                            Por favor complete el campo {field} correctamente
-                        </AlertDescription>
-                    </Alert>
-                )
-            )}
-
             {/* Validación de suma asegurada */}
             {!isSumaAseguradaDisabled && sumaAsegurada.min >= 0 && sumaAsegurada.max > 0 && (
                 <Alert variant={
@@ -500,6 +448,17 @@ export const QuoteDataStep = ({
                         La suma asegurada debe estar entre {formatCurrency(sumaAsegurada.min)} y {formatCurrency(sumaAsegurada.max)}
                     </AlertDescription>
                 </Alert>
+            )}
+
+            {/* Mensajes de validación */}
+            {Object.keys(validationErrors).map(field =>
+                validationErrors[field] && (
+                    <Alert key={field} variant="destructive">
+                        <AlertDescription>
+                            Por favor complete el campo {field} correctamente
+                        </AlertDescription>
+                    </Alert>
+                )
             )}
         </div>
     );

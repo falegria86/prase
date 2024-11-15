@@ -2,6 +2,7 @@ import { z } from "zod";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import { UseFormReturn } from "react-hook-form";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
 export interface Brand {
     Clave: string;
@@ -39,7 +40,7 @@ export interface StepProps {
     tiposVehiculo?: TipoVehiculo[];
     usosVehiculo?: UsoVehiculo[];
     years?: Year[];
-    tiposPagos?: TipoPago[];
+    tiposPagos?: iGetTipoPagos[];
     tiposSumas?: iGetTiposSumasAseguradas[];
     paquetesCobertura?: PaqueteCobertura[];
     coberturas?: Cobertura[];
@@ -66,11 +67,7 @@ export interface Year {
 }
 
 // Interfaces para tipos de pago y sumas aseguradas
-export interface TipoPago {
-    TipoPagoID: number;
-    Descripcion: string;
-    PorcentajeAjuste: string;
-}
+
 
 export interface TipoSumaAsegurada {
     TipoSumaAseguradaID: number;

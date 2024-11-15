@@ -46,7 +46,6 @@ export const VehicleDataStep = ({
     const [versions, setVersions] = useState<iGetVersionesPorAnioMarcaModelo[]>([]);
     const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null);
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
     // Función mejorada de validación
     const validateFields = async () => {
@@ -55,22 +54,16 @@ export const VehicleDataStep = ({
             "Marca",
             "Submarca",
             "Version",
-            "AMIS",
             "CP",
         ] as const;
 
         const validationResults = await Promise.all(
             fieldsToValidate.map(async field => {
                 const isValid = await form.trigger(field);
-                setValidationErrors(prev => ({
-                    ...prev,
-                    [field]: !isValid
-                }));
                 return isValid;
             })
         );
 
-        console.log(validationErrors)
         const isValid = validationResults.every(Boolean);
         setIsStepValid?.(isValid);
 

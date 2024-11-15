@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
@@ -115,107 +115,105 @@ export const VehicleTypeSelector = ({
                 variants={containerVariants}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             >
-                <AnimatePresence mode="wait">
-                    {filteredVehiculos.map((tipo) => {
-                        const Icon = getIcon(tipo.Nombre);
-                        const isSelected = selectedType === tipo.TipoID;
-                        const hasSpecial = hasSpecialConsiderations(tipo);
+                {filteredVehiculos.map((tipo) => {
+                    const Icon = getIcon(tipo.Nombre);
+                    const isSelected = selectedType === tipo.TipoID;
+                    const hasSpecial = hasSpecialConsiderations(tipo);
 
-                        return (
-                            <motion.div
-                                key={tipo.TipoID}
-                                variants={itemVariants}
-                                whileHover={{ scale: disabled ? 1 : 1.02 }}
-                                whileTap={{ scale: disabled ? 1 : 0.98 }}
-                            >
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Card
-                                                className={cn(
-                                                    "cursor-pointer transition-all duration-200",
-                                                    isSelected && "ring-2 ring-primary border-primary",
-                                                    disabled && "opacity-50 cursor-not-allowed",
-                                                    !isSelected && !disabled && "hover:border-primary/50"
-                                                )}
-                                                onClick={() => {
-                                                    if (!disabled) {
-                                                        setSelectedType(tipo.TipoID);
-                                                    }
-                                                }}
-                                            >
-                                                <CardContent className="p-6">
-                                                    <div className="flex flex-col items-center gap-4">
-                                                        <div
-                                                            className={cn(
-                                                                "p-3 rounded-full",
-                                                                isSelected ? "bg-primary text-white" : "bg-muted"
-                                                            )}
-                                                        >
-                                                            <Icon className="h-6 w-6" />
-                                                        </div>
-
-                                                        <div className="text-center">
-                                                            <div className="flex items-center justify-center gap-2">
-                                                                <h4 className="font-medium">{tipo.Nombre}</h4>
-                                                                {hasSpecial && (
-                                                                    <TooltipProvider>
-                                                                        <Tooltip>
-                                                                            <TooltipTrigger>
-                                                                                <Info className="h-4 w-4 text-muted-foreground" />
-                                                                            </TooltipTrigger>
-                                                                            <TooltipContent>
-                                                                                <p className="text-sm">
-                                                                                    Este tipo de vehículo puede tener
-                                                                                    consideraciones especiales
-                                                                                </p>
-                                                                            </TooltipContent>
-                                                                        </Tooltip>
-                                                                    </TooltipProvider>
-                                                                )}
-                                                            </div>
-                                                            {isSelected && (
-                                                                <motion.div
-                                                                    initial={{ opacity: 0 }}
-                                                                    animate={{ opacity: 1 }}
-                                                                    className="mt-2"
-                                                                >
-                                                                    <Badge variant="secondary">
-                                                                        Seleccionado
-                                                                    </Badge>
-                                                                </motion.div>
-                                                            )}
-                                                        </div>
+                    return (
+                        <motion.div
+                            key={tipo.TipoID}
+                            variants={itemVariants}
+                            whileHover={{ scale: disabled ? 1 : 1.02 }}
+                            whileTap={{ scale: disabled ? 1 : 0.98 }}
+                        >
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Card
+                                            className={cn(
+                                                "cursor-pointer transition-all duration-200",
+                                                isSelected && "ring-2 ring-primary border-primary",
+                                                disabled && "opacity-50 cursor-not-allowed",
+                                                !isSelected && !disabled && "hover:border-primary/50"
+                                            )}
+                                            onClick={() => {
+                                                if (!disabled) {
+                                                    setSelectedType(tipo.TipoID);
+                                                }
+                                            }}
+                                        >
+                                            <CardContent className="p-6">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div
+                                                        className={cn(
+                                                            "p-3 rounded-full",
+                                                            isSelected ? "bg-primary text-white" : "bg-muted"
+                                                        )}
+                                                    >
+                                                        <Icon className="h-6 w-6" />
                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Seleccionar {tipo.Nombre.toLowerCase()}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
 
-                                {/* Alertas para vehículos especiales */}
-                                {isSelected && hasSpecial && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="mt-2"
-                                    >
-                                        <Alert className="mt-2">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertDescription>
-                                                Este tipo de vehículo puede requerir documentación
-                                                o coberturas adicionales.
-                                            </AlertDescription>
-                                        </Alert>
-                                    </motion.div>
-                                )}
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
+                                                    <div className="text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <h4 className="font-medium">{tipo.Nombre}</h4>
+                                                            {hasSpecial && (
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger>
+                                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p className="text-sm">
+                                                                                Este tipo de vehículo puede tener
+                                                                                consideraciones especiales
+                                                                            </p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            )}
+                                                        </div>
+                                                        {isSelected && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0 }}
+                                                                animate={{ opacity: 1 }}
+                                                                className="mt-2"
+                                                            >
+                                                                <Badge variant="secondary">
+                                                                    Seleccionado
+                                                                </Badge>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Seleccionar {tipo.Nombre.toLowerCase()}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            {/* Alertas para vehículos especiales */}
+                            {isSelected && hasSpecial && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-2"
+                                >
+                                    <Alert className="mt-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            Este tipo de vehículo puede requerir documentación
+                                            o coberturas adicionales.
+                                        </AlertDescription>
+                                    </Alert>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    );
+                })}
             </motion.div>
 
             {/* Mensaje cuando no hay tipos disponibles */}

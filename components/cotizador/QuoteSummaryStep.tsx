@@ -10,7 +10,6 @@ import {
     User,
     MapPin,
     CheckCircle,
-    AlertCircle,
     Info,
 } from "lucide-react";
 import {
@@ -297,16 +296,6 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                         antes de continuar.
                     </AlertDescription>
                 </Alert>
-
-                {formData.UnidadSalvamento && (
-                    <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            Esta cotización incluye una unidad de salvamento. Podrían aplicar
-                            condiciones especiales.
-                        </AlertDescription>
-                    </Alert>
-                )}
             </div>
         </div>
     );

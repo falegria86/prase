@@ -3,12 +3,13 @@ import * as z from "zod";
 // Schemas auxiliares
 const detalleSchema = z.object({
     CoberturaID: z.number().min(1, "CoberturaID es requerido"),
-    MontoSumaAsegurada: z.number().min(1, "Monto de suma asegurada es requerido"),
+    MontoSumaAsegurada: z.coerce.number().min(1, "Monto de suma asegurada es requerido"),
     DeducibleID: z.number().min(1, "DeducibleID es requerido"),
     MontoDeducible: z.number().min(1, "Monto deducible es requerido"),
     PrimaCalculada: z.number().min(1, "Prima calculada es requerida"),
     PorcentajePrimaAplicado: z.number().min(0, "Porcentaje prima aplicado es requerido"),
-    ValorAseguradoUsado: z.number().min(1, "Valor asegurado usado es requerido"),
+    ValorAseguradoUsado: z.coerce.number().min(1, "Valor asegurado usado es requerido"),
+    NombreCobertura: z.string(),
 });
 
 export const nuevaCotizacionSchema = z.object({
@@ -18,11 +19,9 @@ export const nuevaCotizacionSchema = z.object({
 
     // Datos financieros
     PrimaTotal: z.number().min(0, "La Prima Total no puede ser negativa"),
-    TipoPagoID: z.number().min(1, "El tipo de pago es requerido"),
-    PorcentajeDescuento: z.number()
-        .min(0, "El descuento no puede ser negativo")
-        .max(35, "El descuento no puede superar el 35%"),
-    DerechoPoliza: z.coerce.number().min(0, "Derecho de póliza no puede ser negativo"),
+    TipoPagoID: z.number().min(0, "El tipo de pago es requerido"),
+    PorcentajeDescuento: z.number(),
+    DerechoPoliza: z.coerce.number(),
 
     // Datos de suma asegurada
     TipoSumaAseguradaID: z.coerce.number().min(1, "Tipo de suma asegurada es requerido"),
@@ -37,21 +36,15 @@ export const nuevaCotizacionSchema = z.object({
     // Datos del vehículo
     UsoVehiculo: z.number().min(1, "El uso del vehículo es requerido"),
     TipoVehiculo: z.number().min(1, "El tipo de vehículo es requerido"),
-    AMIS: z.string().min(15, "AMIS debe contener al menos 15 caracteres"),
+    AMIS: z.string(),
 
     // Datos opcionales
-    NombrePersona: z.string()
-        .min(3, "El nombre debe tener al menos 3 caracteres")
-        .optional()
-        .or(z.literal("")),
+    NombrePersona: z.string(),
     UnidadSalvamento: z.boolean(),
-    VIN: z.string()
-        .regex(/^[A-HJ-NPR-Z0-9]{17}$/, "VIN inválido")
-        .optional()
-        .or(z.literal("")),
+    VIN: z.string(),
 
     // Datos de ubicación
-    CP: z.string().regex(/^\d{5}$/, "El código postal debe tener 5 dígitos"),
+    CP: z.string(),
 
     // Datos del vehículo extendidos
     Modelo: z.string().min(1, "El año es requerido"),
@@ -60,22 +53,19 @@ export const nuevaCotizacionSchema = z.object({
     Version: z.string().min(1, "La versión es requerida"),
 
     // Datos de vigencia
-    meses: z.coerce.number()
-        .min(1, "Mínimo 1 mes")
-        .max(12, "Máximo 12 meses"),
-    vigencia: z.enum(["Anual", "Por meses"]),
+    meses: z.coerce.number(),
+    vigencia: z.string(),
 
     // Rangos de suma asegurada
-    minSumaAsegurada: z.coerce.number(),
-    maxSumaAsegurada: z.coerce.number(),
+    minSumaAsegurada: z.coerce.number().default(0),
+    maxSumaAsegurada: z.coerce.number().default(0),
 
     // Fechas
     inicioVigencia: z.date(),
-    finVigencia: z.string()
-        .min(1, "El fin de vigencia es requerido"),
+    finVigencia: z.string(),
 
     // Detalles de coberturas
-    detalles: z.array(detalleSchema).optional(),
+    detalles: z.array(detalleSchema).min(1, "Debe seleccionar al menos una cobertura"),
 
     // Campos auxiliares
     versionNombre: z.string(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     Car,
     Truck,
@@ -110,58 +110,56 @@ export const VehicleUseSelector = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <AnimatePresence mode="wait">
-                        {usosVehiculo.map((uso) => {
-                            const Icon = getIcon(uso.Nombre);
-                            const isSelected = selectedUse === uso.UsoID;
+                    {usosVehiculo.map((uso) => {
+                        const Icon = getIcon(uso.Nombre);
+                        const isSelected = selectedUse === uso.UsoID;
 
-                            return (
-                                <motion.div
-                                    key={uso.UsoID}
-                                    variants={itemVariants}
-                                    whileHover={{ scale: disabled ? 1 : 1.02 }}
-                                    whileTap={{ scale: disabled ? 1 : 0.98 }}
-                                >
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Card
-                                                    className={cn(
-                                                        "cursor-pointer transition-all duration-200",
-                                                        isSelected && "ring-2 ring-primary border-primary",
-                                                        disabled && "opacity-50 cursor-not-allowed",
-                                                        !isSelected && !disabled && "hover:border-primary/50"
-                                                    )}
-                                                    onClick={() => handleUseSelect(uso.UsoID)}
-                                                >
-                                                    <CardContent className="p-6">
-                                                        <div className="flex flex-col items-center gap-4 text-center">
-                                                            <div className={cn(
-                                                                "p-3 rounded-full",
-                                                                isSelected ? "bg-primary text-white" : "bg-muted"
-                                                            )}>
-                                                                <Icon className="h-6 w-6" />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-medium mb-1">{uso.Nombre}</h4>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    {/* Aquí podrías agregar una descripción si la tienes */}
-                                                                    Vehículos de uso {uso.Nombre.toLowerCase()}
-                                                                </p>
-                                                            </div>
+                        return (
+                            <motion.div
+                                key={uso.UsoID}
+                                variants={itemVariants}
+                                whileHover={{ scale: disabled ? 1 : 1.02 }}
+                                whileTap={{ scale: disabled ? 1 : 0.98 }}
+                            >
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Card
+                                                className={cn(
+                                                    "cursor-pointer transition-all duration-200",
+                                                    isSelected && "ring-2 ring-primary border-primary",
+                                                    disabled && "opacity-50 cursor-not-allowed",
+                                                    !isSelected && !disabled && "hover:border-primary/50"
+                                                )}
+                                                onClick={() => handleUseSelect(uso.UsoID)}
+                                            >
+                                                <CardContent className="p-6">
+                                                    <div className="flex flex-col items-center gap-4 text-center">
+                                                        <div className={cn(
+                                                            "p-3 rounded-full",
+                                                            isSelected ? "bg-primary text-white" : "bg-muted"
+                                                        )}>
+                                                            <Icon className="h-6 w-6" />
                                                         </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Seleccionar uso {uso.Nombre.toLowerCase()}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
+                                                        <div>
+                                                            <h4 className="font-medium mb-1">{uso.Nombre}</h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {/* Aquí podrías agregar una descripción si la tienes */}
+                                                                Vehículos de uso {uso.Nombre.toLowerCase()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Seleccionar uso {uso.Nombre.toLowerCase()}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
                 {/* Mensaje informativo */}

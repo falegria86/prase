@@ -4,7 +4,9 @@ import type { z } from "zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -23,6 +25,7 @@ import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+import QuotePDFTemplate from "./QuotePDFTemplate";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -105,7 +108,7 @@ export const Cotizador = ({
     // Validación de campos por paso
     const stepFields: Record<number, (keyof FormData)[]> = {
         1: ["UsoVehiculo", "TipoVehiculo"],
-        2: ["Modelo", "Marca", "Submarca", "Version", "AMIS", "CP"],
+        2: ["Modelo", "Marca", "Submarca", "Version", "CP"],
         3: [
             "TipoSumaAseguradaID",
             "SumaAsegurada",
@@ -113,8 +116,8 @@ export const Cotizador = ({
             "NombrePersona",
             "inicioVigencia",
         ],
-        4: ["PaqueteCoberturaID", "detalles"],
-        5: [], // Paso de resumen no requiere validación adicional
+        4: ["PaqueteCoberturaID"],
+        5: [],
     };
 
     // Manejadores de navegación entre pasos
@@ -134,13 +137,27 @@ export const Cotizador = ({
         form.trigger(fields).then(setIsStepValid);
     };
 
-    // Manejador de envío del formulario
-    const onSubmit = async (data: FormData) => {
+    const handleFinalSubmit = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        const formData = form.getValues();
+
         try {
-            console.log("Enviando cotización:", data);
-            // Aquí implementarías la lógica de envío a tu API
+            // Generar el PDF
+            const blob = await pdf(
+                <QuotePDFTemplate data={formData} />
+            ).toBlob();
+
+            // Generar nombre del archivo
+            const fileName = `cotizacion_${formData.marcaNombre}_${formData.modeloNombre}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+            // Descargar el archivo
+            saveAs(blob, fileName);
+
+            // Aquí iría tu lógica de envío al backend
+            console.log("Enviando cotización:", formData);
+
         } catch (error) {
-            console.error("Error al enviar la cotización:", error);
+            console.error("Error al generar el PDF o enviar la cotización:", error);
         }
     };
 
@@ -183,8 +200,8 @@ export const Cotizador = ({
 
             <div className="mt-8 bg-white rounded-lg shadow-lg">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 p-6">
-                        <AnimatePresence mode="wait">
+                    <form className="space-y-8 p-6">
+                        <div>
                             <motion.div
                                 key={currentStep}
                                 initial={{ opacity: 0, x: 20 }}
@@ -194,7 +211,7 @@ export const Cotizador = ({
                             >
                                 {renderStep()}
                             </motion.div>
-                        </AnimatePresence>
+                        </div>
 
                         <div className="flex justify-between pt-6 border-t">
                             <Button
@@ -219,7 +236,12 @@ export const Cotizador = ({
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             ) : (
-                                <Button type="submit" className="flex items-center">
+                                <Button
+                                    type="button"
+                                    disabled={!isStepValid}
+                                    onClick={handleFinalSubmit}
+                                    className="flex items-center"
+                                >
                                     Finalizar cotización
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
