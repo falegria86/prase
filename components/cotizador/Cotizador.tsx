@@ -2,15 +2,15 @@
 
 import type { z } from "zod";
 import { useState } from "react";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { pdf } from '@react-pdf/renderer';
-import { saveAs } from 'file-saver';
+// import { pdf } from '@react-pdf/renderer';
+// import { saveAs } from 'file-saver';
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import type { Step } from "@/types/cotizador";
 import VehicleDataStep from "./VehicleDataStep";
@@ -27,10 +27,10 @@ import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/Ca
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 
-const QuotePDFTemplate = dynamic(() => import("./QuotePDFTemplate"), {
-    ssr: false,
-    loading: () => <Loader2 className="h-6 w-6 animate-spin" />
-});
+// const QuotePDFTemplate = dynamic(() => import("./QuotePDFTemplate"), {
+//     ssr: false,
+//     loading: () => <Loader2 className="h-6 w-6 animate-spin" />
+// });
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -146,7 +146,7 @@ export const Cotizador = ({
 
     const handleFinalSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-        const formData = form.getValues();
+        // const formData = form.getValues();
 
         // try {
         //     // Generar el PDF

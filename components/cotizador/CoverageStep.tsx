@@ -102,7 +102,7 @@ const CoverageStep = ({
         }
 
         // Obtener suma asegurada base para cálculos
-        let sumaAsegurada = cobertura.AplicaSumaAsegurada ?
+        const sumaAsegurada = cobertura.AplicaSumaAsegurada ?
             form.getValues("SumaAsegurada") :
             parseFloat(cobertura.SumaAseguradaMax);
 
@@ -388,12 +388,7 @@ const CoverageStep = ({
                                                 value={paquete.PaqueteCoberturaID.toString()}
                                             >
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <span>{paquete.NombrePaquete}</span>
-                                                    {paquete.PrecioTotalFijo && tipoCalculo === "fijo" && (
-                                                        <Badge variant="secondary">
-                                                            Precio fijo: ${paquete.PrecioTotalFijo}
-                                                        </Badge>
-                                                    )}
+                                                    {paquete.NombrePaquete}
                                                 </div>
                                             </SelectItem>
                                         ))}
