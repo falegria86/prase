@@ -48,6 +48,8 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
             Variable: cobertura.Variable,
             SinValor: cobertura.SinValor,
             AplicaSumaAsegurada: cobertura.AplicaSumaAsegurada,
+            CoberturaAmparada: cobertura.CoberturaAmparada,
+            sumaAseguradaPorPasajero: cobertura.sumaAseguradaPorPasajero
         },
     });
 
@@ -85,7 +87,7 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-3 gap-4">
                     <FormField
                         control={form.control}
                         name="NombreCobertura"
@@ -287,6 +289,51 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                                         onValueChange={(value) => field.onChange(value === "true")}
                                         defaultValue={field.value ? "true" : "false"}
                                     >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">Sí</SelectItem>
+                                            <SelectItem value="false">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="CoberturaAmparada"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>¿Cobertura Amparada?</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">Sí</SelectItem>
+                                            <SelectItem value="false">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+
+                    <FormField
+                        control={form.control}
+                        name="sumaAseguradaPorPasajero"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>¿Suma asegurada aplica por pasajero?</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Seleccione" />
                                         </SelectTrigger>

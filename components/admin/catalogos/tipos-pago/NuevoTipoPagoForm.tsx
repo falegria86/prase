@@ -96,6 +96,19 @@ export const NuevoTipoPagoForm = () => {
                                 </FormItem>
                             )}
                         />
+                           <FormField
+                            control={form.control}
+                            name="Divisor"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Número de Pagos</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Cantidad de Pagos" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <Button type="submit" disabled={isPending} size="lg">
                             {isPending ? (
                                 <>

@@ -47,6 +47,8 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             AplicaSumaAsegurada: false,
             tipoMoneda: 0,
             tipoDeducible: 0,
+            CoberturaAmparada: false,
+            sumaAseguradaPorPasajero: false
         },
     });
 
@@ -214,10 +216,10 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                 name="PorcentajePrima"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Porcentaje Prima</FormLabel>
+                                        <FormLabel>Tasa Base</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Porcentaje de la prima..."
+                                                placeholder="Tasa base sobre la cual se va a calcular el costo de la cobertura..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -326,6 +328,52 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     </FormItem>
                                 )}
                             />
+
+                            <FormField
+                                control={form.control}
+                                name="CoberturaAmparada"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>¿Cobertura Amparada?</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="true">Sí</SelectItem>
+                                                    <SelectItem value="false">No</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+
+                            <FormField
+                                control={form.control}
+                                name="sumaAseguradaPorPasajero"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>¿Suma asegurada aplica por pasajero?</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="true">Sí</SelectItem>
+                                                    <SelectItem value="false">No</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={form.control}
                                 name="tipoMoneda"

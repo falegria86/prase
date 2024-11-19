@@ -53,6 +53,8 @@ export interface iPostCobertura {
     AplicaSumaAsegurada: boolean;
     tipoDeducible: TipoDeduciblePost;
     tipoMoneda: TipoMonedaPost;
+    CoberturaAmparada: boolean;
+    sumaAseguradaPorPasajero: boolean;
 }
 
 export interface TipoDeduciblePost {
@@ -77,6 +79,8 @@ export interface iPostCoberturaResp {
     Variable: boolean;
     SinValor: boolean;
     CoberturaID: number;
+    CoberturaAmparada: boolean;
+    sumaAseguradaPorPasajero: boolean;
 }
 
 export interface iPatchCobertura {
@@ -93,6 +97,8 @@ export interface iPatchCobertura {
     Variable?: boolean;
     SinValor?: boolean;
     AplicaSumaAsegurada?: boolean;
+    CoberturaAmparada: boolean;
+    sumaAseguradaPorPasajero: boolean;
 }
 
 export interface iGetTiposMoneda {

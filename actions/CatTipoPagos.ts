@@ -13,6 +13,7 @@ export const getTipoPagos = async () => {
         if (!resp.ok) return null;
 
         const data: iGetTipoPagos[] = await resp.json();
+
         return data;
     } catch (error) {
         console.log('Error al obtener tipos de pago: ', error);

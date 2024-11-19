@@ -23,6 +23,7 @@ import { patchTipoPago } from "@/actions/CatTipoPagos";
 const editarTipoPagoSchema = z.object({
     Descripcion: z.string().min(1, "La descripción es requerida"),
     PorcentajeAjuste: z.number().min(0, "Porcentaje ajuste es requerido"),
+    Divisor: z.string().min(0, "Divisor es requerido"),
 });
 
 interface EditarTipoPagoFormProps {
@@ -40,6 +41,7 @@ export const EditarTipoPagoForm = ({ tipoPago, onSave }: EditarTipoPagoFormProps
         defaultValues: {
             Descripcion: tipoPago.Descripcion,
             PorcentajeAjuste: parseFloat(tipoPago.PorcentajeAjuste),
+            Divisor: tipoPago.Divisor.toString()
         },
     });
 
@@ -98,6 +100,19 @@ export const EditarTipoPagoForm = ({ tipoPago, onSave }: EditarTipoPagoFormProps
                             <FormLabel>Porcentaje Ajuste</FormLabel>
                             <FormControl>
                                 <Input type="number" placeholder="Ej. 10" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="Divisor"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Número de Pagos</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ej. Cantidad de pagos 4" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

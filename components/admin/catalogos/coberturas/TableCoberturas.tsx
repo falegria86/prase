@@ -103,24 +103,26 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Cobertura</TableHead>
                             <TableHead>Descripción</TableHead>
-                            <TableHead>Prima Base</TableHead>
-                            <TableHead>Porcentaje Prima</TableHead>
+                            <TableHead>Tasa Base</TableHead>
                             <TableHead>Tipo Moneda</TableHead>
+                            <TableHead>Tipo Deducible</TableHead>
+                            <TableHead>¿Cobertura Amparada?</TableHead>
+                            <TableHead>¿Costo por Pasajero?</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {coberturas.map((cobertura) => (
                             <TableRow key={cobertura.CoberturaID}>
-                                <TableCell className="font-medium">{cobertura.CoberturaID}</TableCell>
                                 <TableCell>{cobertura.NombreCobertura}</TableCell>
                                 <TableCell>{cobertura.Descripcion}</TableCell>
-                                <TableCell>{cobertura.PrimaBase}</TableCell>
-                                <TableCell>{cobertura.PorcentajePrima}%</TableCell>
+                                <TableCell>{cobertura.PorcentajePrima} %</TableCell>
                                 <TableCell>{cobertura.tipoMoneda?.Abreviacion}</TableCell>
+                                <TableCell>{cobertura.tipoDeducible?.Nombre}</TableCell>
+                                <TableCell>{cobertura.CoberturaAmparada}</TableCell>
+                                <TableCell>{cobertura.sumaAseguradaPorPasajero}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
                                         <TooltipTrigger>

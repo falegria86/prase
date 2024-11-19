@@ -103,18 +103,18 @@ export const TableTipoPagos = ({ tiposPago }: Props) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Porcentaje Ajuste</TableHead>
+                            <TableHead>Divisor</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {tiposPago.map((tipoPago) => (
                             <TableRow key={tipoPago.TipoPagoID}>
-                                <TableCell>{tipoPago.TipoPagoID}</TableCell>
                                 <TableCell>{tipoPago.Descripcion}</TableCell>
                                 <TableCell>{tipoPago.PorcentajeAjuste}%</TableCell>
+                                <TableCell>{tipoPago.Divisor}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
                                         <TooltipTrigger>
