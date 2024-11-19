@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Check, ChevronsUpDown, Loader2, MapPin, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
     Command,
     CommandEmpty,
