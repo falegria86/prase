@@ -1,6 +1,5 @@
-"use client";
-
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import {
     Card,
     CardContent,
@@ -45,16 +44,7 @@ import { formatCurrency } from "@/lib/format";
 
 const VALOR_UMA = Number(process.env.VALOR_UMA) || 0;
 
-interface TipoMoneda {
-    TipoMonedaID: number;
-    Nombre: string;
-    Abreviacion: string;
-}
-
-interface TipoDeducible {
-    TipoDeducibleID: number;
-    Nombre: string;
-}
+type TipoCalculo = "fijo" | "cobertura";
 
 interface CoberturaExtendida {
     CoberturaID: number;
@@ -72,17 +62,22 @@ interface CoberturaExtendida {
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
     CoberturaAmparada: boolean;
-    IndiceSiniestralidad: null;
     sumaAseguradaPorPasajero: boolean;
-    tipoDeducible: TipoDeducible;
-    tipoMoneda: TipoMoneda;
+    tipoDeducible: {
+        TipoDeducibleID: number;
+        Nombre: string;
+    };
+    tipoMoneda: {
+        TipoMonedaID: number;
+        Nombre: string;
+        Abreviacion: string;
+    };
     Obligatoria?: boolean;
     deducibleSeleccionado?: number;
+    sumaAseguradaPersonalizada?: number;
 }
 
-type TipoCalculo = "fijo" | "cobertura";
-
-const CoverageStep = ({
+export const CoverageStep = ({
     form,
     paquetesCobertura,
     coberturas,
@@ -91,113 +86,90 @@ const CoverageStep = ({
 }: StepProps) => {
     const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
     const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<CoberturaExtendida[]>([]);
-    const [montoFijo, setMontoFijo] = useState<string>("");
+    const [montoFijo, setMontoFijo] = useState("");
 
-    const calcularPrimaCobertura = useCallback((cobertura: CoberturaExtendida, tipoCalc: TipoCalculo): number => {
-        if (tipoCalc === "fijo" || cobertura.SinValor) return 0;
+    const obtenerSumaAsegurada = useCallback((cobertura: CoberturaExtendida): number => {
+        if (cobertura.CoberturaAmparada) return 0;
 
-        // Caso 1: Prima base fija (sin deducible)
-        if (cobertura.PrimaBase && cobertura.PrimaBase !== "1" && cobertura.DeducibleMin === "0") {
+        if (cobertura.AplicaSumaAsegurada) {
+            return cobertura.sumaAseguradaPersonalizada || form.getValues("SumaAsegurada");
+        }
+
+        if (cobertura.tipoMoneda.Nombre === "UMA") {
+            return parseFloat(cobertura.SumaAseguradaMax) * VALOR_UMA;
+        }
+
+        return parseFloat(cobertura.SumaAseguradaMax);
+    }, [form]);
+
+    const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
+        if (cobertura.CoberturaAmparada) return 0;
+
+        if (cobertura.tipoDeducible.Nombre === "UMA") {
+            return parseFloat(cobertura.DeducibleMax) * VALOR_UMA;
+        }
+
+        return cobertura.deducibleSeleccionado || parseFloat(cobertura.DeducibleMin);
+    }, []);
+
+    const calcularPrima = useCallback((cobertura: CoberturaExtendida, tipo: TipoCalculo): number => {
+        if (tipo === "fijo" || cobertura.SinValor || cobertura.CoberturaAmparada) return 0;
+
+        const sumaAsegurada = obtenerSumaAsegurada(cobertura);
+        const deducible = obtenerDeducible(cobertura);
+
+        // Prima base fija sin deducible
+        if (cobertura.PrimaBase && cobertura.DeducibleMin === "0") {
             return parseFloat(cobertura.PrimaBase);
         }
 
-        // Obtener suma asegurada base para cálculos
-        const sumaAsegurada = cobertura.AplicaSumaAsegurada ?
-            form.getValues("SumaAsegurada") :
-            parseFloat(cobertura.SumaAseguradaMax);
+        const primaPorcentaje = parseFloat(cobertura.PorcentajePrima) / 100;
+        const primaBase = sumaAsegurada * primaPorcentaje;
 
-        const tasaBase = parseFloat(cobertura.PorcentajePrima) / 100;
-        const costoInicial = sumaAsegurada * tasaBase;
-
-        // Caso 4: Sin deducible ni prima base
+        // Sin deducible o cobertura amparada
         if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
-            return costoInicial;
+            return primaBase;
         }
 
-        // Caso 3: Deducible en UMAs
+        // Deducible en UMAs
         if (cobertura.tipoDeducible.Nombre === "UMA") {
-            const umasDeducible = parseFloat(cobertura.DeducibleMax);
-            const deducibleEnPesos = umasDeducible * VALOR_UMA;
-            return Math.max(0, costoInicial - deducibleEnPesos);
+            const deduciblePesos = deducible * VALOR_UMA;
+            return Math.max(0, primaBase - deduciblePesos);
         }
 
-        // Caso 2: Deducible en porcentaje
-        const deducible = cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin);
-        return costoInicial * (1 - deducible / 100);
+        // Deducible en porcentaje
+        return primaBase * (1 - deducible / 100);
+    }, [obtenerSumaAsegurada, obtenerDeducible]);
 
-    }, [form, VALOR_UMA]);
-
-    const generarRangoDeducibles = useCallback((cobertura: CoberturaExtendida): number[] => {
-        const min = parseInt(cobertura.DeducibleMin) || 0;
-        const max = parseInt(cobertura.DeducibleMax) || 0;
-        const rango = parseInt(cobertura.RangoSeleccion) || 1;
-
-        // Si el rango es 0 o los valores son inválidos, retornar solo min y max
-        if (rango === 0 || min === max || min > max) {
-            return [min, max].filter((val, index, arr) =>
-                arr.indexOf(val) === index && val !== 0
-            );
-        }
-
-        const deducibles: number[] = [];
-        const iteraciones = Math.floor((max - min) / rango) + 1;
-
-        // Limitar número máximo de iteraciones para evitar arrays muy grandes
-        for (let i = 0; i < Math.min(iteraciones, 100); i++) {
-            const valor = min + (i * rango);
-            if (valor <= max) {
-                deducibles.push(valor);
-            }
-        }
-
-        // Asegurar que el valor máximo esté incluido
-        if (deducibles[deducibles.length - 1] !== max) {
-            deducibles.push(max);
-        }
-
-        return deducibles;
-    }, []);
-
-    const actualizarDetallesForm = useCallback((coberturas: CoberturaExtendida[]) => {
-        const detalles = coberturas.map(cobertura => {
-            let montoSumaAsegurada = 0;
-            if (cobertura.AplicaSumaAsegurada) {
-                montoSumaAsegurada = form.getValues("SumaAsegurada");
-            } else if (cobertura.tipoMoneda.Nombre === "UMA") {
-                montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax) * VALOR_UMA;
-            } else {
-                montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax);
-            }
-
-            return {
-                CoberturaID: cobertura.CoberturaID,
-                NombreCobertura: cobertura.NombreCobertura,
-                Descripcion: cobertura.Descripcion,
-                MontoSumaAsegurada: montoSumaAsegurada,
-                DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
-                MontoDeducible: cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin),
-                PrimaCalculada: calcularPrimaCobertura(cobertura, tipoCalculo || "cobertura"),
-                PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
-                ValorAseguradoUsado: montoSumaAsegurada,
-                Obligatoria: cobertura.Obligatoria || false
-            };
-        });
+    const actualizarDetalles = useCallback((coberturas: CoberturaExtendida[]) => {
+        const detalles = coberturas.map(cobertura => ({
+            CoberturaID: cobertura.CoberturaID,
+            NombreCobertura: cobertura.NombreCobertura,
+            Descripcion: cobertura.Descripcion,
+            MontoSumaAsegurada: obtenerSumaAsegurada(cobertura),
+            DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+            MontoDeducible: obtenerDeducible(cobertura),
+            PrimaCalculada: calcularPrima(cobertura, tipoCalculo || "cobertura"),
+            PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+            ValorAseguradoUsado: obtenerSumaAsegurada(cobertura),
+            Obligatoria: cobertura.Obligatoria || false
+        }));
 
         form.setValue("detalles", detalles, { shouldValidate: true });
-    }, [form, calcularPrimaCobertura, tipoCalculo]);
+    }, [form, obtenerSumaAsegurada, obtenerDeducible, calcularPrima, tipoCalculo]);
 
-    const manejarTipoCalculoChange = useCallback((valor: string) => {
+    const manejarCambioTipoCalculo = useCallback((valor: string) => {
         setTipoCalculo(valor as TipoCalculo);
-        form.setValue("PaqueteCoberturaID", 0, { shouldValidate: true });
+        form.setValue("PaqueteCoberturaID", 0);
         setCoberturasSeleccionadas([]);
         setMontoFijo("");
         setIsStepValid?.(false);
     }, [form, setIsStepValid]);
 
-    const manejarPaqueteSelect = useCallback((valor: string) => {
+    const manejarSeleccionPaquete = useCallback((valor: string) => {
         if (valor === "none") {
-            form.setValue("PaqueteCoberturaID", 0, { shouldValidate: true });
-            form.setValue("detalles", [], { shouldValidate: true });
+            form.setValue("PaqueteCoberturaID", 0);
+            form.setValue("detalles", []);
             form.setValue("PrimaTotal", 0);
             setCoberturasSeleccionadas([]);
             setMontoFijo("");
@@ -206,7 +178,7 @@ const CoverageStep = ({
         }
 
         const paqueteId = parseInt(valor);
-        form.setValue("PaqueteCoberturaID", paqueteId, { shouldValidate: true });
+        form.setValue("PaqueteCoberturaID", paqueteId);
 
         const paqueteSeleccionado = paquetesCobertura?.find(
             p => p.PaqueteCoberturaID === paqueteId
@@ -228,42 +200,40 @@ const CoverageStep = ({
         }).filter((c): c is CoberturaExtendida => c !== null);
 
         setCoberturasSeleccionadas(coberturasDelPaquete);
-        actualizarDetallesForm(coberturasDelPaquete);
+        actualizarDetalles(coberturasDelPaquete);
 
         if (tipoCalculo === "fijo" && paqueteSeleccionado?.PrecioTotalFijo) {
             setMontoFijo(paqueteSeleccionado.PrecioTotalFijo);
             form.setValue("PrimaTotal", parseFloat(paqueteSeleccionado.PrecioTotalFijo));
         } else {
             const primaTotal = coberturasDelPaquete.reduce((total, cobertura) =>
-                total + calcularPrimaCobertura(cobertura, tipoCalculo || "cobertura"), 0);
+                total + calcularPrima(cobertura, tipoCalculo || "cobertura"), 0);
             form.setValue("PrimaTotal", primaTotal);
         }
 
         setIsStepValid?.(true);
-    }, [form, paquetesCobertura, asociaciones, coberturas, tipoCalculo, actualizarDetallesForm, calcularPrimaCobertura, setIsStepValid]);
+    }, [form, paquetesCobertura, asociaciones, coberturas, tipoCalculo, actualizarDetalles, calcularPrima, setIsStepValid]);
 
-    const manejarMontoFijoChange = useCallback((valor: string) => {
+    const manejarCambioMontoFijo = useCallback((valor: string) => {
         const numeroLimpio = valor.replace(/[^0-9.]/g, '');
         setMontoFijo(numeroLimpio);
         form.setValue("PrimaTotal", parseFloat(numeroLimpio) || 0);
     }, [form]);
 
-    const manejarDeducibleChange = useCallback((coberturaId: number, valor: string) => {
-        if (tipoCalculo === "fijo") return;
-
+    const manejarCambioDeducible = useCallback((coberturaId: number, valor: string) => {
         const nuevasCoberturas = coberturasSeleccionadas.map(cobertura =>
-            cobertura.CoberturaID === coberturaId ?
-                { ...cobertura, deducibleSeleccionado: parseInt(valor) } :
-                cobertura
+            cobertura.CoberturaID === coberturaId
+                ? { ...cobertura, deducibleSeleccionado: parseInt(valor) }
+                : cobertura
         );
 
         setCoberturasSeleccionadas(nuevasCoberturas);
-        actualizarDetallesForm(nuevasCoberturas);
+        actualizarDetalles(nuevasCoberturas);
 
         const primaTotal = nuevasCoberturas.reduce((total, cobertura) =>
-            total + calcularPrimaCobertura(cobertura, tipoCalculo || "cobertura"), 0);
+            total + calcularPrima(cobertura, tipoCalculo || "cobertura"), 0);
         form.setValue("PrimaTotal", primaTotal);
-    }, [tipoCalculo, coberturasSeleccionadas, actualizarDetallesForm, calcularPrimaCobertura, form]);
+    }, [tipoCalculo, coberturasSeleccionadas, actualizarDetalles, calcularPrima, form]);
 
     const manejarEliminarCobertura = useCallback((coberturaId: number) => {
         const nuevasCoberturas = coberturasSeleccionadas.filter(
@@ -271,58 +241,196 @@ const CoverageStep = ({
         );
 
         setCoberturasSeleccionadas(nuevasCoberturas);
-        actualizarDetallesForm(nuevasCoberturas);
+        actualizarDetalles(nuevasCoberturas);
 
         if (tipoCalculo === "cobertura") {
             const primaTotal = nuevasCoberturas.reduce((total, cobertura) =>
-                total + calcularPrimaCobertura(cobertura, tipoCalculo), 0);
+                total + calcularPrima(cobertura, tipoCalculo), 0);
             form.setValue("PrimaTotal", primaTotal);
         }
-    }, [coberturasSeleccionadas, actualizarDetallesForm, tipoCalculo, calcularPrimaCobertura, form]);
+    }, [coberturasSeleccionadas, actualizarDetalles, tipoCalculo, calcularPrima, form]);
 
-    const renderValorCobertura = useCallback((cobertura: CoberturaExtendida) => {
+    const manejarCambioSumaAsegurada = useCallback((coberturaId: number, nuevoValor: string) => {
+        const valorNumerico = parseFloat(nuevoValor);
+
+        const nuevasCoberturas = coberturasSeleccionadas.map(cobertura => {
+            if (cobertura.CoberturaID === coberturaId) {
+                const coberturaActualizada = {
+                    ...cobertura,
+                    sumaAseguradaPersonalizada: valorNumerico
+                };
+
+                return coberturaActualizada;
+            }
+            return cobertura;
+        });
+
+        setCoberturasSeleccionadas(nuevasCoberturas);
+
+        // Actualizar detalles con las nuevas primas calculadas
+        const detallesActualizados = nuevasCoberturas.map(cobertura => ({
+            CoberturaID: cobertura.CoberturaID,
+            NombreCobertura: cobertura.NombreCobertura,
+            Descripcion: cobertura.Descripcion,
+            MontoSumaAsegurada: obtenerSumaAsegurada(cobertura),
+            DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+            MontoDeducible: obtenerDeducible(cobertura),
+            PrimaCalculada: calcularPrima(cobertura, "cobertura"),
+            PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+            ValorAseguradoUsado: obtenerSumaAsegurada(cobertura),
+            Obligatoria: cobertura.Obligatoria || false
+        }));
+
+        form.setValue("detalles", detallesActualizados);
+
+        // Actualizar prima total
+        const nuevaPrimaTotal = detallesActualizados.reduce(
+            (total, detalle) => total + detalle.PrimaCalculada,
+            0
+        );
+        form.setValue("PrimaTotal", nuevaPrimaTotal);
+
+    }, [coberturasSeleccionadas, obtenerSumaAsegurada, obtenerDeducible, calcularPrima, form]);
+
+    const generarRangosSumaAsegurada = useCallback((sumaBase: number): number[] => {
+        const rangos: number[] = [];
+        const esMayorA500k = sumaBase > 500000;
+        const incremento = esMayorA500k ? 100000 : 10000;
+        const limiteInferior = Math.floor(sumaBase * 0.5);
+        const limiteSuperior = sumaBase;
+
+        for (let valor = limiteInferior; valor <= limiteSuperior; valor += incremento) {
+            rangos.push(valor);
+        }
+
+        if (!rangos.includes(sumaBase)) {
+            rangos.push(sumaBase);
+            rangos.sort((a, b) => a - b);
+        }
+
+        return rangos;
+    }, []);
+
+    const renderizarValorCobertura = useCallback((cobertura: CoberturaExtendida): React.ReactNode => {
+        const sumaAseguradaAnterior = form.getValues('SumaAsegurada');
+
+        // Si la cobertura aplica suma asegurada, mostrar el select
+        if (cobertura.AplicaSumaAsegurada) {
+            const rangos = generarRangosSumaAsegurada(sumaAseguradaAnterior);
+            const valorActual = cobertura.sumaAseguradaPersonalizada || sumaAseguradaAnterior;
+
+            return (
+                <Select
+                    value={valorActual.toString()}
+                    onValueChange={(valor) => manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)}
+                >
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue>
+                            {formatCurrency(parseFloat(valorActual.toString()))}
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {rangos.map((valor) => (
+                            <SelectItem key={valor} value={valor.toString()}>
+                                {formatCurrency(valor)}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            );
+        }
+
+        // Si es cobertura amparada
         if (cobertura.CoberturaAmparada) {
             return "AMPARADA";
         }
-        if (cobertura.AplicaSumaAsegurada) {
-            return "VALOR COMERCIAL";
+
+        // Si es por pasajero
+        if (cobertura.sumaAseguradaPorPasajero) {
+            let montoTexto;
+            if (cobertura.tipoMoneda.Nombre === "UMA") {
+                montoTexto = `${cobertura.SumaAseguradaMax} UMAS`;
+            } else if (Number(cobertura.SumaAseguradaMin) <= 1 && Number(cobertura.SumaAseguradaMax) <= 1) {
+                montoTexto = formatCurrency(sumaAseguradaAnterior);
+            } else {
+                montoTexto = formatCurrency(Number(cobertura.SumaAseguradaMax));
+            }
+
+            return (
+                <div className="flex flex-col gap-1">
+                    <span>{montoTexto}</span>
+                    <span className="text-sm text-muted-foreground">POR CADA PASAJERO</span>
+                </div>
+            );
         }
+
+        // Para montos en UMA
         if (cobertura.tipoMoneda.Nombre === "UMA") {
             return `${cobertura.SumaAseguradaMax} UMAS`;
         }
+
+        // Para montos en pesos
         return formatCurrency(parseFloat(cobertura.SumaAseguradaMax));
+    }, [form, generarRangosSumaAsegurada, manejarCambioSumaAsegurada]);
+
+    const generarRangoDeducibles = useCallback((cobertura: CoberturaExtendida): number[] => {
+        const min = parseInt(cobertura.DeducibleMin) || 0;
+        const max = parseInt(cobertura.DeducibleMax) || 0;
+        const rango = parseInt(cobertura.RangoSeleccion) || 1;
+
+        if (rango === 0 || min === max || min > max) {
+            return [min, max].filter((val, index, arr) =>
+                arr.indexOf(val) === index && val !== 0
+            );
+        }
+
+        const deducibles: number[] = [];
+        const iteraciones = Math.floor((max - min) / rango) + 1;
+
+        for (let i = 0; i < Math.min(iteraciones, 100); i++) {
+            const valor = min + (i * rango);
+            if (valor <= max) deducibles.push(valor);
+        }
+
+        if (deducibles[deducibles.length - 1] !== max) {
+            deducibles.push(max);
+        }
+
+        return deducibles;
     }, []);
 
-    const renderDeducibleSelector = useCallback((cobertura: CoberturaExtendida) => {
-        if (cobertura.CoberturaAmparada) {
-            return "NO APLICA";
-        }
-
-        if (cobertura.tipoDeducible.Nombre === "UMA") {
-            return `${cobertura.DeducibleMax} UMAS`;
-        }
+    const renderizarSelectorDeducible = useCallback((cobertura: CoberturaExtendida) => {
+        if (cobertura.CoberturaAmparada) return "NO APLICA";
+        if (cobertura.tipoDeducible.Nombre === "UMA") return `${cobertura.DeducibleMax} UMAS`;
 
         const deducibles = generarRangoDeducibles(cobertura);
 
         return (
-            <Select
-                value={cobertura.deducibleSeleccionado?.toString() || cobertura.DeducibleMin}
-                onValueChange={(valor) => manejarDeducibleChange(cobertura.CoberturaID, valor)}
-                disabled={tipoCalculo === "fijo"}
-            >
-                <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {deducibles.map((deducible) => (
-                        <SelectItem key={deducible} value={deducible.toString()}>
-                            {deducible}%
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <>
+                {deducibles.length > 0 ? (
+                    <Select
+                        value={cobertura.deducibleSeleccionado?.toString() || cobertura.DeducibleMin}
+                        onValueChange={(valor) => manejarCambioDeducible(cobertura.CoberturaID, valor)}
+                    >
+                        <SelectTrigger className="w-[100px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {deducibles.map((deducible) => (
+                                <SelectItem key={deducible} value={deducible.toString()}>
+                                    {deducible}%
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                ) : (
+                    <div>
+                        NO APLICA
+                    </div>
+                )}
+            </>
         );
-    }, [tipoCalculo, generarRangoDeducibles, manejarDeducibleChange]);
+    }, [tipoCalculo, generarRangoDeducibles, manejarCambioDeducible]);
 
     return (
         <div className="space-y-6">
@@ -340,7 +448,7 @@ const CoverageStep = ({
                     <FormItem>
                         <FormLabel>Tipo de Cálculo</FormLabel>
                         <Select
-                            onValueChange={manejarTipoCalculoChange}
+                            onValueChange={manejarCambioTipoCalculo}
                             value={tipoCalculo || ""}
                         >
                             <FormControl>
@@ -349,12 +457,8 @@ const CoverageStep = ({
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="fijo">
-                                    Monto Fijo
-                                </SelectItem>
-                                <SelectItem value="cobertura">
-                                    Cálculo por Coberturas
-                                </SelectItem>
+                                <SelectItem value="fijo">Monto Fijo</SelectItem>
+                                <SelectItem value="cobertura">Cálculo por Coberturas</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormDescription>
@@ -369,7 +473,7 @@ const CoverageStep = ({
                             <FormItem>
                                 <FormLabel>Paquete de Coberturas</FormLabel>
                                 <Select
-                                    onValueChange={manejarPaqueteSelect}
+                                    onValueChange={manejarSeleccionPaquete}
                                     value={field.value ? field.value.toString() : "none"}
                                     disabled={!tipoCalculo}
                                 >
@@ -379,17 +483,13 @@ const CoverageStep = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="none">
-                                            Ninguno
-                                        </SelectItem>
+                                        <SelectItem value="none">Ninguno</SelectItem>
                                         {paquetesCobertura?.map((paquete) => (
                                             <SelectItem
                                                 key={paquete.PaqueteCoberturaID}
                                                 value={paquete.PaqueteCoberturaID.toString()}
                                             >
-                                                <div className="flex items-center justify-between gap-2">
-                                                    {paquete.NombrePaquete}
-                                                </div>
+                                                {paquete.NombrePaquete}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -410,7 +510,7 @@ const CoverageStep = ({
                             <Input
                                 type="text"
                                 value={montoFijo}
-                                onChange={(e) => manejarMontoFijoChange(e.target.value)}
+                                onChange={(e) => manejarCambioMontoFijo(e.target.value)}
                                 placeholder="Ingrese el monto fijo"
                             />
                             <FormDescription>
@@ -423,90 +523,95 @@ const CoverageStep = ({
 
             {/* Tabla de Coberturas */}
             {coberturasSeleccionadas.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Detalle de Coberturas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Cobertura</TableHead>
-                                    <TableHead>Suma Asegurada</TableHead>
-                                    <TableHead>Deducible</TableHead>
-                                    {tipoCalculo === "cobertura" && <TableHead>Prima</TableHead>}
-                                    <TableHead></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {coberturasSeleccionadas.map((cobertura) => (
-                                    <TableRow key={cobertura.CoberturaID}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <div className="flex items-center gap-2 cursor-help" onClick={(e) => e.preventDefault()}>
-                                                                <span>{cobertura.NombreCobertura}</span>
-                                                                <Info className="h-4 w-4 text-muted-foreground" />
-                                                            </div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p className="max-w-xs">{cobertura.Descripcion}</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                                {cobertura.Obligatoria && (
-                                                    <Badge variant="outline">Obligatoria</Badge>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {renderValorCobertura(cobertura)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {renderDeducibleSelector(cobertura)}
-                                        </TableCell>
-                                        {tipoCalculo === "cobertura" && (
-                                            <TableCell className="font-medium">
-                                                {cobertura.SinValor ?
-                                                    formatCurrency(0) :
-                                                    formatCurrency(calcularPrimaCobertura(cobertura, "cobertura"))}
-                                            </TableCell>
-                                        )}
-                                        <TableCell>
-                                            {!cobertura.Obligatoria && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => manejarEliminarCobertura(cobertura.CoberturaID)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            )}
-                                        </TableCell>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Detalle de Coberturas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Cobertura</TableHead>
+                                        <TableHead>Suma Asegurada</TableHead>
+                                        <TableHead>Deducible</TableHead>
+                                        {tipoCalculo === "cobertura" && <TableHead>Prima</TableHead>}
+                                        <TableHead></TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {coberturasSeleccionadas.map((cobertura) => (
+                                        <TableRow key={cobertura.CoberturaID}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div className="flex items-center gap-2 cursor-help">
+                                                                    <span>{cobertura.NombreCobertura}</span>
+                                                                    <Info className="h-4 w-4 text-muted-foreground" />
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p className="max-w-xs">{cobertura.Descripcion}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    {cobertura.Obligatoria && (
+                                                        <Badge variant="outline">Obligatoria</Badge>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {renderizarValorCobertura(cobertura)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {renderizarSelectorDeducible(cobertura)}
+                                            </TableCell>
+                                            {tipoCalculo === "cobertura" && (
+                                                <TableCell className="font-medium">
+                                                    {formatCurrency(calcularPrima(cobertura, "cobertura"))}
+                                                </TableCell>
+                                            )}
+                                            <TableCell>
+                                                {!cobertura.Obligatoria && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => manejarEliminarCobertura(cobertura.CoberturaID)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
 
-                        {/* Resumen de costos */}
-                        <div className="mt-6">
-                            <div className="flex justify-end gap-4 items-center font-medium">
-                                <span>Costo Neto:</span>
-                                <span className="text-lg text-primary">
-                                    {tipoCalculo === "fijo"
-                                        ? formatCurrency(parseFloat(montoFijo) || 0)
-                                        : formatCurrency(coberturasSeleccionadas.reduce(
-                                            (total, cobertura) => total + calcularPrimaCobertura(cobertura, "cobertura"),
-                                            0
-                                        ))
-                                    }
-                                </span>
+                            {/* Resumen de costos */}
+                            <div className="mt-6">
+                                <div className="flex justify-end gap-4 items-center font-medium">
+                                    <span>Costo Neto:</span>
+                                    <span className="text-lg text-primary">
+                                        {tipoCalculo === "fijo"
+                                            ? formatCurrency(parseFloat(montoFijo) || 0)
+                                            : formatCurrency(
+                                                coberturasSeleccionadas.reduce(
+                                                    (total, cobertura) => total + calcularPrima(cobertura, "cobertura"),
+                                                    0
+                                                )
+                                            )}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </motion.div>
             )}
         </div>
     );

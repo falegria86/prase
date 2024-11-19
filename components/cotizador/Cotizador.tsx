@@ -2,12 +2,9 @@
 
 import type { z } from "zod";
 import { useState } from "react";
-// import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-// import { pdf } from '@react-pdf/renderer';
-// import { saveAs } from 'file-saver';
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -26,11 +23,7 @@ import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
-
-// const QuotePDFTemplate = dynamic(() => import("./QuotePDFTemplate"), {
-//     ssr: false,
-//     loading: () => <Loader2 className="h-6 w-6 animate-spin" />
-// });
+import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -146,26 +139,29 @@ export const Cotizador = ({
 
     const handleFinalSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-        // const formData = form.getValues();
+        const datosFormulario = form.getValues();
 
-        // try {
-        //     // Generar el PDF
-        //     const blob = await pdf(
-        //         <QuotePDFTemplate data={formData} />
-        //     ).toBlob();
+        try {
+            // Validar que tengamos todos los datos necesarios
+            if (!datosFormulario) {
+                console.error("No hay datos del formulario");
+                return;
+            }
 
-        //     // Generar nombre del archivo
-        //     const fileName = `cotizacion_${formData.marcaNombre}_${formData.modeloNombre}_${new Date().toISOString().split('T')[0]}.pdf`;
+            // Intentar generar el PDF
+            generarPDFCotizacion({
+                datos: datosFormulario,
+                tiposVehiculo,
+                usosVehiculo
+            });
 
-        //     // Descargar el archivo
-        //     saveAs(blob, fileName);
-
-        //     // Aquí iría tu lógica de envío al backend
-        //     console.log("Enviando cotización:", formData);
-
-        // } catch (error) {
-        //     console.error("Error al generar el PDF o enviar la cotización:", error);
-        // }
+        } catch (error) {
+            console.error("Error al generar el PDF:", error);
+            if (error instanceof Error) {
+                console.error("Mensaje de error:", error.message);
+                console.error("Stack trace:", error.stack);
+            }
+        }
     };
 
     // Renderizado condicional del paso actual
