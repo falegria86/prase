@@ -148,24 +148,24 @@ export const Cotizador = ({
         e.preventDefault();
         const formData = form.getValues();
 
-        try {
-            // Generar el PDF
-            const blob = await pdf(
-                <QuotePDFTemplate data={formData} />
-            ).toBlob();
+        // try {
+        //     // Generar el PDF
+        //     const blob = await pdf(
+        //         <QuotePDFTemplate data={formData} />
+        //     ).toBlob();
 
-            // Generar nombre del archivo
-            const fileName = `cotizacion_${formData.marcaNombre}_${formData.modeloNombre}_${new Date().toISOString().split('T')[0]}.pdf`;
+        //     // Generar nombre del archivo
+        //     const fileName = `cotizacion_${formData.marcaNombre}_${formData.modeloNombre}_${new Date().toISOString().split('T')[0]}.pdf`;
 
-            // Descargar el archivo
-            saveAs(blob, fileName);
+        //     // Descargar el archivo
+        //     saveAs(blob, fileName);
 
-            // Aquí iría tu lógica de envío al backend
-            console.log("Enviando cotización:", formData);
+        //     // Aquí iría tu lógica de envío al backend
+        //     console.log("Enviando cotización:", formData);
 
-        } catch (error) {
-            console.error("Error al generar el PDF o enviar la cotización:", error);
-        }
+        // } catch (error) {
+        //     console.error("Error al generar el PDF o enviar la cotización:", error);
+        // }
     };
 
     // Renderizado condicional del paso actual
