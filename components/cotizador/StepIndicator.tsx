@@ -1,5 +1,3 @@
-"use client";
-
 import { motion } from "framer-motion";
 import {
     Car,
@@ -17,12 +15,14 @@ interface Step {
     description?: string;
 }
 
-interface StepIndicatorProps {
-    steps: Step[];
-    currentStep: number;
+interface PropiedadesIndicadorPasos {
+    pasos: Step[];
+    pasoActual: number;
+    pasoMaximoAlcanzado: number;
+    alCambiarPaso?: (paso: number) => void;
 }
 
-const iconMap: Record<string, LucideIcon> = {
+const mapaIconos: Record<string, LucideIcon> = {
     Car,
     Truck,
     FileText,
@@ -30,10 +30,21 @@ const iconMap: Record<string, LucideIcon> = {
     CheckCircle,
 };
 
-export const StepIndicator = ({ steps, currentStep }: StepIndicatorProps) => {
+export const StepIndicator = ({
+    pasos,
+    pasoActual,
+    pasoMaximoAlcanzado,
+    alCambiarPaso
+}: PropiedadesIndicadorPasos) => {
+    const manejarClicPaso = (indicePaso: number) => {
+        // Solo permitir navegación a pasos que ya se han visitado
+        if (alCambiarPaso && indicePaso <= pasoMaximoAlcanzado) {
+            alCambiarPaso(indicePaso);
+        }
+    };
+
     return (
-        <div className="relative mb-8 px-4">
-            {/* Contenedor de pasos */}
+        <div className="relative px-4">
             <div className="relative flex items-center justify-between">
                 {/* Línea de progreso base */}
                 <div className="absolute left-5 top-6 right-0 h-0.5 bg-gray-200">
@@ -41,44 +52,51 @@ export const StepIndicator = ({ steps, currentStep }: StepIndicatorProps) => {
                         className="h-full bg-primary"
                         initial={{ width: "0%" }}
                         animate={{
-                            width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+                            width: `${((pasoActual - 1) / (pasos.length - 1)) * 100}%`,
                         }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                     />
                 </div>
 
-                {steps.map((step, index) => {
-                    const isCompleted = index + 1 < currentStep;
-                    const isCurrent = index + 1 === currentStep;
-                    const isPending = index + 1 > currentStep;
+                {pasos.map((paso, indice) => {
+                    const estaCompletado = indice + 1 < pasoActual;
+                    const esActual = indice + 1 === pasoActual;
+                    const estaPendiente = indice + 1 > pasoActual;
+                    const estaDisponible = indice + 1 <= pasoMaximoAlcanzado;
 
-                    const Icon = iconMap[step.icon];
+                    const Icono = mapaIconos[paso.icon];
 
                     return (
-                        <div key={index} className="relative flex flex-col items-center">
+                        <div
+                            key={indice}
+                            className={cn(
+                                "relative flex flex-col items-center",
+                                estaDisponible && "cursor-pointer"
+                            )}
+                            onClick={() => manejarClicPaso(indice + 1)}
+                        >
                             {/* Círculo del paso */}
                             <div className="relative">
-                                {isCurrent && (
-                                    <div
-                                        className="absolute inset-0 rounded-full bg-primary/20 animate-pulse"
-                                    />
+                                {esActual && (
+                                    <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />
                                 )}
                                 <div
                                     className={cn(
                                         "w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-colors relative z-10",
-                                        isCompleted && "border-primary bg-primary",
-                                        isCurrent && "border-primary",
-                                        isPending && "border-gray-300"
+                                        estaCompletado && "border-primary bg-primary",
+                                        esActual && "border-primary",
+                                        estaPendiente && "border-gray-300",
+                                        estaDisponible && "hover:border-primary/70"
                                     )}
                                 >
-                                    {isCompleted ? (
+                                    {estaCompletado ? (
                                         <CheckCircle className="h-6 w-6 text-white" />
                                     ) : (
-                                        <Icon
+                                        <Icono
                                             className={cn(
                                                 "h-6 w-6",
-                                                isCurrent && "text-primary",
-                                                isPending && "text-gray-400"
+                                                esActual && "text-primary",
+                                                estaPendiente && "text-gray-400"
                                             )}
                                         />
                                     )}
@@ -89,12 +107,13 @@ export const StepIndicator = ({ steps, currentStep }: StepIndicatorProps) => {
                             <span
                                 className={cn(
                                     "mt-2 text-xs text-center transition-colors",
-                                    isCompleted && "text-primary font-medium",
-                                    isCurrent && "text-primary font-semibold",
-                                    isPending && "text-gray-500"
+                                    estaCompletado && "text-primary font-medium",
+                                    esActual && "text-primary font-semibold",
+                                    estaPendiente && "text-gray-500",
+                                    estaDisponible && "hover:text-primary"
                                 )}
                             >
-                                {step.title}
+                                {paso.title}
                             </span>
                         </div>
                     );
@@ -103,3 +122,5 @@ export const StepIndicator = ({ steps, currentStep }: StepIndicatorProps) => {
         </div>
     );
 };
+
+export default StepIndicator;

@@ -2,7 +2,6 @@ import { z } from "zod";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import { UseFormReturn } from "react-hook-form";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
-import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
 export interface Brand {
     Clave: string;
@@ -40,7 +39,7 @@ export interface StepProps {
     tiposVehiculo?: TipoVehiculo[];
     usosVehiculo?: UsoVehiculo[];
     years?: Year[];
-    tiposPagos?: iGetTipoPagos[];
+    tiposPagos?: TipoPago[];
     tiposSumas?: iGetTiposSumasAseguradas[];
     paquetesCobertura?: PaqueteCobertura[];
     coberturas?: Cobertura[];
@@ -67,7 +66,11 @@ export interface Year {
 }
 
 // Interfaces para tipos de pago y sumas aseguradas
-
+export interface TipoPago {
+    TipoPagoID: number;
+    Descripcion: string;
+    PorcentajeAjuste: string;
+}
 
 export interface TipoSumaAsegurada {
     TipoSumaAseguradaID: number;
@@ -82,6 +85,7 @@ export interface PaqueteCobertura {
     NombrePaquete: string;
     DescripcionPaquete: string;
     FechaCreacion: Date;
+    PrecioTotalFijo: string;
 }
 
 export interface Cobertura {
@@ -232,8 +236,4 @@ export const isValidPostalCode = (cp: string): boolean => {
 
 export const isValidVIN = (vin: string): boolean => {
     return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
-};
-
-export const isValidAMIS = (amis: string): boolean => {
-    return /^[A-Z0-9]{15,17}$/.test(amis);
 };

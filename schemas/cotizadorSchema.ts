@@ -36,7 +36,6 @@ export const nuevaCotizacionSchema = z.object({
     // Datos del vehículo
     UsoVehiculo: z.number().min(1, "El uso del vehículo es requerido"),
     TipoVehiculo: z.number().min(1, "El tipo de vehículo es requerido"),
-    AMIS: z.string(),
 
     // Datos opcionales
     NombrePersona: z.string(),
@@ -44,7 +43,7 @@ export const nuevaCotizacionSchema = z.object({
     VIN: z.string(),
 
     // Datos de ubicación
-    CP: z.string(),
+    CP: z.string().min(3, "El código postal es requerido"),
 
     // Datos del vehículo extendidos
     Modelo: z.string().min(1, "El año es requerido"),

@@ -122,12 +122,6 @@ const QuotePDFTemplate: React.FC<QuotePDFTemplateProps> = ({ data }) => {
                         <Text style={styles.label}>Versión:</Text>
                         <Text style={styles.value}>{data.versionNombre}</Text>
                     </View>
-                    {data.AMIS && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>AMIS:</Text>
-                            <Text style={styles.value}>{data.AMIS}</Text>
-                        </View>
-                    )}
                     {data.VIN && (
                         <View style={styles.row}>
                             <Text style={styles.label}>VIN:</Text>

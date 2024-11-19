@@ -112,14 +112,15 @@ const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => 
                     <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
                             <FormControl>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={open}
+                                <div
                                     className={cn(
-                                        "w-full justify-between",
+                                        "flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
                                         !field.value && "text-muted-foreground"
                                     )}
+                                    role="combobox"
+                                    aria-expanded={open}
+                                    aria-haspopup="listbox"
+                                    onClick={() => setOpen(true)}
                                 >
                                     {selectedLocation ? (
                                         <div className="flex items-center gap-2 text-left">
@@ -138,19 +139,17 @@ const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => 
                                     )}
                                     <div className="flex items-center gap-2">
                                         {field.value && (
-                                            <Button
+                                            <button
                                                 type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                                className="h-4 w-4 p-0 opacity-50 hover:opacity-100"
                                                 onClick={clearSelection}
                                             >
                                                 <X className="h-3 w-3" />
-                                            </Button>
+                                            </button>
                                         )}
                                         <ChevronsUpDown className="h-4 w-4 opacity-50" />
                                     </div>
-                                </Button>
+                                </div>
                             </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] p-0" align="start">
@@ -201,7 +200,7 @@ const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => 
                                                                     : "opacity-0"
                                                             )}
                                                         />
-                                                        <div className="flex flex-col">
+                                                        <div className="flex flex-col cursor-pointer">
                                                             <div className="font-medium">
                                                                 CP: {location.properties.postcode}
                                                             </div>

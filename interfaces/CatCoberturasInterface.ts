@@ -13,9 +13,24 @@ export interface iGetCoberturas {
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
-    tipoDeducible: TipoDeducible | null;
-    tipoMoneda: iGetTiposMoneda | null;
+    IndiceSiniestralidad: null;
+    CoberturaAmparada: boolean;
+    sumaAseguradaPorPasajero: boolean;
+    tipoDeducible: TipoDeducible;
+    tipoMoneda: TipoMoneda;
 }
+
+export interface TipoDeducible {
+    TipoDeducibleID: number;
+    Nombre: string;
+}
+
+export interface TipoMoneda {
+    TipoMonedaID: number;
+    Nombre: string;
+    Abreviacion: string;
+}
+
 
 export interface TipoDeducible {
     TipoDeducibleID: number;

@@ -39,12 +39,10 @@ export const QuoteDataStep = ({
     const [isSumaAseguradaDisabled, setIsSumaAseguradaDisabled] = useState(true);
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
-    const vehiclePrice = form.watch("SumaAsegurada");
     const vigencia = form.watch("vigencia");
     const meses = form.watch("meses");
     const inicioVigencia = form.watch("inicioVigencia");
 
-    // Date handling functions
     const getNextMonthDate = (date: Date, monthsToAdd: number) => {
         const newDate = new Date(date);
         newDate.setMonth(newDate.getMonth() + monthsToAdd);
@@ -69,9 +67,6 @@ export const QuoteDataStep = ({
 
     const validateFields = async () => {
         const fieldsToValidate = [
-            "TipoSumaAseguradaID",
-            "SumaAsegurada",
-            "PeriodoGracia",
             "inicioVigencia",
             "vigencia",
             "meses",
@@ -100,8 +95,45 @@ export const QuoteDataStep = ({
         return isValid;
     };
 
-    // Initialize default values
     useEffect(() => {
+        const initialValidation = async () => {
+            const fieldsToValidate = [
+                "TipoSumaAseguradaID",
+                "SumaAsegurada",
+                "PeriodoGracia",
+                "inicioVigencia",
+                "vigencia",
+                "meses",
+            ] as const;
+
+            const results = await Promise.all(
+                fieldsToValidate.map(async field => {
+                    const isValid = await form.trigger(field);
+                    setValidationErrors(prev => ({
+                        ...prev,
+                        [field]: !isValid
+                    }));
+                    return isValid;
+                })
+            );
+
+            const values = form.getValues();
+            const sumaAseguradaValid = !isSumaAseguradaDisabled ?
+                (values.SumaAsegurada >= sumaAsegurada.min &&
+                    values.SumaAsegurada <= sumaAsegurada.max) :
+                true;
+
+            const isValid = results.every(Boolean) && sumaAseguradaValid;
+            setIsStepValid?.(isValid);
+
+            const tipoSumaId = form.getValues("TipoSumaAseguradaID");
+            if (tipoSumaId) {
+                handleSumaAsegurada(tipoSumaId);
+            }
+        };
+
+        initialValidation();
+
         if (!inicioVigencia) {
             const today = new Date();
             form.setValue("inicioVigencia", today, { shouldValidate: true });
@@ -115,12 +147,10 @@ export const QuoteDataStep = ({
         }
     }, []);
 
-    // Update end date when start date or duration changes
     useEffect(() => {
         updateFinVigencia();
     }, [inicioVigencia, vigencia, meses]);
 
-    // Validate fields when they change
     useEffect(() => {
         const subscription = form.watch((_, { name }) => {
             if (name) {
@@ -136,42 +166,58 @@ export const QuoteDataStep = ({
             tipo => tipo.TipoSumaAseguradaID === tipoID
         )?.NombreTipo;
 
-        let minimo = 0;
-        let maximo = 0;
-        let mensaje: string | null = "Valor libre";
+        const maxSumaAsegurada = form.getValues("maxSumaAsegurada");
+        const minSumaAsegurada = form.getValues("minSumaAsegurada");
+        let mensaje: string | null = null;
         let disableSumaAsegurada = false;
 
         if (tipo?.toLowerCase().includes("convenido")) {
-            minimo = vehiclePrice * 0.985;
-            maximo = vehiclePrice * 1.015;
-            mensaje = `Rango permitido ${formatCurrency(minimo)} - ${formatCurrency(maximo)}`;
+            setSumaAsegurada({
+                min: maxSumaAsegurada * 0.985,
+                max: maxSumaAsegurada * 1.015
+            });
+            mensaje = `Rango permitido ${formatCurrency(maxSumaAsegurada * 0.985)} - ${formatCurrency(maxSumaAsegurada * 1.015)}`;
             disableSumaAsegurada = false;
-            form.setValue("SumaAsegurada", minimo, {
-                shouldValidate: true
-            });
         } else if (tipo?.toLowerCase().includes("comercial")) {
-            form.setValue("SumaAsegurada", vehiclePrice, {
-                shouldValidate: true
-            });
-            mensaje = null;
+            setSumaAsegurada({ min: maxSumaAsegurada, max: maxSumaAsegurada });
             disableSumaAsegurada = true;
+            form.setValue("SumaAsegurada", maxSumaAsegurada);
+        } else {
+            // Valor libre
+            setSumaAsegurada({ min: minSumaAsegurada, max: maxSumaAsegurada });
+            mensaje = "Valor libre";
+            disableSumaAsegurada = false;
         }
 
-        setSumaAsegurada({ min: minimo, max: maximo });
         setMensajeSuma(mensaje);
         setIsSumaAseguradaDisabled(disableSumaAsegurada);
-
-        if (tipo?.toLowerCase().includes("convenido")) {
-            setIsStepValid?.(false);
-        } else {
-            setIsStepValid?.(true);
-        }
-
         validateFields();
     };
 
     return (
         <div className="space-y-6">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="col-span-2 bg-primary/5 rounded-lg p-4"
+            >
+                <h4 className="font-semibold mb-2">Valor del vehículo</h4>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <p className="text-sm text-muted-foreground">Valor venta</p>
+                        <p className="text-lg font-medium">
+                            {formatCurrency(form.getValues("maxSumaAsegurada"))}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Valor compra</p>
+                        <p className="text-lg font-medium">
+                            {formatCurrency(form.getValues("minSumaAsegurada"))}
+                        </p>
+                    </div>
+                </div>
+            </motion.div>
+
             <motion.div
                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
                 initial={{ opacity: 0, y: 20 }}
@@ -186,12 +232,17 @@ export const QuoteDataStep = ({
                         <FormItem>
                             <FormLabel>Derecho de póliza</FormLabel>
                             <FormControl>
-                                <Input {...field} type="number" placeholder="Derecho de póliza" readOnly />
+                                <Input
+                                    {...field}
+                                    value={formatCurrency(field.value)}
+                                    readOnly
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
 
                 {/* Vigencia */}
                 <FormField
@@ -325,35 +376,37 @@ export const QuoteDataStep = ({
                 <FormField
                     control={form.control}
                     name="TipoSumaAseguradaID"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tipo de suma asegurada</FormLabel>
-                            <Select
-                                onValueChange={(value) => {
-                                    field.onChange(Number(value));
-                                    handleSumaAsegurada(Number(value));
-                                }}
-                                value={field.value?.toString()}
-                            >
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona tipo de suma" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {tiposSumas?.map((tipo) => (
-                                        <SelectItem
-                                            key={tipo.TipoSumaAseguradaID}
-                                            value={tipo.TipoSumaAseguradaID.toString()}
-                                        >
-                                            {tipo.NombreTipo}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    render={({ field }) => {
+                        return (
+                            <FormItem>
+                                <FormLabel>Tipo de suma asegurada</FormLabel>
+                                <Select
+                                    onValueChange={(value) => {
+                                        field.onChange(Number(value));
+                                        handleSumaAsegurada(Number(value));
+                                    }}
+                                    value={field.value?.toString()}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona tipo de suma" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {tiposSumas?.map((tipo) => (
+                                            <SelectItem
+                                                key={tipo.TipoSumaAseguradaID}
+                                                value={tipo.TipoSumaAseguradaID.toString()}
+                                            >
+                                                {tipo.NombreTipo}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )
+                    }}
                 />
 
                 {/* Suma Asegurada */}
@@ -366,12 +419,15 @@ export const QuoteDataStep = ({
                             <FormControl>
                                 <Input
                                     {...field}
-                                    type="number"
-                                    placeholder="Suma asegurada"
+                                    value={formatCurrency(field.value)}
                                     disabled={isSumaAseguradaDisabled}
                                     onChange={(e) => {
-                                        field.onChange(Number(e.target.value));
-                                        validateFields();
+                                        const rawValue = e.target.value.replace(/[^0-9]/g, "");
+                                        const value = parseFloat(rawValue) / 100;
+                                        if (!isNaN(value)) {
+                                            field.onChange(value);
+                                            validateFields();
+                                        }
                                     }}
                                 />
                             </FormControl>

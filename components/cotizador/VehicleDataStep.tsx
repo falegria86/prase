@@ -47,7 +47,6 @@ export const VehicleDataStep = ({
     const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Función mejorada de validación
     const validateFields = async () => {
         const fieldsToValidate = [
             "Modelo",
@@ -80,6 +79,17 @@ export const VehicleDataStep = ({
 
         return () => subscription.unsubscribe();
     }, [form.watch]);
+
+    // Efecto para restaurar datos cuando se vuelve al paso
+    useEffect(() => {
+        const restoreData = async () => {
+            const formData = form.getValues();
+            if (formData.Modelo) {
+                await handleYearSelect(formData.Modelo);
+            }
+        };
+        restoreData();
+    }, []);
 
     const handleYearSelect = async (yearClave: string) => {
         if (!apiKey || !years) return;
@@ -193,6 +203,8 @@ export const VehicleDataStep = ({
 
             if (priceData) {
                 form.setValue("SumaAsegurada", priceData.Venta);
+                form.setValue("minSumaAsegurada", priceData.Compra)
+                form.setValue("maxSumaAsegurada", priceData.Venta)
             }
 
             await validateFields();
@@ -339,30 +351,7 @@ export const VehicleDataStep = ({
                         <FormMessage />
                     </FormItem>
                 )}
-            />
-
-            {/* Campo AMIS */}
-            <FormField
-                control={form.control}
-                name="AMIS"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>AMIS</FormLabel>
-                        <FormControl>
-                            <Input
-                                {...field}
-                                placeholder="Ingresa el código AMIS"
-                                onChange={(e) => {
-                                    field.onChange(e);
-                                    validateFields();
-                                }}
-                                onBlur={() => form.trigger("AMIS")}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
+            />          
 
             {/* Campo VIN */}
             <FormField
@@ -416,13 +405,13 @@ export const VehicleDataStep = ({
                     <h4 className="font-semibold mb-2">Valor del vehículo</h4>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <p className="text-sm text-muted-foreground">Valor comercial</p>
+                            <p className="text-sm text-muted-foreground">Valor venta</p>
                             <p className="text-lg font-medium">
                                 {formatCurrency(price.Venta)}
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Valor factura</p>
+                            <p className="text-sm text-muted-foreground">Valor compra</p>
                             <p className="text-lg font-medium">
                                 {formatCurrency(price.Compra)}
                             </p>

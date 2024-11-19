@@ -1,13 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import {
-    Shield,
-    Info,
-    CreditCard,
-    Trash2,
-} from "lucide-react";
+import { useState } from "react";
 import {
     Card,
     CardContent,
@@ -15,6 +6,13 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -24,810 +22,570 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    FormDescription,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Shield, Info, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import { Button } from "@/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Cobertura, StepProps } from "@/types/cotizador";
+import type { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
-import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
-interface PricingBreakdown {
-    subtotal: number;
-    discount: number;
-    total: number;
-    firstPayment: number;
-    subsequentPayment: number;
-    numberOfPayments: number;
+const VALOR_UMA = Number(process.env.VALOR_UMA) || 0;
+
+interface TipoMoneda {
+    TipoMonedaID: number;
+    Nombre: string;
+    Abreviacion: string;
 }
 
-interface Coverage {
+interface TipoDeducible {
+    TipoDeducibleID: number;
+    Nombre: string;
+}
+
+interface CoberturaProp {
     CoberturaID: number;
     NombreCobertura: string;
-    MontoSumaAsegurada: number;
-    DeducibleID: number;
-    MontoDeducible: number;
-    PrimaCalculada: number;
-    PorcentajePrimaAplicado: number;
-    ValorAseguradoUsado: number;
-    Obligatoria: boolean;
-    AplicaSumaAsegurada: boolean;
-    EsCoberturaEspecial: boolean;
-    DeducibleMin: number;
-    DeducibleMax: number;
-    RangoSeleccion: number;
+    Descripcion: string;
+    PrimaBase: string;
     SumaAseguradaMin: string;
     SumaAseguradaMax: string;
-    Descripcion: string;
+    DeducibleMin: string;
+    DeducibleMax: string;
+    PorcentajePrima: string;
+    RangoSeleccion: string;
+    EsCoberturaEspecial: boolean;
+    Variable: boolean;
+    SinValor: boolean;
+    AplicaSumaAsegurada: boolean;
+    CoberturaAmparada: boolean;
+    IndiceSiniestralidad: null;
+    sumaAseguradaPorPasajero: boolean;
+    tipoDeducible: TipoDeducible;
+    tipoMoneda: TipoMoneda;
+    Obligatoria: boolean;
+    deducibleSeleccionado?: number;
 }
 
-export const CoverageStep = ({
+type TipoCalculo = "fixed" | "coverage";
+
+const CoverageStep = ({
     form,
     paquetesCobertura,
     coberturas,
     asociaciones,
-    // reglasGlobales,
-    tiposPagos,
     setIsStepValid,
 }: StepProps) => {
-    const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
-    const [regularCoverages, setRegularCoverages] = useState<Coverage[]>([]);
-    const [accessoryCoverages, setAccessoryCoverages] = useState<Coverage[]>([]);
-    const [selectedTipoPago, setSelectedTipoPago] = useState<iGetTipoPagos | null>(null);
-    const [pricingBreakdown, setPricingBreakdown] = useState<PricingBreakdown | null>(null);
-    const [bonificacion, setBonificacion] = useState(0);
+    const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
+    const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<CoberturaProp[]>([]);
+    const [montoFijo, setMontoFijo] = useState<string>("");
 
-    const calculatePremium = (
-        cobertura: Cobertura,
-        selectedSumaAsegurada: number,
-        selectedDeducible: number
-    ): number => {
-        //Caso 1: Prima base con deducible
-        if (cobertura.PrimaBase && cobertura.DeducibleMin) {
-            const primaBase = parseFloat(cobertura.PrimaBase);
-            return primaBase * (1 - selectedDeducible / 100);
+    const calcularDeducibleUMA = (cobertura: CoberturaProp): number => {
+        if (cobertura.tipoDeducible.Nombre === "UMA") {
+            const umasDeducible = parseFloat(cobertura.DeducibleMax);
+            return umasDeducible * VALOR_UMA;
         }
-
-        //Caso 2: Basado en prima asegurada con tasa
-        const tasaBase = parseFloat(cobertura.PorcentajePrima) / 100;
-
-        //Caso 3: Con deducible
-        if (cobertura.DeducibleMin) {
-            const costoInicial = selectedSumaAsegurada * tasaBase;
-            return costoInicial * (1 - selectedDeducible / 100);
-        }
-
-        //Case 4: Sin deducible
-        return selectedSumaAsegurada * tasaBase;
+        return 0;
     };
 
-    const calculatePaymentBreakdown = (
-        subtotal: number,
-        tipoPago: iGetTipoPagos,
-        bonificacion: number
-    ): PricingBreakdown => {
-        const discountAmount = (subtotal * bonificacion) / 10;
-        const totalAfterDiscount = subtotal - discountAmount;
+    const calcularPrimaCobertura = (cobertura: CoberturaProp): number => {
+        if (tipoCalculo === "fixed") return 0;
 
-        const currentDivisor = tipoPago.Divisor;
-        const currentPorcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste);
+        // Caso 1: Prima base fija
+        if (cobertura.PrimaBase && cobertura.PrimaBase !== "1") {
+            const primaBase = parseFloat(cobertura.PrimaBase);
 
-        if (currentDivisor === 1) {
-            return {
-                subtotal,
-                discount: discountAmount,
-                total: totalAfterDiscount,
-                firstPayment: totalAfterDiscount,
-                subsequentPayment: 0,
-                numberOfPayments: 1
-            };
+            // Si no tiene deducible o está amparada, retornar prima base directamente
+            if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
+                return primaBase;
+            }
+
+            // Si el deducible es en UMAs
+            if (cobertura.tipoDeducible.Nombre === "UMA") {
+                const deducibleEnPesos = calcularDeducibleUMA(cobertura);
+                return Math.max(0, primaBase - deducibleEnPesos);
+            }
+
+            // Deducible normal en porcentaje
+            const deducible = cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin);
+            return primaBase * (1 - deducible / 100);
         }
 
-        const adjustedTotal = totalAfterDiscount * (1 + currentPorcentajeAjuste / 100);
-        const paymentAmount = adjustedTotal / currentDivisor;
+        // Casos 2 y 3: Cálculo basado en suma asegurada
+        let sumaAsegurada = 0;
+        if (cobertura.AplicaSumaAsegurada) {
+            sumaAsegurada = form.getValues("SumaAsegurada");
+        } else {
+            sumaAsegurada = parseFloat(cobertura.SumaAseguradaMax);
+        }
+
+        const tasaBase = parseFloat(cobertura.PorcentajePrima) / 100;
+        const costoInicial = sumaAsegurada * tasaBase;
+
+        // Si está amparada o no tiene deducible
+        if (cobertura.CoberturaAmparada || cobertura.DeducibleMin === "0") {
+            return costoInicial;
+        }
+
+        // Si el deducible es en UMAs
+        if (cobertura.tipoDeducible.Nombre === "UMA") {
+            const deducibleEnPesos = calcularDeducibleUMA(cobertura);
+            return Math.max(0, costoInicial - deducibleEnPesos);
+        }
+
+        // Deducible normal en porcentaje
+        const deducible = cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin);
+        return costoInicial * (1 - deducible / 100);
+    };
+
+    const calcularCostoTotal = (coberturas: CoberturaProp[]): {
+        costoNeto: number;
+        gastosExpedicion: number;
+        iva: number;
+        total: number;
+    } => {
+        let costoNeto: number;
+
+        if (tipoCalculo === "fixed") {
+            costoNeto = parseFloat(montoFijo) || 0;
+        } else {
+            costoNeto = coberturas.reduce((sum, cobertura) => {
+                const prima = calcularPrimaCobertura(cobertura);
+                return sum + prima;
+            }, 0);
+        }
+
+        const gastosExpedicion = form.getValues("DerechoPoliza");
+        const subtotal = costoNeto + gastosExpedicion;
+        const iva = subtotal * 0.16;
+        const total = subtotal + iva;
 
         return {
-            subtotal,
-            discount: discountAmount,
-            total: adjustedTotal,
-            firstPayment: paymentAmount,
-            subsequentPayment: paymentAmount,
-            numberOfPayments: currentDivisor
+            costoNeto,
+            gastosExpedicion,
+            iva,
+            total
         };
     };
 
-    const updatePricing = () => {
-        if (!selectedTipoPago) return;
+    const generarRangoDeducibles = (cobertura: CoberturaProp): number[] => {
+        const min = parseInt(cobertura.DeducibleMin);
+        const max = parseInt(cobertura.DeducibleMax);
+        const rango = parseInt(cobertura.RangoSeleccion);
+        const deducibles: number[] = [];
 
-        const subtotal = [...regularCoverages, ...accessoryCoverages].reduce(
-            (sum, coverage) => sum + coverage.PrimaCalculada,
-            0
-        );
+        for (let i = min; i <= max; i += rango) {
+            deducibles.push(i);
+        }
 
-        const breakdown = calculatePaymentBreakdown(subtotal, selectedTipoPago, bonificacion);
-        setPricingBreakdown(breakdown);
+        if (deducibles[deducibles.length - 1] !== max) {
+            deducibles.push(max);
+        }
 
-        // Update form values
-        form.setValue("PrimaTotal", breakdown.total);
-        form.setValue("PorcentajeDescuento", bonificacion);
+        return deducibles;
     };
 
-    const handlePackageSelect = async (packageId: number) => {
-        const selectedAssociations = asociaciones?.filter(
-            (a) => a.PaqueteCoberturaID === packageId
+    const handleTipoCalculoChange = (value: string) => {
+        setTipoCalculo(value as TipoCalculo);
+        form.setValue("PaqueteCoberturaID", 0, { shouldValidate: true });
+        setCoberturasSeleccionadas([]);
+        setMontoFijo("");
+        setIsStepValid?.(false);
+    };
+
+    const handlePaqueteSelect = (value: string) => {
+        if (value === "none") {
+            form.setValue("PaqueteCoberturaID", 0, { shouldValidate: true });
+            setCoberturasSeleccionadas([]);
+            setMontoFijo("");
+            form.setValue("detalles", [], { shouldValidate: true });
+            setIsStepValid?.(false);
+            return;
+        }
+
+        const packageId = parseInt(value);
+        form.setValue("PaqueteCoberturaID", packageId, { shouldValidate: true });
+
+        const paqueteSeleccionado = paquetesCobertura?.find(
+            p => p.PaqueteCoberturaID === packageId
+        );
+
+        const asociacionesPaquete = asociaciones?.filter(
+            a => a.PaqueteCoberturaID === packageId
         ) ?? [];
 
-        const vehicleSumaAsegurada = form.getValues("SumaAsegurada");
-
-        const allCoverages = selectedAssociations?.map((association) => {
-            const coverage = coberturas?.find(
-                (c) => c.CoberturaID === association.CoberturaID
-            );
-            if (!coverage) return null;
-
-            const sumaAsegurada = coverage.AplicaSumaAsegurada
-                ? vehicleSumaAsegurada
-                : parseFloat(coverage.SumaAseguradaMin);
-
-            const deducible = parseInt(coverage.DeducibleMin);
-            const prima = calculatePremium(coverage, sumaAsegurada, deducible);
-
-            // Construir el objeto según el schema requerido
-            const detalleCoverage = {
-                CoberturaID: coverage.CoberturaID,
-                MontoSumaAsegurada: Number(sumaAsegurada),
-                DeducibleID: 1, // Valor por defecto
-                MontoDeducible: Number(deducible),
-                PrimaCalculada: Number(prima),
-                PorcentajePrimaAplicado: Number(coverage.PorcentajePrima),
-                ValorAseguradoUsado: Number(sumaAsegurada)
-            };
+        const coberturasDelPaquete = asociacionesPaquete.map(asociacion => {
+            const cobertura = coberturas?.find(c => c.CoberturaID === asociacion.CoberturaID);
+            if (!cobertura) return null;
 
             return {
-                ...detalleCoverage,
-                NombreCobertura: coverage.NombreCobertura,
-                Obligatoria: association.Obligatoria,
-                AplicaSumaAsegurada: coverage.AplicaSumaAsegurada,
-                EsCoberturaEspecial: coverage.EsCoberturaEspecial,
-                DeducibleMin: parseInt(coverage.DeducibleMin),
-                DeducibleMax: parseInt(coverage.DeducibleMax),
-                RangoSeleccion: parseInt(coverage.RangoSeleccion),
-                SumaAseguradaMin: coverage.SumaAseguradaMin,
-                SumaAseguradaMax: coverage.SumaAseguradaMax,
-                Descripcion: coverage.Descripcion,
+                ...cobertura,
+                Obligatoria: asociacion.Obligatoria,
+                deducibleSeleccionado: parseInt(cobertura.DeducibleMin)
+            } as CoberturaProp;
+        }).filter((c): c is CoberturaProp => c !== null);
+
+        setCoberturasSeleccionadas(coberturasDelPaquete);
+
+        // Guardar detalles en el form
+        const detallesCoberturas = coberturasDelPaquete.map(cobertura => {
+            let montoSumaAsegurada = 0;
+            if (cobertura.AplicaSumaAsegurada) {
+                montoSumaAsegurada = form.getValues("SumaAsegurada");
+            } else if (cobertura.tipoMoneda.Nombre === "UMA") {
+                montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax) * Number(process.env.VALOR_UMA || 0);
+            } else {
+                montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax);
+            }
+
+            return {
+                CoberturaID: cobertura.CoberturaID,
+                NombreCobertura: cobertura.NombreCobertura,
+                Descripcion: cobertura.Descripcion,
+                MontoSumaAsegurada: montoSumaAsegurada,
+                DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+                MontoDeducible: cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin),
+                PrimaCalculada: calcularPrimaCobertura(cobertura),
+                PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+                ValorAseguradoUsado: montoSumaAsegurada,
+                Obligatoria: cobertura.Obligatoria
             };
-        }).filter((item): item is Coverage => item !== null);
-
-        const regular = allCoverages.filter(c => c.EsCoberturaEspecial);
-        const accessory = allCoverages.filter(c => !c.EsCoberturaEspecial);
-
-        setRegularCoverages(regular);
-        setAccessoryCoverages(accessory);
-        setSelectedPackage(packageId);
-
-        // Actualizar form con los valores requeridos
-        form.setValue("PaqueteCoberturaID", packageId);
-
-        // Extraer solo los campos necesarios para el schema de detalles
-        const detallesForm = allCoverages.map(coverage => ({
-            CoberturaID: coverage.CoberturaID,
-            MontoSumaAsegurada: Number(coverage.MontoSumaAsegurada),
-            DeducibleID: Number(coverage.DeducibleID),
-            MontoDeducible: Number(coverage.MontoDeducible),
-            PrimaCalculada: Number(coverage.PrimaCalculada),
-            PorcentajePrimaAplicado: Number(coverage.PorcentajePrimaAplicado),
-            ValorAseguradoUsado: Number(coverage.ValorAseguradoUsado),
-            NombreCobertura: coverage.NombreCobertura,
-        }));
-
-        form.setValue("detalles", detallesForm);
-
-        // Calcular y establecer la prima total incluso sin bonificación
-        const subtotal = allCoverages.reduce(
-            (sum, coverage) => sum + coverage.PrimaCalculada,
-            0
-        );
-        form.setValue("PrimaTotal", subtotal);
-
-        // Si hay un tipo de pago seleccionado, actualizar el cálculo
-        if (selectedTipoPago) {
-            const breakdown = calculatePaymentBreakdown(subtotal, selectedTipoPago, bonificacion);
-            setPricingBreakdown(breakdown);
-            form.setValue("PrimaTotal", breakdown.total);
-        }
-    };
-
-    const handleSumaAseguradaChange = (coberturaId: number, value: string) => {
-        const updateCoverages = (coverages: Coverage[]) =>
-            coverages.map((coverage) => {
-                if (coverage.CoberturaID === coberturaId) {
-                    const newSumaAsegurada = parseFloat(value);
-                    const coberturaFound = coberturas?.find((c) => c.CoberturaID === coberturaId);
-                    if (!coberturaFound) return coverage;
-
-                    const nuevaPrima = calculatePremium(
-                        coberturaFound,
-                        newSumaAsegurada,
-                        coverage.MontoDeducible
-                    );
-
-                    return {
-                        ...coverage,
-                        MontoSumaAsegurada: newSumaAsegurada,
-                        ValorAseguradoUsado: newSumaAsegurada,
-                        PrimaCalculada: nuevaPrima,
-                    };
-                }
-                return coverage;
-            });
-
-        setRegularCoverages(updateCoverages(regularCoverages));
-        setAccessoryCoverages(updateCoverages(accessoryCoverages));
-        updatePricing();
-    };
-
-    const handleTipoPagoSelect = (tipoPagoId: string) => {
-        const selectedTipo = tiposPagos?.find(tp => tp.TipoPagoID === parseInt(tipoPagoId));
-        if (selectedTipo) {
-            const tipoPagoCompleto: iGetTipoPagos = {
-                TipoPagoID: selectedTipo.TipoPagoID,
-                Descripcion: selectedTipo.Descripcion,
-                PorcentajeAjuste: selectedTipo.PorcentajeAjuste,
-                Divisor: selectedTipo.Divisor
-            };
-
-            // Actualizar form con el ID del tipo de pago
-            form.setValue("TipoPagoID", tipoPagoCompleto.TipoPagoID);
-
-            const subtotal = [...regularCoverages, ...accessoryCoverages].reduce(
-                (sum, coverage) => sum + coverage.PrimaCalculada,
-                0
-            );
-
-            const breakdown = calculatePaymentBreakdown(
-                subtotal,
-                tipoPagoCompleto,
-                bonificacion
-            );
-
-            setPricingBreakdown(breakdown);
-            setSelectedTipoPago(tipoPagoCompleto);
-
-            // Actualizar PrimaTotal en el form
-            form.setValue("PrimaTotal", breakdown.total);
-        }
-    };
-
-    const handleDeducibleChange = (coberturaId: number, value: string) => {
-        const updateCoverages = (coverages: Coverage[]) =>
-            coverages.map((coverage) => {
-                if (coverage.CoberturaID === coberturaId) {
-                    const newDeducible = parseInt(value);
-                    const coberturaFound = coberturas?.find((c) => c.CoberturaID === coberturaId);
-                    if (!coberturaFound) return coverage;
-
-                    const nuevaPrima = calculatePremium(
-                        coberturaFound,
-                        coverage.MontoSumaAsegurada,
-                        newDeducible
-                    );
-
-                    return {
-                        ...coverage,
-                        MontoDeducible: newDeducible,
-                        PrimaCalculada: nuevaPrima,
-                    };
-                }
-                return coverage;
-            });
-
-        // Actualizar los estados locales
-        const newRegularCoverages = updateCoverages(regularCoverages);
-        const newAccessoryCoverages = updateCoverages(accessoryCoverages);
-
-        setRegularCoverages(newRegularCoverages);
-        setAccessoryCoverages(newAccessoryCoverages);
-
-        // Actualizar el formulario con los detalles actualizados
-        const allUpdatedCoverages = [...newRegularCoverages, ...newAccessoryCoverages].map(coverage => ({
-            CoberturaID: coverage.CoberturaID,
-            MontoSumaAsegurada: coverage.MontoSumaAsegurada,
-            DeducibleID: coverage.DeducibleID,
-            MontoDeducible: coverage.MontoDeducible,
-            PrimaCalculada: coverage.PrimaCalculada,
-            PorcentajePrimaAplicado: coverage.PorcentajePrimaAplicado,
-            ValorAseguradoUsado: coverage.ValorAseguradoUsado,
-            NombreCobertura: coverage.NombreCobertura
-        }));
-
-        form.setValue("detalles", allUpdatedCoverages, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true
         });
 
-        updatePricing();
-    };
+        form.setValue("detalles", detallesCoberturas, { shouldValidate: true });
 
-    const handleDeleteCobertura = (coberturaId: number) => {
-        // Filter out the deleted coverage
-        const updateCoverages = (coverages: Coverage[]) =>
-            coverages.filter((coverage) => coverage.CoberturaID !== coberturaId);
-
-        // Update both coverage arrays
-        const newRegularCoverages = updateCoverages(regularCoverages);
-        const newAccessoryCoverages = updateCoverages(accessoryCoverages);
-
-        // Update state
-        setRegularCoverages(newRegularCoverages);
-        setAccessoryCoverages(newAccessoryCoverages);
-
-        // Update form details
-        const allCoverages = [...newRegularCoverages, ...newAccessoryCoverages];
-        form.setValue("detalles", allCoverages);
-
-        // Calculate and update pricing if a payment type is selected
-        if (selectedTipoPago) {
-            const subtotal = allCoverages.reduce(
-                (sum, coverage) => sum + coverage.PrimaCalculada,
-                0
-            );
-            const breakdown = calculatePaymentBreakdown(subtotal, selectedTipoPago, bonificacion);
-            setPricingBreakdown(breakdown);
-            form.setValue("PrimaTotal", breakdown.total);
+        if (tipoCalculo === "fixed" && paqueteSeleccionado?.PrecioTotalFijo) {
+            setMontoFijo(paqueteSeleccionado.PrecioTotalFijo);
+            form.setValue("PrimaTotal", parseFloat(paqueteSeleccionado.PrecioTotalFijo));
+        } else {
+            const costos = calcularCostoTotal(coberturasDelPaquete);
+            form.setValue("PrimaTotal", costos.costoNeto);
         }
+
+        setIsStepValid?.(true);
     };
 
-    const handleBonificacionChange = (value: string) => {
-        const parsedValue = parseFloat(value) || 0;
-        const newBonificacion = Math.min(Math.max(parsedValue, 0), 35);
-        setBonificacion(newBonificacion);
-        updatePricing();
+    const handleMontoFijoChange = (valor: string) => {
+        const numeroLimpio = valor.replace(/[^0-9.]/g, '');
+        setMontoFijo(numeroLimpio);
+        form.setValue("PrimaTotal", parseFloat(numeroLimpio) || 0);
     };
 
-    useEffect(() => {
-        const validateStep = async () => {
-            const isValid =
-                (regularCoverages.length > 0 || accessoryCoverages.length > 0) &&
-                await form.trigger("PaqueteCoberturaID");
-            setIsStepValid?.(isValid);
-        };
-        validateStep();
-    }, [regularCoverages, accessoryCoverages, form, setIsStepValid]);
+    const handleDeducibleChange = (coberturaId: number, valor: string) => {
+        if (tipoCalculo === "fixed") return;
+
+        setCoberturasSeleccionadas(prevCoberturas => {
+            const nuevasCoberturas = prevCoberturas.map(cobertura => {
+                if (cobertura.CoberturaID === coberturaId) {
+                    return {
+                        ...cobertura,
+                        deducibleSeleccionado: parseInt(valor)
+                    };
+                }
+                return cobertura;
+            });
+
+            // Actualizar detalles en el form con los nuevos deducibles
+            const detallesActualizados = nuevasCoberturas.map(cobertura => {
+                let montoSumaAsegurada = 0;
+                if (cobertura.AplicaSumaAsegurada) {
+                    montoSumaAsegurada = form.getValues("SumaAsegurada");
+                } else if (cobertura.tipoMoneda.Nombre === "UMA") {
+                    montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax) * Number(process.env.VALOR_UMA || 0);
+                } else {
+                    montoSumaAsegurada = parseFloat(cobertura.SumaAseguradaMax);
+                }
+
+                return {
+                    CoberturaID: cobertura.CoberturaID,
+                    NombreCobertura: cobertura.NombreCobertura,
+                    Descripcion: cobertura.Descripcion,
+                    MontoSumaAsegurada: montoSumaAsegurada,
+                    DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+                    MontoDeducible: cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin),
+                    PrimaCalculada: calcularPrimaCobertura(cobertura),
+                    PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+                    ValorAseguradoUsado: montoSumaAsegurada,
+                    Obligatoria: cobertura.Obligatoria
+                };
+            });
+
+            form.setValue("detalles", detallesActualizados, { shouldValidate: true });
+
+            const costos = calcularCostoTotal(nuevasCoberturas);
+            form.setValue("PrimaTotal", costos.costoNeto);
+
+            return nuevasCoberturas;
+        });
+    };
+
+    const handleEliminarCobertura = (coberturaId: number) => {
+        setCoberturasSeleccionadas(prevCoberturas => {
+            const nuevasCoberturas = prevCoberturas.filter(
+                cobertura => cobertura.CoberturaID !== coberturaId
+            );
+
+            // Actualizar detalles en el form al eliminar cobertura
+            const detallesActualizados = nuevasCoberturas.map(cobertura => ({
+                CoberturaID: cobertura.CoberturaID,
+                NombreCobertura: cobertura.NombreCobertura,
+                Descripcion: cobertura.Descripcion,
+                MontoSumaAsegurada: cobertura.AplicaSumaAsegurada ? form.getValues("SumaAsegurada") : parseFloat(cobertura.SumaAseguradaMax),
+                DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+                MontoDeducible: cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin),
+                PrimaCalculada: calcularPrimaCobertura(cobertura),
+                PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+                ValorAseguradoUsado: cobertura.AplicaSumaAsegurada ? form.getValues("SumaAsegurada") : parseFloat(cobertura.SumaAseguradaMax),
+                Obligatoria: cobertura.Obligatoria
+            }));
+
+            form.setValue("detalles", detallesActualizados, { shouldValidate: true });
+
+            if (tipoCalculo === "coverage") {
+                const costos = calcularCostoTotal(nuevasCoberturas);
+                form.setValue("PrimaTotal", costos.costoNeto);
+            }
+
+            return nuevasCoberturas;
+        });
+    };
+
+    const renderValorCobertura = (cobertura: CoberturaProp) => {
+        if (cobertura.CoberturaAmparada) {
+            return "AMPARADA";
+        }
+        if (cobertura.AplicaSumaAsegurada) {
+            return "VALOR COMERCIAL";
+        }
+        if (cobertura.tipoMoneda.Nombre === "UMA") {
+            return `${cobertura.SumaAseguradaMax} UMAS`;
+        }
+        return formatCurrency(parseFloat(cobertura.SumaAseguradaMax));
+    };
+
+    const renderDeducibleSelector = (cobertura: CoberturaProp) => {
+        if (cobertura.CoberturaAmparada) {
+            return "NO APLICA";
+        }
+
+        if (cobertura.tipoDeducible.Nombre === "UMA") {
+            return `${cobertura.DeducibleMax} UMAS`;
+        }
+
+        const deducibles = generarRangoDeducibles(cobertura);
+
+        return (
+            <Select
+                value={cobertura.deducibleSeleccionado?.toString() || cobertura.DeducibleMin}
+                onValueChange={(valor) => handleDeducibleChange(cobertura.CoberturaID, valor)}
+                disabled={tipoCalculo === "fixed"}
+            >
+                <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {deducibles.map((deducible) => (
+                        <SelectItem key={deducible} value={deducible.toString()}>
+                            {deducible}%
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        );
+    };
 
     return (
         <div className="space-y-6">
-            {/* Selección de paquete */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Shield className="h-5 w-5" />
-                        Selección de Paquete
+                        Selección de Coberturas
                     </CardTitle>
                     <CardDescription>
-                        Elige el paquete de coberturas que mejor se adapte a tus necesidades
+                        Elige cómo quieres calcular las coberturas de tu seguro
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
+                    <FormItem>
+                        <FormLabel>Tipo de Cálculo</FormLabel>
+                        <Select
+                            onValueChange={handleTipoCalculoChange}
+                            value={tipoCalculo || ""}
+                        >
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona el tipo de cálculo" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="fixed">
+                                    Monto Fijo
+                                </SelectItem>
+                                <SelectItem value="coverage">
+                                    Cálculo por Coberturas
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormDescription>
+                            Elige cómo quieres que se calcule el costo de tu seguro
+                        </FormDescription>
+                    </FormItem>
+
                     <FormField
                         control={form.control}
                         name="PaqueteCoberturaID"
                         render={({ field }) => (
                             <FormItem>
+                                <FormLabel>Paquete de Coberturas</FormLabel>
                                 <Select
-                                    onValueChange={(value) => handlePackageSelect(Number(value))}
-                                    value={field.value?.toString()}
+                                    onValueChange={handlePaqueteSelect}
+                                    value={field.value ? field.value.toString() : "none"}
+                                    disabled={!tipoCalculo}
                                 >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un paquete" />
-                                    </SelectTrigger>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un paquete" />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
+                                        <SelectItem value="none">
+                                            Ninguno
+                                        </SelectItem>
                                         {paquetesCobertura?.map((paquete) => (
                                             <SelectItem
                                                 key={paquete.PaqueteCoberturaID}
                                                 value={paquete.PaqueteCoberturaID.toString()}
                                             >
-                                                {paquete.NombrePaquete}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span>{paquete.NombrePaquete}</span>
+                                                    {paquete.PrecioTotalFijo && tipoCalculo === "fixed" && (
+                                                        <Badge variant="secondary">
+                                                            Precio fijo: ${paquete.PrecioTotalFijo}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <FormDescription>
+                                    {tipoCalculo === "fixed"
+                                        ? "Selecciona un paquete con precio fijo"
+                                        : "Selecciona un paquete para calcular el costo por coberturas"
+                                    }
+                                </FormDescription>
                             </FormItem>
                         )}
                     />
+
+                    {tipoCalculo === "fixed" && coberturasSeleccionadas.length > 0 && (
+                        <FormItem>
+                            <FormLabel>Monto Fijo del Paquete</FormLabel>
+                            <Input
+                                type="text"
+                                value={montoFijo}
+                                onChange={(e) => handleMontoFijoChange(e.target.value)}
+                                placeholder="Ingrese el monto fijo"
+                            />
+                            <FormDescription>
+                                Este es el monto fijo para el paquete seleccionado
+                            </FormDescription>
+                        </FormItem>
+                    )}
                 </CardContent>
             </Card>
 
-            <div>
-                {selectedPackage && (regularCoverages.length > 0 || accessoryCoverages.length > 0) && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="space-y-6"
-                        transition={{ duration: 0.3 }}
-                    >
-                        {/* Coberturas Principales */}
-                        {regularCoverages.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Coberturas Principales</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Cobertura</TableHead>
-                                                <TableHead>Suma asegurada</TableHead>
-                                                <TableHead>Deducible</TableHead>
-                                                <TableHead>Prima</TableHead>
-                                                <TableHead></TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {regularCoverages.map((coverage) => (
-                                                <TableRow key={coverage.CoberturaID}>
-                                                    <TableCell>
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger className="flex items-center gap-2">
-                                                                    <span className="font-medium">
-                                                                        {coverage.NombreCobertura}
-                                                                    </span>
-                                                                    {coverage.Obligatoria && (
-                                                                        <Badge variant="secondary">
-                                                                            Obligatoria
-                                                                        </Badge>
-                                                                    )}
-                                                                    <Info className="h-4 w-4 text-muted-foreground" />
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p className="max-w-xs">
-                                                                        {coverage.Descripcion}
-                                                                    </p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={coverage.MontoSumaAsegurada.toString()}
-                                                            onValueChange={(value) =>
-                                                                handleSumaAseguradaChange(coverage.CoberturaID, value)
-                                                            }
-                                                            disabled={coverage.AplicaSumaAsegurada}
-                                                        >
-                                                            <SelectTrigger className="w-[200px]">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {coverage.AplicaSumaAsegurada ? (
-                                                                    <SelectItem
-                                                                        value={coverage.MontoSumaAsegurada.toString()}
-                                                                    >
-                                                                        {formatCurrency(coverage.MontoSumaAsegurada)}
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    Array.from(
-                                                                        {
-                                                                            length: Math.floor(
-                                                                                (parseFloat(coverage.SumaAseguradaMax) -
-                                                                                    parseFloat(coverage.SumaAseguradaMin)) /
-                                                                                1000
-                                                                            ) + 1,
-                                                                        },
-                                                                        (_, i) =>
-                                                                            parseFloat(coverage.SumaAseguradaMin) +
-                                                                            i * 1000
-                                                                    ).map((value) => (
-                                                                        <SelectItem
-                                                                            key={value}
-                                                                            value={value.toString()}
-                                                                        >
-                                                                            {formatCurrency(value)}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={coverage.MontoDeducible.toString()}
-                                                            onValueChange={(value) =>
-                                                                handleDeducibleChange(coverage.CoberturaID, value)
-                                                            }
-                                                        >
-                                                            <SelectTrigger className="w-[100px]">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {Array.from(
-                                                                    {
-                                                                        length:
-                                                                            Math.floor(
-                                                                                (coverage.DeducibleMax -
-                                                                                    coverage.DeducibleMin) /
-                                                                                coverage.RangoSeleccion
-                                                                            ) + 1,
-                                                                    },
-                                                                    (_, i) =>
-                                                                        coverage.DeducibleMin +
-                                                                        i * coverage.RangoSeleccion
-                                                                ).map((value) => (
-                                                                    <SelectItem key={value} value={value.toString()}>
-                                                                        {value}%
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell className="font-medium">
-                                                        {formatCurrency(coverage.PrimaCalculada)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {!coverage.Obligatoria && (
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() =>
-                                                                    handleDeleteCobertura(coverage.CoberturaID)
-                                                                }
-                                                            >
-                                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                            </Button>
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Coberturas Accesorias */}
-                        {accessoryCoverages.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Coberturas Accesorias</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Cobertura</TableHead>
-                                                <TableHead>Suma asegurada</TableHead>
-                                                <TableHead>Deducible</TableHead>
-                                                <TableHead>Prima</TableHead>
-                                                <TableHead></TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {accessoryCoverages.map((coverage) => (
-                                                <TableRow key={coverage.CoberturaID}>
-                                                    <TableCell>
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger className="flex items-center gap-2">
-                                                                    <span className="font-medium">
-                                                                        {coverage.NombreCobertura}
-                                                                    </span>
-                                                                    {coverage.Obligatoria && (
-                                                                        <Badge variant="secondary">Obligatoria</Badge>
-                                                                    )}
-                                                                    <Info className="h-4 w-4 text-muted-foreground" />
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p className="max-w-xs">{coverage.Descripcion}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={coverage.MontoSumaAsegurada.toString()}
-                                                            onValueChange={(value) =>
-                                                                handleSumaAseguradaChange(coverage.CoberturaID, value)
-                                                            }
-                                                            disabled={coverage.AplicaSumaAsegurada}
-                                                        >
-                                                            <SelectTrigger className="w-[200px]">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {coverage.AplicaSumaAsegurada ? (
-                                                                    <SelectItem value={coverage.MontoSumaAsegurada.toString()}>
-                                                                        {formatCurrency(coverage.MontoSumaAsegurada)}
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    Array.from(
-                                                                        {
-                                                                            length: Math.floor(
-                                                                                (parseFloat(coverage.SumaAseguradaMax) -
-                                                                                    parseFloat(coverage.SumaAseguradaMin)) /
-                                                                                1000
-                                                                            ) + 1,
-                                                                        },
-                                                                        (_, i) =>
-                                                                            parseFloat(coverage.SumaAseguradaMin) +
-                                                                            i * 1000
-                                                                    ).map((value) => (
-                                                                        <SelectItem key={value} value={value.toString()}>
-                                                                            {formatCurrency(value)}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={coverage.MontoDeducible.toString()}
-                                                            onValueChange={(value) =>
-                                                                handleDeducibleChange(coverage.CoberturaID, value)
-                                                            }
-                                                        >
-                                                            <SelectTrigger className="w-[100px]">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {Array.from(
-                                                                    {
-                                                                        length:
-                                                                            Math.floor(
-                                                                                (coverage.DeducibleMax -
-                                                                                    coverage.DeducibleMin) /
-                                                                                coverage.RangoSeleccion
-                                                                            ) + 1,
-                                                                    },
-                                                                    (_, i) =>
-                                                                        coverage.DeducibleMin +
-                                                                        i * coverage.RangoSeleccion
-                                                                ).map((value) => (
-                                                                    <SelectItem key={value} value={value.toString()}>
-                                                                        {value}%
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell className="font-medium">
-                                                        {formatCurrency(coverage.PrimaCalculada)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {!coverage.Obligatoria && (
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() =>
-                                                                    handleDeleteCobertura(coverage.CoberturaID)
-                                                                }
-                                                            >
-                                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                            </Button>
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Tipo de Pago */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5" />
-                                    Forma de Pago
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <Select
-                                        value={selectedTipoPago?.TipoPagoID.toString()}
-                                        onValueChange={handleTipoPagoSelect}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona forma de pago" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {tiposPagos?.map((tipo) => (
-                                                <SelectItem
-                                                    key={tipo.TipoPagoID}
-                                                    value={tipo.TipoPagoID.toString()}
+            {/* Tabla de Coberturas */}
+            {coberturasSeleccionadas.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Detalle de Coberturas</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Cobertura</TableHead>
+                                    <TableHead>Suma Asegurada</TableHead>
+                                    <TableHead>Deducible</TableHead>
+                                    {tipoCalculo === "coverage" && <TableHead>Prima</TableHead>}
+                                    <TableHead></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {coberturasSeleccionadas.map((cobertura) => (
+                                    <TableRow key={cobertura.CoberturaID}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex items-center gap-2 cursor-help" onClick={(e) => e.preventDefault()}>
+                                                            <span>{cobertura.NombreCobertura}</span>
+                                                            <Info className="h-4 w-4 text-muted-foreground" />
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="max-w-xs">{cobertura.Descripcion}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                                {cobertura.Obligatoria && (
+                                                    <Badge variant="outline">Obligatoria</Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderValorCobertura(cobertura)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderDeducibleSelector(cobertura)}
+                                        </TableCell>
+                                        {tipoCalculo === "coverage" && (
+                                            <TableCell className="font-medium">
+                                                {formatCurrency(calcularPrimaCobertura(cobertura))}
+                                            </TableCell>
+                                        )}
+                                        <TableCell>
+                                            {!cobertura.Obligatoria && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleEliminarCobertura(cobertura.CoberturaID)}
                                                 >
-                                                    {tipo.Descripcion}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {pricingBreakdown && (
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">Subtotal:</span>
-                                                <span>{formatCurrency(pricingBreakdown.subtotal)}</span>
-                                            </div>
-
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">
-                                                    Bonificación ({bonificacion}%):
-                                                </span>
-                                                <span className="text-green-600">
-                                                    -{formatCurrency(pricingBreakdown.discount)}
-                                                </span>
-                                            </div>
-
-                                            {selectedTipoPago && selectedTipoPago.Divisor > 1 && (
-                                                <>
-                                                    <div className="flex justify-between text-sm">
-                                                        <span className="text-muted-foreground">Primer pago:</span>
-                                                        <span>{formatCurrency(pricingBreakdown.firstPayment)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-sm">
-                                                        <span className="text-muted-foreground">
-                                                            {pricingBreakdown.numberOfPayments - 1} pagos subsecuentes de:
-                                                        </span>
-                                                        <span>{formatCurrency(pricingBreakdown.subsequentPayment)}</span>
-                                                    </div>
-                                                </>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
                                             )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
 
-                                            <Separator />
-
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium">Prima total:</span>
-                                                <span className="text-2xl font-bold text-primary">
-                                                    {formatCurrency(pricingBreakdown.total)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Bonificación */}
-                        <Card>
-                            <CardContent className="pt-6">
-                                <FormItem>
-                                    <FormLabel>Bonificación técnica (%)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            max="35"
-                                            value={bonificacion}
-                                            onChange={(e) => handleBonificacionChange(e.target.value)}
-                                        />
-                                    </FormControl>
-                                    <p className="text-sm text-muted-foreground">
-                                        Mínimo 0% - Máximo 35%
-                                    </p>
-                                </FormItem>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                )}
-            </div>
+                        {/* Resumen de costos */}
+                        <div className="mt-6">
+                            <div className="flex justify-end gap-4 items-center font-medium">
+                                <span>Costo Neto:</span>
+                                <span className="text-lg text-primary">
+                                    {tipoCalculo === "fixed"
+                                        ? formatCurrency(parseFloat(montoFijo) || 0)
+                                        : formatCurrency(calcularCostoTotal(coberturasSeleccionadas).costoNeto)
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

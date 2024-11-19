@@ -16,12 +16,12 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion } from 'framer-motion';
-import type { Cobertura } from '@/types/cotizador';
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 
 interface CoverageCardProps {
-    coverage: Cobertura;
+    coverage: iGetCoberturas;
     isSelected?: boolean;
     isRequired?: boolean;
     onClick?: () => void;

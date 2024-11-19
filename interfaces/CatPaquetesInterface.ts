@@ -3,6 +3,7 @@ export interface iGetAllPaquetes {
     NombrePaquete: string;
     DescripcionPaquete: string;
     FechaCreacion: Date;
+    PrecioTotalFijo: string;
 }
 
 export interface iPostPaqueteCobertura {

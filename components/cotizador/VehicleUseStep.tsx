@@ -102,16 +102,6 @@ export const VehicleUseStep = ({
                                         Indica el uso principal que le darás al vehículo
                                     </CardDescription>
                                 </div>
-                                {isUseValid && (
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        className="flex items-center gap-2 text-green-600"
-                                    >
-                                        <CheckCircle2 className="h-5 w-5" />
-                                        <span className="text-sm font-medium">Uso seleccionado</span>
-                                    </motion.div>
-                                )}
                             </div>
                         </CardHeader>
                         <CardContent>

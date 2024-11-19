@@ -2,6 +2,7 @@
 
 import type { z } from "zod";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -9,7 +10,7 @@ import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import type { Step } from "@/types/cotizador";
 import VehicleDataStep from "./VehicleDataStep";
@@ -25,7 +26,11 @@ import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
-import QuotePDFTemplate from "./QuotePDFTemplate";
+
+const QuotePDFTemplate = dynamic(() => import("./QuotePDFTemplate"), {
+    ssr: false,
+    loading: () => <Loader2 className="h-6 w-6 animate-spin" />
+});
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -68,6 +73,7 @@ export const Cotizador = ({
 }: CotizadorProps) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isStepValid, setIsStepValid] = useState(false);
+    const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
 
     const form = useForm<FormData>({
         resolver: zodResolver(nuevaCotizacionSchema),
@@ -78,12 +84,11 @@ export const Cotizador = ({
             TipoPagoID: 0,
             PorcentajeDescuento: 0,
             DerechoPoliza: Number(derechoPoliza),
-            TipoSumaAseguradaID: 0,
+            TipoSumaAseguradaID: 2,
             SumaAsegurada: 0,
-            PeriodoGracia: 0,
+            PeriodoGracia: 3,
             UsoVehiculo: 0,
             TipoVehiculo: 0,
-            AMIS: "",
             meses: 12,
             vigencia: "Anual",
             NombrePersona: "",
@@ -126,7 +131,9 @@ export const Cotizador = ({
         const isValid = await form.trigger(fields);
 
         if (isValid) {
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+            const siguientePaso = Math.min(currentStep + 1, steps.length);
+            setCurrentStep(siguientePaso);
+            setPasoMaximoAlcanzado(prev => Math.max(prev, siguientePaso));
             setIsStepValid(false);
         }
     };
@@ -196,7 +203,12 @@ export const Cotizador = ({
 
     return (
         <div className="">
-            <StepIndicator steps={steps} currentStep={currentStep} />
+            <StepIndicator
+                pasos={steps}
+                pasoActual={currentStep}
+                pasoMaximoAlcanzado={pasoMaximoAlcanzado}
+                alCambiarPaso={setCurrentStep}
+            />
 
             <div className="mt-8 bg-white rounded-lg shadow-lg">
                 <Form {...form}>

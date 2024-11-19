@@ -49,19 +49,19 @@ interface DetalleCoberturaExtendido {
     PorcentajePrimaAplicado: number;
     ValorAseguradoUsado: number;
     NombreCobertura: string;
-    Descripcion: string;
+    Descripcion?: string;
     Obligatoria?: boolean;
 }
 
 export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
     const formData = form.getValues();
-
+console.log(formData)
     useEffect(() => {
         setIsStepValid?.(true);
     }, [setIsStepValid]);
 
     // Función para formatear fecha
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | Date) => {
         return new Date(dateString).toLocaleDateString("es-MX", {
             year: "numeric",
             month: "long",
@@ -69,8 +69,12 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
         });
     };
 
-    // Asegurarnos de que los detalles incluyan las propiedades extendidas
-    const detalles = formData.detalles as DetalleCoberturaExtendido[] || [];
+    // Calcular los totales
+    const costoNeto = formData.PrimaTotal || 0;
+    const gastosExpedicion = formData.DerechoPoliza || 0;
+    const subtotal = costoNeto + gastosExpedicion;
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
 
     return (
         <div className="space-y-6">
@@ -108,22 +112,11 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                             </div>
                         </div>
 
-                        {formData.AMIS && (
-                            <div className="pt-2">
-                                <Badge variant="secondary" className="gap-1">
-                                    <Info className="h-3 w-3" />
-                                    AMIS: {formData.AMIS}
-                                </Badge>
-                            </div>
-                        )}
-
                         {formData.VIN && (
-                            <div>
-                                <Badge variant="secondary" className="gap-1">
-                                    <Info className="h-3 w-3" />
-                                    VIN: {formData.VIN}
-                                </Badge>
-                            </div>
+                            <Badge variant="secondary" className="gap-1">
+                                <Info className="h-3 w-3" />
+                                VIN: {formData.VIN}
+                            </Badge>
                         )}
                     </CardContent>
                 </Card>
@@ -155,7 +148,7 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                 <span>
-                                    Del {formatDate(formData.inicioVigencia.toISOString())} al{" "}
+                                    Del {formatDate(formData.inicioVigencia)} al{" "}
                                     {formatDate(formData.finVigencia)}
                                 </span>
                             </div>
@@ -205,7 +198,7 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {detalles.map((detalle) => (
+                                {formData.detalles.map((detalle: DetalleCoberturaExtendido) => (
                                     <TableRow key={detalle.CoberturaID}>
                                         <TableCell>
                                             <TooltipProvider>
@@ -245,41 +238,30 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span>
-                                    {formatCurrency(
-                                        formData.PrimaTotal / (1 - formData.PorcentajeDescuento / 100)
-                                    )}
-                                </span>
+                                <span className="text-muted-foreground">Costo Neto</span>
+                                <span>{formatCurrency(costoNeto)}</span>
                             </div>
 
-                            {formData.PorcentajeDescuento > 0 && (
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">
-                                        Bonificación ({formData.PorcentajeDescuento}%)
-                                    </span>
-                                    <span className="text-green-600">
-                                        -
-                                        {formatCurrency(
-                                            (formData.PrimaTotal /
-                                                (1 - formData.PorcentajeDescuento / 100)) *
-                                            (formData.PorcentajeDescuento / 100)
-                                        )}
-                                    </span>
-                                </div>
-                            )}
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">
+                                    Gastos de Expedición (Derecho de Póliza)
+                                </span>
+                                <span>{formatCurrency(gastosExpedicion)}</span>
+                            </div>
 
                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Derecho de Póliza</span>
-                                <span>{formatCurrency(formData.DerechoPoliza)}</span>
+                                <span className="text-muted-foreground">
+                                    IVA (16%)
+                                </span>
+                                <span>{formatCurrency(iva)}</span>
                             </div>
 
                             <Separator />
 
                             <div className="flex justify-between items-center pt-2">
-                                <span className="font-medium">Prima Total</span>
+                                <span className="font-medium">Costo Total Anual</span>
                                 <span className="text-2xl font-bold text-primary">
-                                    {formatCurrency(formData.PrimaTotal + formData.DerechoPoliza)}
+                                    {formatCurrency(total)}
                                 </span>
                             </div>
                         </div>
