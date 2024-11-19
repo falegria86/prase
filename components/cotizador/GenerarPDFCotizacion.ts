@@ -1,5 +1,3 @@
-// @ts-ignore: Disabling noImplicitAny for this file
-
 import { z } from 'zod';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -103,7 +101,7 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
         }
     });
 
-    posicionY = (doc as any).lastAutoTable.finalY + 10;
+    posicionY = (doc as any).lastAutoTable.finalY + 10;// eslint-disable-line @typescript-eslint/no-explicit-any
 
     // 3. Datos de la unidad y del cliente en una fila
     const mitadAncho = ANCHO_PAGINA * 0.48; // Un poco menos de la mitad para dejar espacio entre tablas
@@ -146,8 +144,8 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
     });
 
     posicionY = Math.max(
-        (doc as any).lastAutoTable.finalY + 10,
-        (doc as any).previousAutoTable.finalY + 10
+        (doc as any).lastAutoTable.finalY + 10,// eslint-disable-line @typescript-eslint/no-explicit-any
+        (doc as any).previousAutoTable.finalY + 10// eslint-disable-line @typescript-eslint/no-explicit-any
     );
 
     // 5. Coberturas
@@ -171,7 +169,7 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
         }
     });
 
-    posicionY = (doc as any).lastAutoTable.finalY + 10;
+    posicionY = (doc as any).lastAutoTable.finalY + 10;// eslint-disable-line @typescript-eslint/no-explicit-any
 
     // 6. Costos finales
     const costos = [
