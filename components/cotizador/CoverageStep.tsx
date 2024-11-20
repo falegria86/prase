@@ -95,7 +95,7 @@ export const CoverageStep = ({
             return cobertura.sumaAseguradaPersonalizada || form.getValues("SumaAsegurada");
         }
 
-        if (cobertura.tipoMoneda.Nombre === "UMA") {
+        if (cobertura.tipoMoneda.Abreviacion === "UMA") {
             return parseFloat(cobertura.SumaAseguradaMax) * VALOR_UMA;
         }
 
@@ -365,7 +365,7 @@ export const CoverageStep = ({
         }
 
         // Para montos en UMA
-        if (cobertura.tipoMoneda.Nombre === "UMA") {
+        if (cobertura.tipoMoneda.Abreviacion === "UMA") {
             return `${cobertura.SumaAseguradaMax} UMAS`;
         }
 
