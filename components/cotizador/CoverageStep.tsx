@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
+import { PlanPago } from "./PlanPago";
 
 const VALOR_UMA = Number(process.env.VALOR_UMA) || 0;
 
@@ -82,6 +83,7 @@ export const CoverageStep = ({
     paquetesCobertura,
     coberturas,
     asociaciones,
+    tiposPagos,
     setIsStepValid,
 }: StepProps) => {
     const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
@@ -152,7 +154,16 @@ export const CoverageStep = ({
             PrimaCalculada: calcularPrima(cobertura, tipoCalculo || "cobertura"),
             PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
             ValorAseguradoUsado: obtenerSumaAsegurada(cobertura),
-            Obligatoria: cobertura.Obligatoria || false
+            Obligatoria: cobertura.Obligatoria || false,
+            DisplaySumaAsegurada: cobertura.CoberturaAmparada ? "AMPARADA" :
+                cobertura.tipoMoneda.Abreviacion === "UMA" ?
+                    `${cobertura.SumaAseguradaMax} UMAS` : undefined,
+            DisplayDeducible: cobertura.CoberturaAmparada ? "NO APLICA" :
+                cobertura.tipoDeducible.Nombre === "UMA" ?
+                    `${cobertura.DeducibleMax} UMAS` : undefined,
+            TipoMoneda: cobertura.tipoMoneda.Abreviacion,
+            EsAmparada: cobertura.CoberturaAmparada,
+            SumaAseguradaPorPasajero: cobertura.sumaAseguradaPorPasajero,
         }));
 
         form.setValue("detalles", detalles, { shouldValidate: true });
@@ -595,7 +606,7 @@ export const CoverageStep = ({
                             </Table>
 
                             {/* Resumen de costos */}
-                            <div className="mt-6">
+                            {/*  <div className="mt-6">
                                 <div className="flex justify-end gap-4 items-center font-medium">
                                     <span>Costo Neto:</span>
                                     <span className="text-lg text-primary">
@@ -609,10 +620,25 @@ export const CoverageStep = ({
                                             )}
                                     </span>
                                 </div>
-                            </div>
+                            </div> */}
                         </CardContent>
                     </Card>
                 </motion.div>
+            )}
+
+            {(coberturasSeleccionadas.length > 0 && tiposPagos && tiposPagos.length > 0) && (
+                <PlanPago
+                    form={form}
+                    tiposPagos={tiposPagos}
+                    costoBase={
+                        tipoCalculo === "fijo"
+                            ? parseFloat(montoFijo) || 0
+                            : coberturasSeleccionadas.reduce(
+                                (total, cobertura) => total + calcularPrima(cobertura, "cobertura"),
+                                0
+                            )
+                    }
+                />
             )}
         </div>
     );

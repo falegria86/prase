@@ -39,7 +39,6 @@ import { Separator } from "@/components/ui/separator";
 import { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
 
-// Interfaz extendida para los detalles de cobertura
 interface DetalleCoberturaExtendido {
     CoberturaID: number;
     MontoSumaAsegurada: number;
@@ -49,13 +48,58 @@ interface DetalleCoberturaExtendido {
     PorcentajePrimaAplicado: number;
     ValorAseguradoUsado: number;
     NombreCobertura: string;
+    DisplaySumaAsegurada?: string;
+    DisplayDeducible?: string;
+    TipoMoneda?: string;
+    EsAmparada?: boolean;
+    SumaAseguradaPorPasajero?: boolean;
     Descripcion?: string;
-    Obligatoria?: boolean;
 }
+
+const mostrarValorSumaAsegurada = (detalle: DetalleCoberturaExtendido): React.ReactNode => {
+    if (detalle.EsAmparada) {
+        return "AMPARADA";
+    }
+
+    if (detalle.DisplaySumaAsegurada) {
+        return detalle.DisplaySumaAsegurada;
+    }
+
+    if (detalle.TipoMoneda === "UMA") {
+        return `${detalle.MontoSumaAsegurada} UMAS`;
+    }
+
+    if (detalle.SumaAseguradaPorPasajero) {
+        return (
+            <div className="flex flex-col gap-1">
+                <span>{formatCurrency(detalle.MontoSumaAsegurada)}</span>
+                <span className="text-sm text-muted-foreground">POR CADA PASAJERO</span>
+            </div>
+        );
+    }
+
+    return formatCurrency(detalle.MontoSumaAsegurada);
+};
+
+const mostrarValorDeducible = (detalle: DetalleCoberturaExtendido): string => {
+    if (detalle.EsAmparada) {
+        return "NO APLICA";
+    }
+
+    if (detalle.DisplayDeducible) {
+        return detalle.DisplayDeducible;
+    }
+
+    if (detalle.TipoMoneda === "UMA") {
+        return `${detalle.MontoDeducible} UMAS`;
+    }
+
+    return `${detalle.MontoDeducible}%`;
+};
 
 export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
     const formData = form.getValues();
-console.log(formData)
+
     useEffect(() => {
         setIsStepValid?.(true);
     }, [setIsStepValid]);
@@ -198,7 +242,7 @@ console.log(formData)
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {formData.detalles.map((detalle: DetalleCoberturaExtendido) => (
+                                {formData.detalles.map((detalle) => (
                                     <TableRow key={detalle.CoberturaID}>
                                         <TableCell>
                                             <TooltipProvider>
@@ -216,10 +260,14 @@ console.log(formData)
                                             </TooltipProvider>
                                         </TableCell>
                                         <TableCell>
-                                            {formatCurrency(detalle.MontoSumaAsegurada)}
+                                            {mostrarValorSumaAsegurada(detalle)}
                                         </TableCell>
-                                        <TableCell>{detalle.MontoDeducible}%</TableCell>
-                                        <TableCell>{formatCurrency(detalle.PrimaCalculada)}</TableCell>
+                                        <TableCell>
+                                            {mostrarValorDeducible(detalle)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatCurrency(detalle.PrimaCalculada)}
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
