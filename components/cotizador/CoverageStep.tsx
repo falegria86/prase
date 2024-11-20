@@ -348,7 +348,7 @@ export const CoverageStep = ({
         // Si es por pasajero
         if (cobertura.sumaAseguradaPorPasajero) {
             let montoTexto;
-            if (cobertura.tipoMoneda.Nombre === "UMA") {
+            if (cobertura.tipoMoneda.Abreviacion === "UMA") {
                 montoTexto = `${cobertura.SumaAseguradaMax} UMAS`;
             } else if (Number(cobertura.SumaAseguradaMin) <= 1 && Number(cobertura.SumaAseguradaMax) <= 1) {
                 montoTexto = formatCurrency(sumaAseguradaAnterior);
