@@ -323,6 +323,7 @@ export const CoverageStep = ({
                 <Select
                     value={valorActual.toString()}
                     onValueChange={(valor) => manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)}
+                    disabled
                 >
                     <SelectTrigger className="w-[200px]">
                         <SelectValue>
