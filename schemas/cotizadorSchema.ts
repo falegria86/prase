@@ -10,6 +10,7 @@ const detalleSchema = z.object({
     PorcentajePrimaAplicado: z.number().min(0, "Porcentaje prima aplicado es requerido"),
     ValorAseguradoUsado: z.coerce.number().min(1, "Valor asegurado usado es requerido"),
     NombreCobertura: z.string(),
+    Descripcion: z.string(),
 });
 
 export const nuevaCotizacionSchema = z.object({
