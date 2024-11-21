@@ -3,7 +3,7 @@ export interface ICondicionReglaNegocio {
     Campo: string;
     Operador: string;
     Valor: string;
-    CodigoPostal: string;
+    Evaluacion: string;
 }
 
 export interface iPostCobertura {
@@ -46,13 +46,10 @@ export interface iGetAllReglaNegocio {
     ReglaID: number;
     NombreRegla: string;
     Descripcion: string;
-    TipoAplicacion: "PORCENTAJE" | "MONTO";
+    TipoAplicacion: "PORCENTAJE" | "GLOBAL";
     TipoRegla: string;
-    ValorAjuste: number;
-    Condicion: string;
     EsGlobal: boolean;
     Activa: boolean;
-    CodigoPostal: string;
     cobertura: iGetAllCobertura;
     condiciones: ICondicionReglaNegocio[];
 }
@@ -62,18 +59,14 @@ export interface iPostReglaNegocio {
     Descripcion: string;
     TipoAplicacion: string;
     TipoRegla: string;
-    ValorAjuste: number;
-    Condicion: string;
     EsGlobal: boolean;
     Activa: boolean;
-    CodigoPostal: string;
     cobertura: iPostCobertura;
     condiciones: ICondicionReglaNegocio[];
 }
 
 export interface iPatchReglaNegocio {
     NombreRegla: string;
-    ValorAjuste: number;
     EsGlobal: boolean;
     Activa: boolean;
     cobertura: iPostCobertura;

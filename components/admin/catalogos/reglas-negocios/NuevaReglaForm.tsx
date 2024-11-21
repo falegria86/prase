@@ -36,11 +36,8 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
             Descripcion: '',
             TipoAplicacion: '',
             TipoRegla: '',
-            ValorAjuste: 0,
-            Condicion: '',
             EsGlobal: false,
             Activa: false,
-            CodigoPostal: '',
             cobertura: {
                 CoberturaID: 0,
             },
@@ -108,7 +105,7 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                         <FormLabel>Nombre de la Regla</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Paquete de cobertura..."
+                                                placeholder="Nombre de la regla..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -124,7 +121,7 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                         <FormLabel>Descripción de la Regla</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Descripción del paquete..."
+                                                placeholder="Descripción..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -167,45 +164,12 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="Prima">Prima</SelectItem>
-                                                    <SelectItem value="Cobertura">Cobertura</SelectItem>
+                                                    <SelectItem value="SumaAsegurada">Suma Asegurada</SelectItem>
                                                     <SelectItem value="Deducible">Deducible</SelectItem>
                                                     <SelectItem value="Descuento">Descuento</SelectItem>
                                                     <SelectItem value="Bonificacion">Bonificación</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="ValorAjuste"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Valor de ajuste</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                placeholder="Valor de ajuste..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Condicion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Condición</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Condición..."
-                                                {...field}
-                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -282,24 +246,6 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="CodigoPostal"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Código postal</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                placeholder="Código postal..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
                         </div>
                         {/* Campos dinámicos de condiciones */}
                         <h3 className="font-bold text-lg">Condiciones</h3>
@@ -353,21 +299,12 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                     <div className="col-span-4">
                                         <FormField
                                             control={form.control}
-                                            name={`condiciones.${index}.tipoMoneda`}
+                                            name={`condiciones.${index}.Evaluacion`}
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Tipo de moneda</FormLabel>
-                                                    <FormControl className="w-full">
-                                                        <Select onValueChange={(value) => field.onChange(Number(value))}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Seleccione tipo de moneda..." />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {tiposMoneda.map(tipo => (
-                                                                    <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
+                                                    <FormLabel>Valor Buscado</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Valor Buscado..." {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -389,6 +326,30 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                             )}
                                         />
                                     </div>
+                                     <div className="col-span-4">
+                                        <FormField
+                                            control={form.control}
+                                            name={`condiciones.${index}.tipoMoneda`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Tipo de moneda</FormLabel>
+                                                    <FormControl className="w-full">
+                                                        <Select onValueChange={(value) => field.onChange(Number(value))}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {tiposMoneda.map(tipo => (
+                                                                    <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                     <div className="flex items-end justify-end  mt-auto">
                                         <Button
                                             type="button"
@@ -400,26 +361,11 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
-                                    <div className="col-span-4">
-                                        <FormField
-                                            control={form.control}
-                                            name={`condiciones.${index}.CodigoPostal`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Código Postal</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" placeholder="Código Postal..." {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
                                 </div>
                             ))}
                             <Button
                                 type="button"
-                                onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
+                                onClick={() => append({ Evaluacion: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
                                 variant="default"
                                 className="rounded-md"
                             >

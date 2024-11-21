@@ -38,7 +38,6 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
         resolver: zodResolver(editReglaNegocioSchema),
         defaultValues: {
             NombreRegla: regla?.NombreRegla || '',      // Inicializa con un valor por defecto si regla está indefinida
-            ValorAjuste: regla?.ValorAjuste || 0,
             EsGlobal: regla?.EsGlobal || false,         // Booleano inicializado en false
             Activa: regla?.Activa || false,
             cobertura: {
@@ -50,7 +49,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                     Campo: condicion.Campo || '',                // Inicializa los campos con un string vacío si están indefinidos
                     Operador: condicion.Operador || '',
                     Valor: condicion.Valor || '',
-                    CodigoPostal: condicion.CodigoPostal || '',
+                    Evaluacion: condicion.Evaluacion || '',
                 }))
                 : [],
         },
@@ -108,23 +107,6 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                     <FormControl>
                                         <Input
                                             placeholder="Paquete de cobertura..."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="ValorAjuste"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Valor de ajuste</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            placeholder="Valor de ajuste..."
                                             {...field}
                                         />
                                     </FormControl>
@@ -274,12 +256,12 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                 <div className="">
                                     <FormField
                                         control={form.control}
-                                        name={`condiciones.${index}.CodigoPostal`}
+                                        name={`condiciones.${index}.Evaluacion`}
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Código Postal</FormLabel>
+                                                <FormLabel>Valor Buscado</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="Código Postal..." {...field} />
+                                                    <Input placeholder="Valor a buscar..." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -301,7 +283,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                         ))}
                         <Button
                             type="button"
-                            onClick={() => append({ CodigoPostal: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
+                            onClick={() => append({ Evaluacion: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
                             variant="default"
                             className="rounded-md mt-5"
                         >

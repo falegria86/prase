@@ -4,9 +4,6 @@ export const editReglaNegocioSchema = z.object({
     NombreRegla: z.string().min(3, {
         message: "El nombre debe contener al menos 3 caracteres.",
     }),
-    ValorAjuste: z.coerce.number().min(1, {
-        message: "El valor de ajuste es requerido"
-    }),
     EsGlobal: z.boolean(),
     Activa: z.boolean(),
     cobertura: z.object({
@@ -22,8 +19,8 @@ export const editReglaNegocioSchema = z.object({
         Valor: z.string().min(1, {
             message: "El valor es requerido"
         }),
-        CodigoPostal: z.string().min(1, {
-            message: "El código postal es requerido"
+        Evaluacion: z.string().min(1, {
+            message: "El evaluador es requerido"
         }),
         tipoMoneda: z.coerce.number(),
     })),
@@ -48,15 +45,8 @@ export const nuevaReglaNegocioSchema = z.object({
     TipoRegla: z.string().min(1, {
         message: "El tipo de regla es requerido"
     }),
-    ValorAjuste: z.coerce.number().min(1, {
-        message: "El valor de ajuste es requerido"
-    }),
-    Condicion: z.string().min(1),
     EsGlobal: z.boolean(),
     Activa: z.boolean(),
-    CodigoPostal: z.string().min(1, {
-        message: "El código postal es requerido"
-    }),
     cobertura: z.object({
         CoberturaID: z.coerce.number(),
     }),
@@ -70,8 +60,8 @@ export const nuevaReglaNegocioSchema = z.object({
         Valor: z.string().min(1, {
             message: "El valor es requerido"
         }),
-        CodigoPostal: z.string().min(1, {
-            message: "El código postal es requerido"
+        Evaluacion: z.string().min(1, {
+            message: "Es requerido"
         }),
         tipoMoneda: z.coerce.number(),
     })),
