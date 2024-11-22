@@ -604,23 +604,6 @@ export const CoverageStep = ({
                                     ))}
                                 </TableBody>
                             </Table>
-
-                            {/* Resumen de costos */}
-                            {/*  <div className="mt-6">
-                                <div className="flex justify-end gap-4 items-center font-medium">
-                                    <span>Costo Neto:</span>
-                                    <span className="text-lg text-primary">
-                                        {tipoCalculo === "fijo"
-                                            ? formatCurrency(parseFloat(montoFijo) || 0)
-                                            : formatCurrency(
-                                                coberturasSeleccionadas.reduce(
-                                                    (total, cobertura) => total + calcularPrima(cobertura, "cobertura"),
-                                                    0
-                                                )
-                                            )}
-                                    </span>
-                                </div>
-                            </div> */}
                         </CardContent>
                     </Card>
                 </motion.div>

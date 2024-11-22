@@ -3,6 +3,10 @@ import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
 import { UseFormReturn } from "react-hook-form";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
+import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 
 export interface Brand {
     Clave: string;
@@ -23,7 +27,7 @@ export interface Price {
     Venta: number;
     Compra: number;
 }
-// Tipo básico para el formulario
+
 export type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
 // Interfaces para la navegación por pasos
@@ -37,82 +41,21 @@ export interface Step {
 export interface StepProps {
     form: UseFormReturn<FormData>;
     apiKey?: string;
-    tiposVehiculo?: TipoVehiculo[];
-    usosVehiculo?: UsoVehiculo[];
+    tiposVehiculo?: iGetTiposVehiculo[];
+    usosVehiculo?: iGetUsosVehiculo[];
     years?: Year[];
     tiposPagos?: iGetTipoPagos[];
     tiposSumas?: iGetTiposSumasAseguradas[];
-    paquetesCobertura?: PaqueteCobertura[];
-    coberturas?: Cobertura[];
-    asociaciones?: AsociacionPaqueteCobertura[];
-    reglasGlobales?: ReglaGlobal[];
+    paquetesCobertura?: iGetAllPaquetes[];
+    coberturas?: iGetCoberturas[];
+    asociaciones?: iGetAsociacionPaqueteCobertura[];
+    reglasGlobales?: iGetAllReglaNegocio[];
     setIsStepValid?: (valid: boolean) => void;
-}
-
-// Interfaces para los datos del vehículo
-export interface TipoVehiculo {
-    TipoID: number;
-    Nombre: string;
-    uso: UsoVehiculo;
-}
-
-export interface UsoVehiculo {
-    UsoID: number;
-    Nombre: string;
 }
 
 export interface Year {
     Clave: string;
     Nombre: string;
-}
-
-// Interfaces para tipos de pago y sumas aseguradas
-export interface TipoPago {
-    TipoPagoID: number;
-    Descripcion: string;
-    PorcentajeAjuste: string;
-}
-
-export interface TipoSumaAsegurada {
-    TipoSumaAseguradaID: number;
-    NombreTipo: string;
-    DescripcionSuma: string;
-    FechaCreacion: Date | null;
-}
-
-// Interfaces para coberturas y paquetes
-export interface PaqueteCobertura {
-    PaqueteCoberturaID: number;
-    NombrePaquete: string;
-    DescripcionPaquete: string;
-    FechaCreacion: Date;
-    PrecioTotalFijo: string;
-}
-
-export interface Cobertura {
-    CoberturaID: number;
-    NombreCobertura: string;
-    Descripcion: string;
-    PrimaBase: string;
-    SumaAseguradaMin: string;
-    SumaAseguradaMax: string;
-    DeducibleMin: string;
-    DeducibleMax: string;
-    PorcentajePrima: string;
-    RangoSeleccion: string;
-    EsCoberturaEspecial: boolean;
-    Variable: boolean;
-    SinValor: boolean;
-    AplicaSumaAsegurada: boolean;
-    tipoDeducible: TipoDeducible | null;
-    tipoMoneda: TipoMoneda | null;
-}
-
-export interface AsociacionPaqueteCobertura {
-    PaqueteCoberturaID: number;
-    CoberturaID: number;
-    FechaAsociacion: Date;
-    Obligatoria: boolean;
 }
 
 export interface TipoDeducible {
@@ -138,7 +81,7 @@ export interface ReglaGlobal {
     EsGlobal: boolean;
     Activa: boolean;
     CodigoPostal: string;
-    cobertura: Cobertura | null;
+    cobertura: iGetCoberturas | null;
     condiciones: CondicionReglaNegocio[];
 }
 
@@ -170,14 +113,6 @@ export interface DetalleCoberturaForm {
     AplicaSumaAsegurada: boolean;
 }
 
-// Utilidades y funciones de formato
-// export const formatCurrency = (amount: number): string => {
-//     return new Intl.NumberFormat("es-MX", {
-//         style: "currency",
-//         currency: "MXN",
-//     }).format(amount);
-// };
-
 export const formatDate = (date: string | Date): string => {
     return new Date(date).toLocaleDateString("es-MX", {
         year: "numeric",
@@ -188,7 +123,7 @@ export const formatDate = (date: string | Date): string => {
 
 // Función de cálculo de prima
 export const calculatePremium = (
-    cobertura: Cobertura,
+    cobertura: iGetCoberturas,
     selectedSumaAsegurada: number,
     selectedDeducible: number,
     reglasGlobales: ReglaGlobal[]

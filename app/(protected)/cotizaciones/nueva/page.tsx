@@ -5,7 +5,7 @@ import { getTipoPagos } from "@/actions/CatTipoPagos";
 import { getTiposVehiculo, getUsoVehiculo } from "@/actions/CatVehiculosActions";
 import { getConfiguracionGlobalByName } from "@/actions/ConfiguracionGlobal";
 import { getAnios, loginAuto } from "@/actions/LibroAzul";
-import { getReglasGlobales } from "@/actions/ReglasNegocio";
+// import { getReglasGlobales } from "@/actions/ReglasNegocio";
 import Cotizador from "@/components/cotizador/Cotizador";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -17,7 +17,7 @@ import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import type { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import type { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
-import type { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+// import type { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import type { IGetAllConfiguracionGlobal } from "@/interfaces/ConfiguracionGlobal";
 import { iGetAnios } from "@/interfaces/LibroAzul";
 
@@ -70,7 +70,7 @@ export default async function CotizadorPage() {
             getAllPaquetes(),
             getCoberturas(),
             getAsociacionPaquetesCobertura(),
-            getReglasGlobales(),
+            // getReglasGlobales(),
         ]);
 
         const errors: string[] = [];
@@ -84,7 +84,7 @@ export default async function CotizadorPage() {
             paquetesCobertura: null as iGetAllPaquetes[] | null,
             coberturas: null as iGetCoberturas[] | null,
             asociaciones: null as iGetAsociacionPaqueteCobertura[] | null,
-            reglasGlobales: null as iGetAllReglaNegocio[] | null,
+            // reglasGlobales: null as iGetAllReglaNegocio[] | null,
             years: null as iGetAnios[] | null,
         };
 
@@ -129,9 +129,9 @@ export default async function CotizadorPage() {
                         case 8:
                             data.asociaciones = validationResult.data as iGetAsociacionPaqueteCobertura[];
                             break;
-                        case 9:
-                            data.reglasGlobales = validationResult.data as iGetAllReglaNegocio[];
-                            break;
+                        // case 9:
+                        //     data.reglasGlobales = validationResult.data as iGetAllReglaNegocio[];
+                        //     break;
                     }
                 }
             } else {
@@ -187,8 +187,8 @@ export default async function CotizadorPage() {
             !data.derechoPoliza ||
             !data.paquetesCobertura ||
             !data.coberturas ||
-            !data.asociaciones ||
-            !data.reglasGlobales
+            !data.asociaciones
+            //|| data.reglasGlobales
         ) {
             return (
                 <ErrorMessage
@@ -225,7 +225,7 @@ export default async function CotizadorPage() {
                     paquetesCobertura={data.paquetesCobertura}
                     coberturas={data.coberturas}
                     asociaciones={data.asociaciones}
-                    reglasGlobales={data.reglasGlobales}
+                    // reglasGlobales={data.reglasGlobales}
                     usuarioID={1}
                 />
             </main>

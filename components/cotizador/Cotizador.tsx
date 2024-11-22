@@ -22,7 +22,7 @@ import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
-import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+// import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
@@ -39,7 +39,7 @@ interface CotizadorProps {
     paquetesCobertura: iGetAllPaquetes[];
     coberturas: iGetCoberturas[];
     asociaciones: iGetAsociacionPaqueteCobertura[];
-    reglasGlobales: iGetAllReglaNegocio[];
+    // reglasGlobales: iGetAllReglaNegocio[];
 }
 
 const steps: Step[] = [
@@ -62,7 +62,7 @@ export const Cotizador = ({
     paquetesCobertura,
     coberturas,
     asociaciones,
-    reglasGlobales,
+    // reglasGlobales,
 }: CotizadorProps) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isStepValid, setIsStepValid] = useState(false);
@@ -177,7 +177,7 @@ export const Cotizador = ({
             paquetesCobertura,
             coberturas,
             asociaciones,
-            reglasGlobales,
+            // reglasGlobales,
             setIsStepValid,
         };
 
