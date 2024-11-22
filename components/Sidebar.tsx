@@ -16,13 +16,15 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-white shadow-lg p-4 flex flex-col fixed h-screen">
             <div className="flex items-center justify-center mb-8">
-                <Image
-                    src='/prase-logo.png'
-                    width={100}
-                    height={100}
-                    alt='Prase logo'
-                    priority={true}
-                />
+                <Link href="/">
+                    <Image
+                        src='/prase-logo.png'
+                        width={100}
+                        height={100}
+                        alt='Prase logo'
+                        priority={true}
+                    />
+                </Link>
             </div>
             <nav className="flex-1">
                 <Link href="/" passHref>
@@ -90,7 +92,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <Merge className="mr-2 h-3 w-3" />
-                                    Asociar Paq-Cobertura
+                                    Asociar Póliza-Cobertura
                                 </Button>
                             </Link>
                             <Link href="/admin/catalogos-paquetes" passHref>
@@ -99,7 +101,7 @@ export default function Sidebar() {
                                     className="w-full justify-start text-sm"
                                 >
                                     <List className="mr-2 h-3 w-3" />
-                                    Cat Paquetes
+                                    Cat Pólizas
                                 </Button>
                             </Link>
                             <Link href="/admin/catalogos-deducibles" passHref>
