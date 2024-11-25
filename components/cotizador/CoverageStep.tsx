@@ -76,6 +76,7 @@ interface CoberturaExtendida {
     Obligatoria?: boolean;
     deducibleSeleccionado?: number;
     sumaAseguradaPersonalizada?: number;
+    valorSeleccionado?: number;
 }
 
 export const CoverageStep = ({
@@ -266,36 +267,45 @@ export const CoverageStep = ({
 
         const nuevasCoberturas = coberturasSeleccionadas.map(cobertura => {
             if (cobertura.CoberturaID === coberturaId) {
-                const coberturaActualizada = {
+                return {
                     ...cobertura,
-                    sumaAseguradaPersonalizada: valorNumerico
+                    sumaAseguradaPersonalizada: valorNumerico,
+                    valorSeleccionado: valorNumerico // Agregamos esta propiedad
                 };
-
-                return coberturaActualizada;
             }
-
             return cobertura;
         });
 
         setCoberturasSeleccionadas(nuevasCoberturas);
 
-        // Actualizar detalles con las nuevas primas calculadas
-        const detallesActualizados = nuevasCoberturas.map(cobertura => ({
-            CoberturaID: cobertura.CoberturaID,
-            NombreCobertura: cobertura.NombreCobertura,
-            Descripcion: cobertura.Descripcion,
-            MontoSumaAsegurada: obtenerSumaAsegurada(cobertura),
-            DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
-            MontoDeducible: obtenerDeducible(cobertura),
-            PrimaCalculada: calcularPrima(cobertura, "cobertura"),
-            PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
-            ValorAseguradoUsado: obtenerSumaAsegurada(cobertura),
-            Obligatoria: cobertura.Obligatoria || false
-        }));
+        const detallesActualizados = nuevasCoberturas.map(cobertura => {
+            let montoSumaAsegurada;
+
+            if (cobertura.AplicaSumaAsegurada) {
+                montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
+            } else {
+                // Usamos el valor seleccionado si existe, sino el valor por defecto
+                montoSumaAsegurada = cobertura.valorSeleccionado ||
+                    (cobertura.CoberturaID === coberturaId ? valorNumerico :
+                        Number(cobertura.SumaAseguradaMax));
+            }
+
+            return {
+                CoberturaID: cobertura.CoberturaID,
+                NombreCobertura: cobertura.NombreCobertura,
+                Descripcion: cobertura.Descripcion,
+                MontoSumaAsegurada: montoSumaAsegurada,
+                DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+                MontoDeducible: obtenerDeducible(cobertura),
+                PrimaCalculada: calcularPrima(cobertura, "cobertura"),
+                PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+                ValorAseguradoUsado: montoSumaAsegurada,
+                Obligatoria: cobertura.Obligatoria || false
+            };
+        });
 
         form.setValue("detalles", detallesActualizados);
 
-        // Actualizar prima total
         const nuevaPrimaTotal = detallesActualizados.reduce(
             (total, detalle) => total + detalle.PrimaCalculada,
             0
