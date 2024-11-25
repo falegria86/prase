@@ -273,6 +273,7 @@ export const CoverageStep = ({
 
                 return coberturaActualizada;
             }
+
             return cobertura;
         });
 
@@ -382,7 +383,29 @@ export const CoverageStep = ({
         }
 
         // Para montos en pesos
-        return formatCurrency(parseFloat(cobertura.SumaAseguradaMax));
+        const rangosMax = generarRangosSumaAsegurada(Number(cobertura.SumaAseguradaMax));
+        const valorSelect = cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
+
+        return (
+            <Select
+                value={valorSelect.toString()}
+                onValueChange={(valor) => manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)}
+            >
+                <SelectTrigger className="w-[200px]">
+                    <SelectValue>
+                        {formatCurrency(parseFloat(valorSelect.toString()))}
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    {rangosMax.map((valor) => (
+                        <SelectItem key={valor} value={valor.toString()}>
+                            {formatCurrency(valor)}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        )
+
     }, [form, generarRangosSumaAsegurada, manejarCambioSumaAsegurada]);
 
     const generarRangoDeducibles = useCallback((cobertura: CoberturaExtendida): number[] => {
