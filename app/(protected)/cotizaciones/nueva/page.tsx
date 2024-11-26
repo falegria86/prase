@@ -15,11 +15,12 @@ import type {
 import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import type { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import type { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
-import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import type { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import type { IGetAllConfiguracionGlobal } from "@/interfaces/ConfiguracionGlobal";
 import { iGetAnios } from "@/interfaces/LibroAzul";
 import { getAllReglasNegocio } from "@/actions/ReglasNegocio";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+import { getTiposMoneda } from "@/actions/CatMonedasActions";
 
 interface ApiResponse<T> {
     data: T | null;
@@ -71,6 +72,7 @@ export default async function CotizadorPage() {
             getCoberturas(),
             getAsociacionPaquetesCobertura(),
             getAllReglasNegocio(),
+            getTiposMoneda(),
         ]);
 
         const errors: string[] = [];
@@ -86,6 +88,7 @@ export default async function CotizadorPage() {
             asociaciones: null as iGetAsociacionPaqueteCobertura[] | null,
             reglasNegocio: null as iGetAllReglaNegocio[] | null,
             years: null as iGetAnios[] | null,
+            tiposMoneda: null as iGetTiposMoneda[] | null,
         };
 
         // Procesar las respuestas iniciales
@@ -131,6 +134,9 @@ export default async function CotizadorPage() {
                             break;
                         case 9:
                             data.reglasNegocio = validationResult.data as iGetAllReglaNegocio[];
+                            break;
+                        case 10:
+                            data.tiposMoneda = validationResult.data as iGetTiposMoneda[];
                             break;
                     }
                 }
@@ -227,6 +233,7 @@ export default async function CotizadorPage() {
                     asociaciones={data.asociaciones}
                     reglasNegocio={data.reglasNegocio}
                     usuarioID={1}
+                    tiposMoneda={data.tiposMoneda ?? []}
                 />
             </main>
         );

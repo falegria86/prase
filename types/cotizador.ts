@@ -5,7 +5,7 @@ import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
-import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 
 export interface Brand {
@@ -51,6 +51,7 @@ export interface StepProps {
     asociaciones?: iGetAsociacionPaqueteCobertura[];
     reglasNegocio?: iGetAllReglaNegocio[];
     setIsStepValid?: (valid: boolean) => void;
+    tiposMoneda?: iGetTiposMoneda[];
 }
 
 export interface Year {

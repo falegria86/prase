@@ -6,6 +6,7 @@ interface ValoresCobertura {
     primaBase: number;
     deducibleMin: number;
     deducibleMax: number;
+    tipoMonedaID?: number;
 }
 
 interface ValoresFormulario {
@@ -64,7 +65,8 @@ export const aplicarReglasPorCobertura = (
         sumaAseguradaMax: Number(cobertura.SumaAseguradaMax),
         primaBase: Number(cobertura.PrimaBase),
         deducibleMin: Number(cobertura.DeducibleMin),
-        deducibleMax: Number(cobertura.DeducibleMax)
+        deducibleMax: Number(cobertura.DeducibleMax),
+        tipoMonedaID: cobertura.tipoMoneda?.TipoMonedaID
     };
 
     // Filtrar reglas aplicables a esta cobertura
@@ -82,7 +84,12 @@ export const aplicarReglasPorCobertura = (
         );
 
         if (condicionesCumplidas) {
-            const valorAjuste = Number(regla.condiciones[0]?.Valor || 0);
+            const valorAjuste = Number(regla.ValorAjuste || 0);
+
+            // Si la regla tiene un tipo de moneda específico, actualizar el tipo de moneda
+            if (regla.TipoMonedaID) {
+                valores.tipoMonedaID = regla.TipoMonedaID;
+            }
 
             switch (regla.TipoRegla) {
                 case "SumaAsegurada":
@@ -101,4 +108,24 @@ export const aplicarReglasPorCobertura = (
     });
 
     return valores;
+};
+
+export const obtenerValorAjustado = (
+    valor: number,
+    tipoMonedaOriginal: number,
+    tipoMonedaNuevo: number | undefined,
+    valorUMA: number
+): number => {
+    if (!tipoMonedaNuevo || tipoMonedaOriginal === tipoMonedaNuevo) {
+        return valor;
+    }
+
+    // Implementar las conversiones necesarias según los tipos de moneda
+    if (tipoMonedaOriginal === 1 && tipoMonedaNuevo === 5) { // Pesos a UMAs
+        return valor / valorUMA;
+    } else if (tipoMonedaOriginal === 5 && tipoMonedaNuevo === 1) { // UMAs a Pesos
+        return valor * valorUMA;
+    }
+
+    return valor;
 };

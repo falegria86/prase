@@ -89,6 +89,7 @@ export const CoverageStep = ({
     tiposPagos,
     setIsStepValid,
     reglasNegocio,
+    tiposMoneda,
 }: StepProps) => {
     const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
     const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<CoberturaExtendida[]>([]);
@@ -238,6 +239,12 @@ export const CoverageStep = ({
                     reglasNegocio || [],
                     valoresFormulario
                 );
+
+                if (valoresAjustados.tipoMonedaID) {
+                    const getTipoMonedaData = tiposMoneda?.find(tipo => tipo.TipoMonedaID === valoresAjustados.tipoMonedaID);
+
+                    if (getTipoMonedaData) cobertura.tipoMoneda = getTipoMonedaData;
+                }
 
                 return {
                     ...cobertura,

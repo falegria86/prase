@@ -10,6 +10,9 @@ export const editReglaNegocioSchema = z.object({
         CoberturaID: z.coerce.number(),
     }),
     TipoRegla: z.string().min(1, { message: "El tipo de regla es requerido" }),
+    TipoMonedaID: z.coerce.number().min(1, {
+        message: "El tipo de moneda es requerido"
+    }),
     condiciones: z.array(z.object({
         Campo: z.string().min(1, {
             message: "El campo es requerido"
@@ -23,9 +26,6 @@ export const editReglaNegocioSchema = z.object({
         Evaluacion: z.string().min(1, {
             message: "El evaluador es requerido"
         }),
-        // tipoMoneda: z.coerce.number().min(1, {
-        //     message: "El tipo de moneda es requerido"
-        // }),
     })),
 }).refine((data) => {
     // Si EsGlobal es true, entonces cobertura debe estar presente y no vacía
@@ -48,6 +48,7 @@ export const nuevaReglaNegocioSchema = z.object({
     TipoRegla: z.string().min(1, {
         message: "El tipo de regla es requerido"
     }),
+    TipoMonedaID: z.coerce.number(),
     EsGlobal: z.boolean(),
     Activa: z.boolean(),
     cobertura: z.object({

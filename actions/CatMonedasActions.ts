@@ -14,6 +14,7 @@ export const getTiposMoneda = async () => {
         if (!resp.ok) return null;
 
         const data: iGetTiposMoneda[] = await resp.json();
+
         return data;
     } catch (error) {
         console.log('Error al obtener tipos de moneda: ', error);

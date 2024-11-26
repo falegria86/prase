@@ -1,4 +1,4 @@
-export interface ICondicionReglaNegocio {
+export interface iCondicionReglaNegocio {
     CondicionID?: number;
     Campo: string;
     Operador: string;
@@ -46,12 +46,14 @@ export interface iGetAllReglaNegocio {
     ReglaID: number;
     NombreRegla: string;
     Descripcion: string;
-    TipoAplicacion: "PORCENTAJE" | "GLOBAL";
+    TipoAplicacion: string;
     TipoRegla: string;
+    ValorAjuste: string | null;
     EsGlobal: boolean;
     Activa: boolean;
     cobertura: iGetAllCobertura;
-    condiciones: ICondicionReglaNegocio[];
+    condiciones: iCondicionReglaNegocio[];
+    TipoMonedaID: number;
 }
 
 export interface iPostReglaNegocio {
@@ -61,8 +63,9 @@ export interface iPostReglaNegocio {
     TipoRegla: string;
     EsGlobal: boolean;
     Activa: boolean;
+    TipoMonedaID: number;
     cobertura: iPostCobertura;
-    condiciones: ICondicionReglaNegocio[];
+    condiciones: iCondicionReglaNegocio[];
 }
 
 export interface iPatchReglaNegocio {
@@ -70,6 +73,6 @@ export interface iPatchReglaNegocio {
     EsGlobal: boolean;
     Activa: boolean;
     cobertura: iPostCobertura;
-    condiciones: ICondicionReglaNegocio[];
+    condiciones: iCondicionReglaNegocio[];
     TipoRegla: string;
 }

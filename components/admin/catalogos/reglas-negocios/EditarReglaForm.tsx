@@ -30,7 +30,7 @@ interface EditarReglaFormProps {
     tiposMoneda: iGetTiposMoneda[];
 }
 
-export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormProps) => {
+export const EditarReglaForm = ({ regla, coberturas, onSave, tiposMoneda }: EditarReglaFormProps) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -42,6 +42,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
             TipoRegla: regla?.TipoRegla || '',
             EsGlobal: regla?.EsGlobal || false,         // Booleano inicializado en false
             Activa: regla?.Activa || false,
+            TipoMonedaID: regla?.TipoMonedaID || 0,
             cobertura: {
                 CoberturaID: regla?.cobertura?.CoberturaID || 0,   // Referencia a la cobertura de la regla
             },
@@ -52,14 +53,13 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                     Operador: condicion.Operador || '',
                     Valor: condicion.Valor || '',
                     Evaluacion: condicion.Evaluacion || '',
-                    // tipoMoneda: condicion.,
                 }))
                 : [],
         },
     });
 
     const onSubmit = (values: z.infer<typeof editReglaNegocioSchema>) => {
-        console.log(values)
+        // console.log(values)
         startTransition(async () => {
             try {
                 const resp = await patchReglaNegocio(regla.ReglaID, values);
@@ -216,6 +216,29 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                 </FormItem>
                             )}
                         />
+
+                        <FormField
+                            control={form.control}
+                            name={`TipoMonedaID`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de moneda</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={field.value.toString()}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {tiposMoneda.map(tipo => (
+                                                    <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                     {/* Campos dinámicos de condiciones */}
                     <h3 className="font-bold text-lg">Condiciones</h3>
@@ -288,28 +311,6 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                         </FormItem>
                                     )}
                                 />
-                                {/*  <FormField
-                                    control={form.control}
-                                    name={`condiciones.${index}.tipoMoneda`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Tipo de moneda</FormLabel>
-                                            <FormControl className="w-full">
-                                                <Select onValueChange={(value) => field.onChange(Number(value))}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Seleccione tipo de moneda..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {tiposMoneda.map(tipo => (
-                                                            <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                /> */}
                                 <div className="flex items-end mt-auto ">
                                     <Button
                                         type="button"

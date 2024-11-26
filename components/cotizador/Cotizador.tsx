@@ -21,7 +21,7 @@ import { iGetAnios } from "@/interfaces/LibroAzul";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
-import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 
@@ -40,6 +40,7 @@ interface CotizadorProps {
     coberturas: iGetCoberturas[];
     asociaciones: iGetAsociacionPaqueteCobertura[];
     reglasNegocio: iGetAllReglaNegocio[];
+    tiposMoneda: iGetTiposMoneda[] | [];
 }
 
 const steps: Step[] = [
@@ -63,6 +64,7 @@ export const Cotizador = ({
     coberturas,
     asociaciones,
     reglasNegocio,
+    tiposMoneda,
 }: CotizadorProps) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isStepValid, setIsStepValid] = useState(false);
@@ -180,6 +182,7 @@ export const Cotizador = ({
             asociaciones,
             reglasNegocio,
             setIsStepValid,
+            tiposMoneda,
         };
 
         switch (currentStep) {
