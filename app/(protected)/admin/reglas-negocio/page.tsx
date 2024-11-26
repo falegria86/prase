@@ -22,6 +22,7 @@ export default async function ReglasNegocioPage() {
 
             {reglas && reglas.length > 0 ? (
                 <TableReglasNegocio
+                    tiposMoneda={tiposMoneda}
                     coberturas={coberturas || []}
                     reglas={reglas}
                 />

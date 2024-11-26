@@ -78,6 +78,9 @@ const LocationCombobox = ({ form, onLocationSelect }: LocationComboboxProps) => 
         const postcode = location.properties.postcode;
         if (!postcode) return;
 
+        const estado = location.properties.state;
+        if (estado) form.setValue("Estado", estado);
+
         form.setValue("CP", postcode, { shouldValidate: true });
         setSelectedLocation(location);
         setOpen(false);

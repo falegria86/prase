@@ -21,15 +21,16 @@ import { patchReglaNegocio } from "@/actions/ReglasNegocio";
 import { iGetAllReglaNegocio, iGetAllCobertura } from "@/interfaces/ReglasNegocios";
 import { editReglaNegocioSchema } from "@/schemas/admin/reglasNegocio/reglasNegocioSchema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 
 interface EditarReglaFormProps {
     regla: iGetAllReglaNegocio;
     coberturas: iGetAllCobertura[];
     onSave: () => void;
+    tiposMoneda: iGetTiposMoneda[];
 }
 
 export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormProps) => {
-
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -38,6 +39,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
         resolver: zodResolver(editReglaNegocioSchema),
         defaultValues: {
             NombreRegla: regla?.NombreRegla || '',      // Inicializa con un valor por defecto si regla está indefinida
+            TipoRegla: regla?.TipoRegla || '',
             EsGlobal: regla?.EsGlobal || false,         // Booleano inicializado en false
             Activa: regla?.Activa || false,
             cobertura: {
@@ -50,12 +52,14 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                     Operador: condicion.Operador || '',
                     Valor: condicion.Valor || '',
                     Evaluacion: condicion.Evaluacion || '',
+                    // tipoMoneda: condicion.,
                 }))
                 : [],
         },
     });
 
     const onSubmit = (values: z.infer<typeof editReglaNegocioSchema>) => {
+        console.log(values)
         startTransition(async () => {
             try {
                 const resp = await patchReglaNegocio(regla.ReglaID, values);
@@ -187,87 +191,125 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                                 </FormItem>
                             )}
                         />
+
+                        <FormField
+                            control={form.control}
+                            name="TipoRegla"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de Regla</FormLabel>
+                                    <FormControl>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione tipo de regla..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Prima">Prima</SelectItem>
+                                                <SelectItem value="SumaAsegurada">Suma Asegurada</SelectItem>
+                                                <SelectItem value="Deducible">Deducible</SelectItem>
+                                                <SelectItem value="Descuento">Descuento</SelectItem>
+                                                <SelectItem value="Bonificacion">Bonificación</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                     {/* Campos dinámicos de condiciones */}
                     <h3 className="font-bold text-lg">Condiciones</h3>
                     <div className=" ">
                         {fields.map((item, index) => (
                             <div key={item.id} className="grid sm:grid-cols-3 gap-2 items-center border-y py-5 border-gray-400 pt-5">
-                                <div className="">
-                                    <FormField
-                                        control={form.control}
-                                        name={`condiciones.${index}.Campo`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Campo</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Campo..."
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                <div className="">
-                                    <FormField
-                                        control={form.control}
-                                        name={`condiciones.${index}.Operador`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Operador</FormLabel>
-                                                <FormControl className="w-full">
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Seleccione" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="<=">Menor o Igual Que</SelectItem>
-                                                            <SelectItem value=">=">Mayor o Igual Que</SelectItem>
-                                                            <SelectItem value="<">Menor Que</SelectItem>
-                                                            <SelectItem value=">">Mayor Que</SelectItem>
-                                                            <SelectItem value="=">Igual Que</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                <div className="">
-                                    <FormField
-                                        control={form.control}
-                                        name={`condiciones.${index}.Valor`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Valor de ajuste</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" placeholder="Valor de ajuste..." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="">
-                                    <FormField
-                                        control={form.control}
-                                        name={`condiciones.${index}.Evaluacion`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Valor Buscado</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Valor a buscar..." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name={`condiciones.${index}.Campo`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Campo</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Campo..."
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`condiciones.${index}.Operador`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Operador</FormLabel>
+                                            <FormControl className="w-full">
+                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccione" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="<=">Menor o Igual Que</SelectItem>
+                                                        <SelectItem value=">=">Mayor o Igual Que</SelectItem>
+                                                        <SelectItem value="<">Menor Que</SelectItem>
+                                                        <SelectItem value=">">Mayor Que</SelectItem>
+                                                        <SelectItem value="=">Igual Que</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`condiciones.${index}.Evaluacion`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Valor Buscado</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Valor a buscar..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name={`condiciones.${index}.Valor`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Valor de ajuste</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="Valor de ajuste..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                {/*  <FormField
+                                    control={form.control}
+                                    name={`condiciones.${index}.tipoMoneda`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tipo de moneda</FormLabel>
+                                            <FormControl className="w-full">
+                                                <Select onValueChange={(value) => field.onChange(Number(value))}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {tiposMoneda.map(tipo => (
+                                                            <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>{tipo.Nombre}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                /> */}
                                 <div className="flex items-end mt-auto ">
                                     <Button
                                         type="button"
@@ -283,7 +325,7 @@ export const EditarReglaForm = ({ regla, coberturas, onSave }: EditarReglaFormPr
                         ))}
                         <Button
                             type="button"
-                            onClick={() => append({ Evaluacion: '', Campo: '', Operador: '', Valor: '', tipoMoneda: 0 })}
+                            onClick={() => append({ Evaluacion: '', Campo: '', Operador: '', Valor: '' })}
                             variant="default"
                             className="rounded-md mt-5"
                         >

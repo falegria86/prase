@@ -326,7 +326,7 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                             )}
                                         />
                                     </div>
-                                     <div className="col-span-4">
+                                    <div className="col-span-4">
                                         <FormField
                                             control={form.control}
                                             name={`condiciones.${index}.tipoMoneda`}

@@ -54,6 +54,7 @@ interface DetalleCoberturaExtendido {
     EsAmparada?: boolean;
     SumaAseguradaPorPasajero?: boolean;
     Descripcion?: string;
+    TipoDeducible?: string;
 }
 
 const mostrarValorSumaAsegurada = (detalle: DetalleCoberturaExtendido): React.ReactNode => {
@@ -86,11 +87,7 @@ const mostrarValorDeducible = (detalle: DetalleCoberturaExtendido): string => {
         return "NO APLICA";
     }
 
-    if (detalle.DisplayDeducible) {
-        return detalle.DisplayDeducible;
-    }
-
-    if (detalle.TipoMoneda === "UMA") {
+    if (detalle.TipoDeducible === "UMA") {
         return `${detalle.MontoDeducible} UMAS`;
     }
 

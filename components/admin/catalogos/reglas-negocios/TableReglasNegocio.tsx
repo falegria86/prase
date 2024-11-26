@@ -41,12 +41,14 @@ import {
 import { deleteReglaNegocio } from '@/actions/ReglasNegocio';
 import Loading from '@/app/(protected)/loading';
 import { EditarReglaForm } from './EditarReglaForm';
+import { iGetTiposMoneda } from '@/interfaces/CatCoberturasInterface';
 interface Props {
     reglas: iGetAllReglaNegocio[];
     coberturas: iGetAllCobertura[];
+    tiposMoneda: iGetTiposMoneda[]
 }
 
-export const TableReglasNegocio = ({ reglas, coberturas }: Props) => {
+export const TableReglasNegocio = ({ reglas, coberturas, tiposMoneda }: Props) => {
     const [isPending, startTransition] = useTransition();
     const [selectedRegla, setSelectedRegla] = useState<iGetAllReglaNegocio | null>(null);
     const [editRegla, setEditRegla] = useState<iGetAllReglaNegocio | null>(null);
@@ -180,10 +182,15 @@ export const TableReglasNegocio = ({ reglas, coberturas }: Props) => {
                         En este formulario puedes editar los detalles de la regla de negocio seleccionada.
                     </p>
                     {editRegla && (
-                        <EditarReglaForm regla={editRegla} coberturas={coberturas} onSave={() => {
-                            setEditRegla(null);
-                            setEditReglaModalOpen(false);
-                        }} />
+                        <EditarReglaForm
+                            regla={editRegla}
+                            coberturas={coberturas}
+                            onSave={() => {
+                                setEditRegla(null);
+                                setEditReglaModalOpen(false);
+                            }}
+                            tiposMoneda={tiposMoneda}
+                        />
                     )}
                 </DialogContent>
             </Dialog>

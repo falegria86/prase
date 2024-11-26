@@ -49,7 +49,7 @@ export interface StepProps {
     paquetesCobertura?: iGetAllPaquetes[];
     coberturas?: iGetCoberturas[];
     asociaciones?: iGetAsociacionPaqueteCobertura[];
-    reglasGlobales?: iGetAllReglaNegocio[];
+    reglasNegocio?: iGetAllReglaNegocio[];
     setIsStepValid?: (valid: boolean) => void;
 }
 

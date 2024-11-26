@@ -71,4 +71,5 @@ export interface iPatchReglaNegocio {
     Activa: boolean;
     cobertura: iPostCobertura;
     condiciones: ICondicionReglaNegocio[];
+    TipoRegla: string;
 }
