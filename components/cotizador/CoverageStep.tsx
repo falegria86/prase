@@ -212,15 +212,26 @@ export const CoverageStep = ({
             a => a.PaqueteCoberturaID === paqueteId
         ) ?? [];
 
+        const valoresFormulario = {
+            Estado: form.getValues("Estado"),
+            Modelo: form.getValues("Modelo"),
+            Marca: form.getValues("Marca"),
+            marcaNombre: form.getValues("marcaNombre"),
+            Submarca: form.getValues("Submarca"),
+            modeloNombre: form.getValues("modeloNombre"),
+            Version: form.getValues("Version"),
+            versionNombre: form.getValues("versionNombre"),
+            CP: form.getValues("CP"),
+            UsoVehiculo: form.getValues("UsoVehiculo"),
+            TipoVehiculo: form.getValues("TipoVehiculo"),
+            SumaAsegurada: form.getValues("SumaAsegurada"),
+        };
+
         // Aplicar reglas a cada cobertura
         const coberturasDelPaquete = asociacionesPaquete
             .map(asociacion => {
                 const cobertura = coberturas?.find(c => c.CoberturaID === asociacion.CoberturaID);
                 if (!cobertura) return null;
-
-                const valoresFormulario = {
-                    Estado: form.getValues("Estado"),
-                };
 
                 const valoresAjustados = aplicarReglasPorCobertura(
                     cobertura,

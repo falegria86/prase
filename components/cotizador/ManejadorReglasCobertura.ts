@@ -8,6 +8,22 @@ interface ValoresCobertura {
     deducibleMax: number;
 }
 
+interface ValoresFormulario {
+    Estado?: string;
+    Modelo?: string;
+    Marca?: string;
+    marcaNombre?: string;
+    Submarca?: string;
+    modeloNombre?: string;
+    Version?: string;
+    versionNombre?: string;
+    CP?: string;
+    UsoVehiculo?: number;
+    TipoVehiculo?: number;
+    SumaAsegurada?: number;
+    [key: string]: any;
+}
+
 // Función para evaluar una condición individual
 const evaluarCondicion = (
     condicion: {
@@ -40,7 +56,7 @@ const evaluarCondicion = (
 export const aplicarReglasPorCobertura = (
     cobertura: iGetAllCobertura,
     reglas: iGetAllReglaNegocio[],
-    valoresFormulario: Record<string, any>
+    valoresFormulario: ValoresFormulario,
 ): ValoresCobertura => {
     // Valores iniciales de la cobertura
     const valores: ValoresCobertura = {
