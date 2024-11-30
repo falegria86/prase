@@ -35,7 +35,6 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
 

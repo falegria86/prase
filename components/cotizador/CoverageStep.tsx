@@ -30,7 +30,7 @@ import {
     FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Shield, Info, Trash2, CreditCard } from "lucide-react";
+import { Shield, Info, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,8 +94,6 @@ export const CoverageStep = ({
     const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
     const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<CoberturaExtendida[]>([]);
     const [montoFijo, setMontoFijo] = useState("");
-
-    const formData = form.getValues();
 
     const obtenerSumaAsegurada = useCallback((cobertura: CoberturaExtendida): number => {
         if (cobertura.CoberturaAmparada) return 0;
@@ -279,12 +277,6 @@ export const CoverageStep = ({
 
         setIsStepValid?.(true);
     }, [form, paquetesCobertura, asociaciones, coberturas, reglasNegocio, tipoCalculo, actualizarDetalles, calcularPrima, setIsStepValid]);
-
-    const costoNeto = formData.PrimaTotal || 0;
-    const gastosExpedicion = formData.DerechoPoliza || 0;
-    const subtotal = costoNeto + gastosExpedicion;
-    const iva = subtotal * 0.16;
-    const total = subtotal + iva;
 
     const manejarCambioMontoFijo = useCallback((valor: string) => {
         const numeroLimpio = valor.replace(/[^0-9.]/g, '');
