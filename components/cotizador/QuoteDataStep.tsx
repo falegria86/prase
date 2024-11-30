@@ -173,15 +173,15 @@ export const QuoteDataStep = ({
 
         if (tipo?.toLowerCase().includes("convenido")) {
             setSumaAsegurada({
-                min: maxSumaAsegurada * 0.985,
-                max: maxSumaAsegurada * 1.015
+                min: maxSumaAsegurada * 0.5,
+                max: maxSumaAsegurada * 1.5
             });
-            mensaje = `Rango permitido ${formatCurrency(maxSumaAsegurada * 0.985)} - ${formatCurrency(maxSumaAsegurada * 1.015)}`;
+            mensaje = `Rango permitido ${formatCurrency(maxSumaAsegurada * 0.5)} - ${formatCurrency(maxSumaAsegurada * 1.5)}`;
             disableSumaAsegurada = false;
         } else if (tipo?.toLowerCase().includes("comercial")) {
             setSumaAsegurada({ min: maxSumaAsegurada, max: maxSumaAsegurada });
             disableSumaAsegurada = true;
-            form.setValue("SumaAsegurada", maxSumaAsegurada);
+            form.setValue("SumaAsegurada", minSumaAsegurada);
         } else {
             // Valor libre
             setSumaAsegurada({ min: minSumaAsegurada, max: maxSumaAsegurada });

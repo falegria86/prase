@@ -110,13 +110,6 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
         });
     };
 
-    // Calcular los totales
-    const costoNeto = formData.PrimaTotal || 0;
-    const gastosExpedicion = formData.DerechoPoliza || 0;
-    const subtotal = costoNeto + gastosExpedicion;
-    const iva = subtotal * 0.16;
-    const total = subtotal + iva;
-
     return (
         <div className="space-y-6">
             <motion.div
@@ -281,34 +274,11 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Costo Neto</span>
-                                <span>{formatCurrency(costoNeto)}</span>
-                            </div>
-
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">
-                                    Gastos de Expedición (Derecho de Póliza)
-                                </span>
-                                <span>{formatCurrency(gastosExpedicion)}</span>
-                            </div>
-
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">
-                                    IVA (16%)
-                                </span>
-                                <span>{formatCurrency(iva)}</span>
-                            </div>
-
-                            <Separator />
-
-                            <div className="flex justify-between items-center pt-2">
-                                <span className="font-medium">Costo Total Anual</span>
-                                <span className="text-2xl font-bold text-primary">
-                                    {formatCurrency(total)}
-                                </span>
-                            </div>
+                        <div className="flex justify-between items-center pt-2">
+                            <span className="font-medium">Costo Total Anual</span>
+                            <span className="text-2xl font-bold text-primary">
+                                {formatCurrency(formData.PrimaTotal)}
+                            </span>
                         </div>
                     </CardContent>
                 </Card>

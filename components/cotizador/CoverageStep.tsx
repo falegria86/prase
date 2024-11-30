@@ -30,7 +30,7 @@ import {
     FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Shield, Info, Trash2 } from "lucide-react";
+import { Shield, Info, Trash2, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,7 @@ import {
 import type { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
 import { PlanPago } from "./PlanPago";
-import { aplicarReglasPorCobertura } from "./ManejadorReglasCobertura";
+import { aplicarReglasPorCobertura } from "../../lib/ManejadorReglasCobertura";
 
 const VALOR_UMA = Number(process.env.VALOR_UMA) || 0;
 
@@ -95,6 +95,8 @@ export const CoverageStep = ({
     const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<CoberturaExtendida[]>([]);
     const [montoFijo, setMontoFijo] = useState("");
 
+    const formData = form.getValues();
+
     const obtenerSumaAsegurada = useCallback((cobertura: CoberturaExtendida): number => {
         if (cobertura.CoberturaAmparada) return 0;
 
@@ -120,13 +122,13 @@ export const CoverageStep = ({
     }, []);
 
     const calcularPrima = useCallback((cobertura: CoberturaExtendida, tipo: TipoCalculo): number => {
-        if (tipo === "fijo" || cobertura.SinValor || cobertura.CoberturaAmparada) return 0;
+        if (tipo === "fijo" || cobertura.SinValor) return 0;
 
         const sumaAsegurada = obtenerSumaAsegurada(cobertura);
         const deducible = obtenerDeducible(cobertura);
 
         // Prima base fija sin deducible
-        if (cobertura.PrimaBase && cobertura.DeducibleMin === "0") {
+        if (Number(cobertura.PrimaBase) > 1) {
             return parseFloat(cobertura.PrimaBase);
         }
 
@@ -277,6 +279,12 @@ export const CoverageStep = ({
 
         setIsStepValid?.(true);
     }, [form, paquetesCobertura, asociaciones, coberturas, reglasNegocio, tipoCalculo, actualizarDetalles, calcularPrima, setIsStepValid]);
+
+    const costoNeto = formData.PrimaTotal || 0;
+    const gastosExpedicion = formData.DerechoPoliza || 0;
+    const subtotal = costoNeto + gastosExpedicion;
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
 
     const manejarCambioMontoFijo = useCallback((valor: string) => {
         const numeroLimpio = valor.replace(/[^0-9.]/g, '');
@@ -735,6 +743,7 @@ export const CoverageStep = ({
                                 0
                             )
                     }
+                    derechoPoliza={form.getValues("DerechoPoliza") ?? 0}
                 />
             )}
         </div>

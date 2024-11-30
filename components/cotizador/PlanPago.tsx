@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import {
     Card,
     CardContent,
@@ -24,15 +24,18 @@ import { formatCurrency } from "@/lib/format";
 import { UseFormReturn } from 'react-hook-form';
 import { FormData } from '@/types/cotizador';
 import { iGetTipoPagos } from '@/interfaces/CatTipoPagos';
+import { CreditCard } from 'lucide-react';
 
 export const PlanPago = ({
     form,
     tiposPagos,
     costoBase,
+    derechoPoliza,
 }: {
     form: UseFormReturn<FormData>;
     tiposPagos: iGetTipoPagos[];
     costoBase: number;
+    derechoPoliza: number;
 }) => {
     const aplicarPorcentajeAjuste = (monto: number, tipoPago: iGetTipoPagos): number => {
         const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
@@ -48,12 +51,11 @@ export const PlanPago = ({
         if (!tipoPago) return costoBase;
 
         const costoAjustado = aplicarPorcentajeAjuste(costoBase, tipoPago);
-        const costoFinal = aplicarBonificacion(costoAjustado, bonificacion);
+        const costoNeto = aplicarBonificacion(costoAjustado, bonificacion);
 
-        // Actualizamos PrimaTotal en el formulario
-        form.setValue("PrimaTotal", costoFinal);
+        form.setValue("PrimaTotal", ((costoNeto * 1.16) + derechoPoliza));
 
-        return costoFinal;
+        return costoNeto;
     };
 
     const calcularPagos = (tipoPagoId: number) => {
@@ -62,7 +64,7 @@ export const PlanPago = ({
 
         const costoTotal = calcularCostoTotal(tipoPagoId, form.getValues("PorcentajeDescuento") || 0);
         const pagoSubsecuente = costoTotal / tipoPago.Divisor;
-        const primerPago = pagoSubsecuente;
+        const primerPago = pagoSubsecuente + derechoPoliza;
 
         return {
             primerPago,
@@ -80,12 +82,16 @@ export const PlanPago = ({
     const tipoPagoSeleccionado = form.watch("TipoPagoID");
     const bonificacion = form.watch("PorcentajeDescuento") || 0;
     const detallesPago = tipoPagoSeleccionado ? calcularPagos(tipoPagoSeleccionado) : null;
-    const costoTotal = tipoPagoSeleccionado ? calcularCostoTotal(tipoPagoSeleccionado, bonificacion) : costoBase;
+    const costoNeto = calcularCostoTotal(tipoPagoSeleccionado, bonificacion);
+    const costoTotal = (calcularCostoTotal(tipoPagoSeleccionado, bonificacion) * 1.16) + derechoPoliza;
 
     return (
         <Card className="mt-6">
             <CardHeader>
-                <CardTitle>Plan de Pago</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Plan de pago
+                </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -159,6 +165,19 @@ export const PlanPago = ({
 
                 {tipoPagoSeleccionado != 0 && (
                     <div className="mt-4 space-y-2">
+                        <div className="flex justify-end gap-4 items-center">
+                            <span className="font-medium">
+                                Costo Neto:
+                            </span>
+                            <span>{formatCurrency(costoNeto)}</span>
+                        </div>
+                        <div className="flex justify-end gap-4 items-center">
+                            <span className="font-medium">
+                                IVA:
+                            </span>
+                            <span>{formatCurrency(costoNeto * .16)}</span>
+                        </div>
+
                         {detallesPago ? (
                             <>
                                 <div className="flex justify-end gap-4 items-center">
@@ -171,10 +190,17 @@ export const PlanPago = ({
                                     </span>
                                     <span>{formatCurrency(detallesPago.pagoSubsecuente)}</span>
                                 </div>
+
                             </>
-                        ) : null}
+                        ) : (
+                            <div className="flex justify-end gap-4 items-center">
+                                <span className="font-medium">Derecho de póliza:</span>
+                                <span>{formatCurrency(derechoPoliza)}</span>
+                            </div>
+                        )}
+
                         <div className="flex justify-end gap-4 items-center pt-2 border-t">
-                            <span className="text-lg font-semibold">Costo Neto:</span>
+                            <span className="text-lg font-semibold">Costo Total Anual:</span>
                             <span className="text-lg font-bold text-primary">
                                 {formatCurrency(costoTotal)}
                             </span>

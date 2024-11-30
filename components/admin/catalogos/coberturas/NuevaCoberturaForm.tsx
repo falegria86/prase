@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,10 @@ import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
 
 export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoneda: iGetTiposMoneda[], tiposDeducible: iGetTiposDeducible[] }) => {
     const [isPending, startTransition] = useTransition();
+    const [showDeducibles, setSetshowDeducibles] = useState(true);
+    const [isAmparada, setIsAmparada] = useState(false);
+    const [isSinValor, setIsSinValor] = useState(false);
+    const [aplicaSumaAsegurada, setAplicaSumaAsegurada] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -42,7 +46,6 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             PorcentajePrima: 0,
             RangoSeleccion: 0,
             EsCoberturaEspecial: false,
-            Variable: false,
             SinValor: false,
             AplicaSumaAsegurada: false,
             tipoMoneda: 0,
@@ -51,6 +54,51 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             sumaAseguradaPorPasajero: false
         },
     });
+
+    const handleTipoDeducibleChange = (idDeducible: string) => {
+        form.setValue("tipoDeducible", Number(idDeducible))
+
+        const aplica = tiposDeducible.find(tipo => tipo.TipoDeducibleID === Number(idDeducible))?.Nombre.toLowerCase().includes("no aplica");
+        aplica ? setSetshowDeducibles(false) : setSetshowDeducibles(true);
+    }
+
+    const handleAmparadaChange = (value: string) => {
+        if (value === "true") {
+            setIsAmparada(true);
+            form.setValue("CoberturaAmparada", true)
+            form.setValue("PorcentajePrima", 0)
+        } else {
+            setIsAmparada(false);
+            form.setValue("CoberturaAmparada", false)
+        }
+    }
+
+    const handleSinValorChange = (value: string) => {
+        if (value === "true") {
+            setIsSinValor(true);
+            form.setValue("SinValor", true)
+            form.setValue("PrimaBase", 0)
+            form.setValue("PorcentajePrima", 0)
+
+            const mxn = tiposMoneda.find(tipo => tipo.Abreviacion === "MXN")?.TipoMonedaID;
+            form.setValue("tipoMoneda", mxn ?? 1)
+        } else {
+            setIsSinValor(false);
+            form.setValue("SinValor", false)
+        }
+    }
+
+    const handleAplicaSumaChange = (value: string) => {
+        if (value === "true") {
+            setAplicaSumaAsegurada(true);
+            form.setValue("AplicaSumaAsegurada", true)
+            form.setValue("SumaAseguradaMin", 0)
+            form.setValue("SumaAseguradaMax", 0)
+        } else {
+            setAplicaSumaAsegurada(false);
+            form.setValue("AplicaSumaAsegurada", false)
+        }
+    }
 
     const onSubmit = (values: z.infer<typeof nuevaCoberturaSchema>) => {
         const formattedData = {
@@ -62,7 +110,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                 TipoMonedaID: values.tipoMoneda,
             }
         };
-
+        console.log(formattedData)
         startTransition(async () => {
             try {
                 const resp = await postCobertura(formattedData);
@@ -133,146 +181,12 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                             />
                             <FormField
                                 control={form.control}
-                                name="PrimaBase"
+                                name="CoberturaAmparada"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Prima Base</FormLabel>
+                                        <FormLabel>¿Cobertura Amparada?</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                placeholder="Prima base de la cobertura..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="SumaAseguradaMin"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Suma Asegurada Mínima</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Suma asegurada mínima..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="SumaAseguradaMax"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Suma Asegurada Máxima</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Suma asegurada máxima..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="DeducibleMin"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Deducible Mínimo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Deducible mínimo..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="DeducibleMax"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Deducible Máximo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Deducible máximo..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="PorcentajePrima"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tasa Base</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Tasa base sobre la cual se va a calcular el costo de la cobertura..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="RangoSeleccion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Rango de Selección</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Rango de selección..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            {/* Selects para los campos booleanos */}
-                            <FormField
-                                control={form.control}
-                                name="EsCoberturaEspecial"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>¿Es cobertura especial?</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="true">Sí</SelectItem>
-                                                    <SelectItem value="false">No</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Variable"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>¿Es variable?</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                            <Select onValueChange={handleAmparadaChange} defaultValue={field.value ? "true" : "false"}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Seleccione" />
                                                 </SelectTrigger>
@@ -293,7 +207,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     <FormItem>
                                         <FormLabel>¿Sin valor?</FormLabel>
                                         <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                            <Select onValueChange={handleSinValorChange} defaultValue={field.value ? "true" : "false"}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Seleccione" />
                                                 </SelectTrigger>
@@ -307,6 +221,156 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     </FormItem>
                                 )}
                             />
+
+                            {!isSinValor && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="tipoMoneda"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Tipo de Moneda</FormLabel>
+                                                <FormControl>
+                                                    <Select
+                                                        onValueChange={(value) => field.onChange(Number(value))}
+                                                        defaultValue={field.value ? field.value.toString() : undefined}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {tiposMoneda.map((tipo) => (
+                                                                <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>
+                                                                    {tipo.Nombre}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="PrimaBase"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Prima Base</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Prima base de la cobertura..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {!isAmparada && (
+                                        <FormField
+                                            control={form.control}
+                                            name="PorcentajePrima"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Tasa Base</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Tasa base sobre la cual se va a calcular el costo de la cobertura..."
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
+                                </>
+                            )}
+
+
+                            <FormField
+                                control={form.control}
+                                name="tipoDeducible"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tipo de Deducible</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                onValueChange={handleTipoDeducibleChange}
+                                                defaultValue={field.value ? field.value.toString() : undefined}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione tipo de deducible..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tiposDeducible.map((tipo) => (
+                                                        <SelectItem key={tipo.TipoDeducibleID} value={tipo.TipoDeducibleID.toString()}>
+                                                            {tipo.Nombre}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {showDeducibles && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="DeducibleMin"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Deducible Mínimo</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Deducible mínimo..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="DeducibleMax"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Deducible Máximo</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Deducible máximo..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="RangoSeleccion"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Rango de Selección</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Rango de selección..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )}
+
                             <FormField
                                 control={form.control}
                                 name="AplicaSumaAsegurada"
@@ -314,7 +378,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     <FormItem>
                                         <FormLabel>¿Aplica suma asegurada?</FormLabel>
                                         <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                            <Select onValueChange={handleAplicaSumaChange} defaultValue={field.value ? "true" : "false"}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Seleccione" />
                                                 </SelectTrigger>
@@ -329,28 +393,42 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="CoberturaAmparada"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>¿Cobertura Amparada?</FormLabel>
-                                        <FormControl>
-                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="true">Sí</SelectItem>
-                                                    <SelectItem value="false">No</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
+                            {!aplicaSumaAsegurada && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="SumaAseguradaMin"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Suma Asegurada Mínima</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Suma asegurada mínima..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="SumaAseguradaMax"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Suma Asegurada Máxima</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Suma asegurada máxima..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )}
 
                             <FormField
                                 control={form.control}
@@ -374,26 +452,21 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                 )}
                             />
 
+                            {/* Selects para los campos booleanos */}
                             <FormField
                                 control={form.control}
-                                name="tipoMoneda"
+                                name="EsCoberturaEspecial"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo de Moneda</FormLabel>
+                                        <FormLabel>¿Seleccionable para cobertura accesoria?</FormLabel>
                                         <FormControl>
-                                            <Select
-                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                defaultValue={field.value ? field.value.toString() : undefined}
-                                            >
+                                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione tipo de moneda..." />
+                                                    <SelectValue placeholder="Seleccione" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {tiposMoneda.map((tipo) => (
-                                                        <SelectItem key={tipo.TipoMonedaID} value={tipo.TipoMonedaID.toString()}>
-                                                            {tipo.Abreviacion}
-                                                        </SelectItem>
-                                                    ))}
+                                                    <SelectItem value="true">Sí</SelectItem>
+                                                    <SelectItem value="false">No</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </FormControl>
@@ -401,34 +474,6 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="tipoDeducible"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tipo de Deducible</FormLabel>
-                                        <FormControl>
-                                            <Select
-                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                defaultValue={field.value ? field.value.toString() : undefined}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccione tipo de deducible..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {tiposDeducible.map((tipo) => (
-                                                        <SelectItem key={tipo.TipoDeducibleID} value={tipo.TipoDeducibleID.toString()}>
-                                                            {tipo.Nombre}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
                         </div>
                         <Button type="submit" disabled={isPending} size="lg" className="mt-8">
                             {isPending ? (

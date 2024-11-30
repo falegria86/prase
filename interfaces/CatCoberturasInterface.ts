@@ -48,7 +48,6 @@ export interface iPostCobertura {
     PorcentajePrima: number;
     RangoSeleccion: number;
     EsCoberturaEspecial: boolean;
-    Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
     tipoDeducible: TipoDeduciblePost;

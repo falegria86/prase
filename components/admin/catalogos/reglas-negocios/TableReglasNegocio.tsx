@@ -42,6 +42,7 @@ import { deleteReglaNegocio } from '@/actions/ReglasNegocio';
 import Loading from '@/app/(protected)/loading';
 import { EditarReglaForm } from './EditarReglaForm';
 import { iGetTiposMoneda } from '@/interfaces/CatCoberturasInterface';
+
 interface Props {
     reglas: iGetAllReglaNegocio[];
     coberturas: iGetAllCobertura[];
@@ -119,7 +120,7 @@ export const TableReglasNegocio = ({ reglas, coberturas, tiposMoneda }: Props) =
                             <TableHead>Nombre</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Tipo de Regla</TableHead>
-                            <TableHead>Es Global</TableHead>
+                            <TableHead>Aplica para todas las pólizas</TableHead>
                             <TableHead>Cobertura Asociada </TableHead>
                             <TableHead>Estado </TableHead>
                             <TableHead>Acciones </TableHead>

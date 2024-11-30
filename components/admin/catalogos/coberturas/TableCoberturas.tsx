@@ -105,10 +105,12 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                         <TableRow>
                             <TableHead>Cobertura</TableHead>
                             <TableHead>Descripción</TableHead>
-                            <TableHead>Tasa Base</TableHead>
+                            <TableHead>Prima Base</TableHead>
+                            <TableHead className="w-20">Tasa Base</TableHead>
                             <TableHead>Tipo Moneda</TableHead>
                             <TableHead>Tipo Deducible</TableHead>
                             <TableHead>¿Cobertura Amparada?</TableHead>
+                            <TableHead>¿Sin valor?</TableHead>
                             <TableHead>¿Costo por Pasajero?</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
@@ -118,11 +120,13 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                             <TableRow key={cobertura.CoberturaID}>
                                 <TableCell>{cobertura.NombreCobertura}</TableCell>
                                 <TableCell>{cobertura.Descripcion}</TableCell>
+                                <TableCell>${cobertura.PrimaBase}</TableCell>
                                 <TableCell>{cobertura.PorcentajePrima} %</TableCell>
                                 <TableCell>{cobertura.tipoMoneda?.Abreviacion}</TableCell>
                                 <TableCell>{cobertura.tipoDeducible?.Nombre}</TableCell>
-                                <TableCell>{cobertura.CoberturaAmparada}</TableCell>
-                                <TableCell>{cobertura.sumaAseguradaPorPasajero}</TableCell>
+                                <TableCell>{cobertura.CoberturaAmparada ? "Si" : "No"}</TableCell>
+                                <TableCell>{cobertura.SinValor ? "Si" : "No"}</TableCell>
+                                <TableCell>{cobertura.sumaAseguradaPorPasajero ? "Si" : "No"}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>
                                         <TooltipTrigger>
@@ -165,7 +169,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                 setEditCobertura(null);
                 setEditCoberturaModalOpen(false);
             }}>
-                <DialogContent>
+                <DialogContent className="max-w-[800px]">
                     <DialogHeader>
                         <DialogTitle>Editar Cobertura</DialogTitle>
                     </DialogHeader>

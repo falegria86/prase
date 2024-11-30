@@ -76,7 +76,7 @@ export const Cotizador = ({
             UsuarioID: usuarioID,
             EstadoCotizacion: "REGISTRO",
             PrimaTotal: 0,
-            TipoPagoID: 0,
+            TipoPagoID: tiposPagos.find(tipo => tipo.Descripcion.toLowerCase() === "anual")?.TipoPagoID || 0,
             PorcentajeDescuento: 0,
             DerechoPoliza: Number(derechoPoliza),
             TipoSumaAseguradaID: 2,

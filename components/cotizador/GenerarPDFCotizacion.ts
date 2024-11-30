@@ -75,10 +75,10 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
     let posicionY = MARGEN_Y + 35;
 
     // 2. Tabla de cotización y datos de pago
-    const costoNeto = datos.PrimaTotal;
+    const costoNeto = ((datos.PrimaTotal - 600) * 100) / 116;
     const gastosExpedicion = datos.DerechoPoliza;
     const subtotal = costoNeto + gastosExpedicion;
-    const iva = subtotal * 0.16;
+    const iva = costoNeto * 0.16;
     const total = subtotal + iva;
     const planesPago = generarPlanesPago(total);
 

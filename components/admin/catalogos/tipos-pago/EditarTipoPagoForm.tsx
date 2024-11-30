@@ -19,12 +19,7 @@ import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { patchTipoPago } from "@/actions/CatTipoPagos";
-
-const editarTipoPagoSchema = z.object({
-    Descripcion: z.string().min(1, "La descripción es requerida"),
-    PorcentajeAjuste: z.number().min(0, "Porcentaje ajuste es requerido"),
-    Divisor: z.string().min(0, "Divisor es requerido"),
-});
+import { editarTipoPagoSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 
 interface EditarTipoPagoFormProps {
     tipoPago: iGetTipoPagos;

@@ -203,7 +203,7 @@ export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: i
                                 name="EsGlobal"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Es global</FormLabel>
+                                        <FormLabel>Aplica para todas las pólizas</FormLabel>
                                         <FormControl>
                                             <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                                 <SelectTrigger>

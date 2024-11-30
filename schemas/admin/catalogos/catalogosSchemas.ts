@@ -46,54 +46,27 @@ export const nuevaCoberturaSchema = z.object({
     NombreCobertura: z.string().min(1, {
         message: 'Nombre de la cobertura es requerido',
     }),
-    Descripcion: z.string().min(1, {
-        message: 'Descripción es requerida',
-    }),
+    Descripcion: z.string(),
     PrimaBase: z.coerce.number().min(0, {
         message: 'Prima base es requerida y debe ser un número válido',
     }),
-    SumaAseguradaMin: z.coerce.number().min(0, {
-        message: 'Suma asegurada mínima es requerida y debe ser un número válido',
-    }),
-    SumaAseguradaMax: z.coerce.number().min(0, {
-        message: 'Suma asegurada máxima es requerida y debe ser un número válido',
-    }),
-    DeducibleMin: z.coerce.number().min(0, {
-        message: 'Deducible mínimo es requerido y debe ser un número válido',
-    }),
-    DeducibleMax: z.coerce.number().min(0, {
-        message: 'Deducible máximo es requerido y debe ser un número válido',
-    }),
-    PorcentajePrima: z.coerce.number().min(1, {
-        message: 'Tasa base es requerido y debe ser un número válido',
-    }),
-    RangoSeleccion: z.coerce.number().min(0, {
-        message: 'Rango de selección es requerido y debe ser un número válido',
-    }),
-    EsCoberturaEspecial: z.boolean({
-        message: 'EsCoberturaEspecial es requerido',
-    }),
-    Variable: z.boolean({
-        message: 'Variable es requerido',
-    }),
-    SinValor: z.boolean({
-        message: 'SinValor es requerido',
-    }),
-    AplicaSumaAsegurada: z.boolean({
-        message: 'AplicaSumaAsegurada es requerido',
-    }),
+    SumaAseguradaMin: z.coerce.number(),
+    SumaAseguradaMax: z.coerce.number(),
+    DeducibleMin: z.coerce.number(),
+    DeducibleMax: z.coerce.number(),
+    PorcentajePrima: z.coerce.number(),
+    RangoSeleccion: z.coerce.number(),
+    EsCoberturaEspecial: z.boolean(),
+    SinValor: z.boolean(),
+    AplicaSumaAsegurada: z.boolean(),
     tipoMoneda: z.coerce.number().min(1, {
         message: 'El tipo de moneda es requerido'
     }),
     tipoDeducible: z.coerce.number().min(1, {
         message: 'El tipo de deducible es requerido'
     }),
-    CoberturaAmparada: z.boolean({
-        message: 'CoberturaAmparada es requerido',
-    }),
-    sumaAseguradaPorPasajero: z.boolean({
-        message: 'sumaAseguradaPorPasajero es requerido',
-    }),
+    CoberturaAmparada: z.boolean(),
+    sumaAseguradaPorPasajero: z.boolean(),
 });
 
 
@@ -175,4 +148,10 @@ export const nuevoTipoPagoSchema = z.object({
     Descripcion: z.string().min(1, "La descripción es requerida"),
     PorcentajeAjuste: z.coerce.number().min(0, "Porcentaje ajuste es requerido"),
     Divisor: z.coerce.number().min(0, "Divisor es requerido")
+});
+
+export const editarTipoPagoSchema = z.object({
+    Descripcion: z.string().min(1, "La descripción es requerida"),
+    PorcentajeAjuste: z.coerce.number().min(0, "Porcentaje ajuste es requerido"),
+    Divisor: z.string().min(0, "Divisor es requerido"),
 });
