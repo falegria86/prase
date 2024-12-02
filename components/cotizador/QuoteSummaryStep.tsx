@@ -11,6 +11,7 @@ import {
     MapPin,
     CheckCircle,
     Info,
+    Contact,
 } from "lucide-react";
 import {
     Card,
@@ -27,6 +28,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    FormMessage,
+} from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import {
     Tooltip,
@@ -37,68 +45,32 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
-
-interface DetalleCoberturaExtendido {
-    CoberturaID: number;
-    MontoSumaAsegurada: number;
-    DeducibleID: number;
-    MontoDeducible: number;
-    PrimaCalculada: number;
-    PorcentajePrimaAplicado: number;
-    ValorAseguradoUsado: number;
-    NombreCobertura: string;
-    DisplaySumaAsegurada?: string;
-    DisplayDeducible?: string;
-    TipoMoneda?: string;
-    EsAmparada?: boolean;
-    SumaAseguradaPorPasajero?: boolean;
-    Descripcion?: string;
-    TipoDeducible?: string;
-}
-
-const mostrarValorSumaAsegurada = (detalle: DetalleCoberturaExtendido): React.ReactNode => {
-    if (detalle.EsAmparada) {
-        return "AMPARADA";
-    }
-
-    if (detalle.DisplaySumaAsegurada) {
-        return detalle.DisplaySumaAsegurada;
-    }
-
-    if (detalle.TipoMoneda === "UMA") {
-        return `${detalle.MontoSumaAsegurada} UMAS`;
-    }
-
-    if (detalle.SumaAseguradaPorPasajero) {
-        return (
-            <div className="flex flex-col gap-1">
-                <span>{formatCurrency(detalle.MontoSumaAsegurada)}</span>
-                <span className="text-sm text-muted-foreground">POR CADA PASAJERO</span>
-            </div>
-        );
-    }
-
-    return formatCurrency(detalle.MontoSumaAsegurada);
-};
-
-const mostrarValorDeducible = (detalle: DetalleCoberturaExtendido): string => {
-    if (detalle.EsAmparada) {
-        return "NO APLICA";
-    }
-
-    if (detalle.TipoDeducible === "UMA") {
-        return `${detalle.MontoDeducible} UMAS`;
-    }
-
-    return `${detalle.MontoDeducible}%`;
-};
+import { Input } from "../ui/input";
+import { obtenerValorDeducible, obtenerValorSumaAsegurada } from "@/lib/pdf.utils";
 
 export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
     const formData = form.getValues();
 
     useEffect(() => {
-        setIsStepValid?.(true);
-    }, [setIsStepValid]);
+        const validarCampos = async () => {
+            // Validar específicamente los campos nuevos obligatorios
+            const validacionTelefono = await form.trigger("Telefono");
+            const validacionCorreo = await form.trigger("Correo");
+            const esValido = validacionTelefono && validacionCorreo;
+
+            setIsStepValid?.(esValido);
+        };
+
+        const subscription = form.watch((value, { name }) => {
+            if (name === "Telefono" || name === "Correo") {
+                validarCampos();
+            }
+        });
+
+        validarCampos();
+
+        return () => subscription.unsubscribe();
+    }, [form, setIsStepValid]);
 
     // Función para formatear fecha
     const formatDate = (dateString: string | Date) => {
@@ -154,7 +126,6 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                     </CardContent>
                 </Card>
 
-                {/* Datos de la Póliza */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -209,6 +180,70 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                     </CardContent>
                 </Card>
 
+                {/* Datos de contacto */}
+                <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Contact className="h-5 w-5" />
+                            Datos de contacto
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-3 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="NombrePersona"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nombre del asegurado</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="Nombre del asegurado"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="Correo"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Correo electrónico</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="correo@ejemplo.com"
+                                            type="email"
+                                            required
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="Telefono"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Teléfono</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="10 dígitos"
+                                            maxLength={10}
+                                            required
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
+
                 {/* Coberturas Incluidas */}
                 <Card className="md:col-span-2">
                     <CardHeader>
@@ -249,10 +284,10 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                             </TooltipProvider>
                                         </TableCell>
                                         <TableCell>
-                                            {mostrarValorSumaAsegurada(detalle)}
+                                            {obtenerValorSumaAsegurada(detalle)}
                                         </TableCell>
                                         <TableCell>
-                                            {mostrarValorDeducible(detalle)}
+                                            {obtenerValorDeducible(detalle)}
                                         </TableCell>
                                         <TableCell>
                                             {formatCurrency(detalle.PrimaCalculada)}

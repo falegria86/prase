@@ -467,28 +467,6 @@ export const QuoteDataStep = ({
                         </FormItem>
                     )}
                 />
-
-                {/* Nombre del Asegurado */}
-                <FormField
-                    control={form.control}
-                    name="NombrePersona"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Nombre del asegurado</FormLabel>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    placeholder="Nombre del asegurado (opcional)"
-                                    onChange={(e) => {
-                                        field.onChange(e);
-                                        validateFields();
-                                    }}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
             </motion.div>
 
             {/* Validación de suma asegurada */}

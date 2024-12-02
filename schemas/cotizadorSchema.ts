@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+const phoneNumberRegex = /^\d{10}$/;
+
 // Schemas auxiliares
 const detalleSchema = z.object({
     CoberturaID: z.number().min(1, "CoberturaID es requerido"),
@@ -40,6 +42,8 @@ export const nuevaCotizacionSchema = z.object({
 
     // Datos opcionales
     NombrePersona: z.string(),
+    Correo: z.string().email({ message: "El correo electrónico es requerido" }),
+    Telefono: z.string().regex(phoneNumberRegex, { message: "El número debe contener 10 dígitos" }),
     UnidadSalvamento: z.boolean(),
     VIN: z.string(),
 
@@ -98,3 +102,8 @@ export const nuevaCotizacionSchema = z.object({
 
 // Tipo inferido del schema
 export type CotizacionFormData = z.infer<typeof nuevaCotizacionSchema>;
+
+export const editarCotizacionSchema = z.object({
+    NombrePersona: z.string(),
+    EstadoCotizacion: z.string(),
+});

@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { nuevaCotizacionSchema } from '@/schemas/cotizadorSchema';
 import { iGetTiposVehiculo, iGetUsosVehiculo } from '@/interfaces/CatVehiculosInterface';
+import { generarColumnasPDF } from '@/lib/pdf.utils';
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -149,23 +150,20 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
     );
 
     // 5. Coberturas
-    const coberturas = datos.detalles.map(detalle => [
-        detalle.NombreCobertura,
-        detalle.MontoSumaAsegurada === 0 ? 'AMPARADA' : formatearMoneda(detalle.MontoSumaAsegurada),
-        detalle.MontoDeducible === 0 ? 'NO APLICA' : `${detalle.MontoDeducible}%`
-    ]);
+    const coberturas = generarColumnasPDF(datos.detalles);
 
     autoTable(doc, {
         startY: posicionY,
-        head: [['COBERTURA AMPLIA', 'SUMA ASEGURADA', 'DEDUCIBLE']],
+        head: [['COBERTURA AMPLIA', 'SUMA ASEGURADA', 'DEDUCIBLE', 'PRIMA']],
         body: coberturas,
         theme: 'grid',
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [0, 51, 102] },
         columnStyles: {
-            0: { cellWidth: ANCHO_PAGINA * 0.4 },
-            1: { cellWidth: ANCHO_PAGINA * 0.4 },
-            2: { cellWidth: ANCHO_PAGINA * 0.2 }
+            0: { cellWidth: ANCHO_PAGINA * 0.3 },
+            1: { cellWidth: ANCHO_PAGINA * 0.3 },
+            2: { cellWidth: ANCHO_PAGINA * 0.2 },
+            3: { cellWidth: ANCHO_PAGINA * 0.2 }
         }
     });
 

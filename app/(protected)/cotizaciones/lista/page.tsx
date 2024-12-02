@@ -1,7 +1,38 @@
+import { getTiposVehiculo, getUsoVehiculo } from "@/actions/CatVehiculosActions";
+import { getCotizaciones } from "@/actions/CotizadorActions";
+import { TableCotizaciones } from "@/components/admin/cotizaciones/TableCotizaciones";
+
 export default async function CotizacionesListaPage() {
+    const [cotizaciones, tiposVehiculo, usosVehiculo] = await Promise.all([
+        getCotizaciones(),
+        getTiposVehiculo(),
+        getUsoVehiculo()
+    ]);
+
+    if (!cotizaciones || cotizaciones.length === 0) {
+        return (
+            <div>
+                No hay cotizaciones disponibles.
+            </div>
+        );
+    }
+
+    if (!tiposVehiculo || !usosVehiculo) {
+        return (
+            <div>
+                Error al cargar los datos necesarios.
+            </div>
+        );
+    }
+
     return (
-        <div>
-            Lista Cotizaciones
-        </div>
-    )
+        <>
+            <h2 className="text-3xl font-bold mb-6">Cotizaciones</h2>
+            <TableCotizaciones
+                cotizaciones={cotizaciones}
+                tiposVehiculo={tiposVehiculo}
+                usosVehiculo={usosVehiculo}
+            />
+        </>
+    );
 }

@@ -24,6 +24,9 @@ import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/Ca
 import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+import { postCotizacion } from "@/actions/CotizadorActions";
+import { iPostCotizacion } from "@/interfaces/CotizacionInterface";
+import { useRouter } from "next/navigation";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -70,6 +73,8 @@ export const Cotizador = ({
     const [isStepValid, setIsStepValid] = useState(false);
     const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
 
+    const router = useRouter();
+
     const form = useForm<FormData>({
         resolver: zodResolver(nuevaCotizacionSchema),
         defaultValues: {
@@ -87,6 +92,8 @@ export const Cotizador = ({
             meses: 12,
             vigencia: "Anual",
             NombrePersona: "",
+            Correo: "",
+            Telefono: "",
             UnidadSalvamento: false,
             VIN: "",
             CP: "",
@@ -134,7 +141,7 @@ export const Cotizador = ({
         }
     };
 
-    const handlePrevious = () => {
+    const handlePrevious = async () => {
         setCurrentStep((prev) => Math.max(prev - 1, 1));
         const fields = stepFields[currentStep - 1];
         form.trigger(fields).then(setIsStepValid);
@@ -145,21 +152,59 @@ export const Cotizador = ({
         const datosFormulario = form.getValues();
 
         try {
-            // Validar que tengamos todos los datos necesarios
             if (!datosFormulario) {
                 console.error("No hay datos del formulario");
                 return;
             }
 
-            // Intentar generar el PDF
+            // Crear el objeto que coincida exactamente con iPostCotizacion
+            const datosParaEnviar: iPostCotizacion = {
+                UsuarioID: datosFormulario.UsuarioID,
+                PrimaTotal: datosFormulario.PrimaTotal,
+                EstadoCotizacion: datosFormulario.EstadoCotizacion,
+                TipoPagoID: datosFormulario.TipoPagoID,
+                PorcentajeDescuento: datosFormulario.PorcentajeDescuento,
+                DerechoPoliza: datosFormulario.DerechoPoliza,
+                TipoSumaAseguradaID: datosFormulario.TipoSumaAseguradaID,
+                SumaAsegurada: Number(datosFormulario.SumaAsegurada),
+                PeriodoGracia: datosFormulario.PeriodoGracia,
+                PaqueteCoberturaID: datosFormulario.PaqueteCoberturaID,
+                UsoVehiculo: datosFormulario.UsoVehiculo,
+                TipoVehiculo: datosFormulario.TipoVehiculo,
+                NombrePersona: datosFormulario.NombrePersona,
+                Correo: datosFormulario.Correo,
+                Telefono: datosFormulario.Telefono,
+                UnidadSalvamento: datosFormulario.UnidadSalvamento,
+                VIN: datosFormulario.VIN,
+                CP: datosFormulario.CP,
+                Marca: datosFormulario.Marca,
+                Submarca: datosFormulario.Submarca,
+                Modelo: datosFormulario.Modelo,
+                Version: datosFormulario.Version,
+                detalles: datosFormulario.detalles.map(detalle => ({
+                    CoberturaID: detalle.CoberturaID,
+                    MontoSumaAsegurada: Number(detalle.MontoSumaAsegurada),
+                    DeducibleID: detalle.DeducibleID,
+                    MontoDeducible: detalle.MontoDeducible,
+                    PrimaCalculada: detalle.PrimaCalculada,
+                    PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
+                    ValorAseguradoUsado: Number(detalle.ValorAseguradoUsado)
+                }))
+            };
+
+            const resp = await postCotizacion(datosParaEnviar);
+            console.log(resp)
+            // Generar PDF solo si el post fue exitoso
             generarPDFCotizacion({
                 datos: datosFormulario,
                 tiposVehiculo,
                 usosVehiculo
             });
 
+            router.push('/cotizaciones/lista')
+
         } catch (error) {
-            console.error("Error al generar el PDF:", error);
+            console.error("Error al procesar la cotización:", error);
             if (error instanceof Error) {
                 console.error("Mensaje de error:", error.message);
                 console.error("Stack trace:", error.stack);
