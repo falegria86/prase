@@ -23,10 +23,7 @@ import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iGetTiposSumasAseguradas } from "@/interfaces/CatTiposSumasInterface";
 import { iGetAllPaquetes, iGetAsociacionPaqueteCobertura } from "@/interfaces/CatPaquetesInterface";
 import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
-import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
-import { postCotizacion } from "@/actions/CotizadorActions";
-import { Detalle, iPostCotizacion } from "@/interfaces/CotizacionInterface";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
 import { manejarEnvioCotizacion } from "./ManejarEnvioCotizacion";
@@ -150,27 +147,6 @@ export const Cotizador = ({
         setCurrentStep((prev) => Math.max(prev - 1, 1));
         const fields = stepFields[currentStep - 1];
         form.trigger(fields).then(setIsStepValid);
-    };
-
-    const mapearDetallesParaAPI = (detalles: any[]): Detalle[] => {
-        return detalles.map(detalle => ({
-            CoberturaID: detalle.CoberturaID,
-            NombreCobertura: detalle.NombreCobertura,
-            Descripcion: detalle.Descripcion,
-            MontoSumaAsegurada: detalle.MontoSumaAsegurada,
-            DeducibleID: detalle.DeducibleID,
-            MontoDeducible: detalle.MontoDeducible,
-            PrimaCalculada: detalle.PrimaCalculada,
-            PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
-            ValorAseguradoUsado: detalle.ValorAseguradoUsado,
-            Obligatoria: detalle.Obligatoria,
-            DisplayDeducible: detalle.DisplayDeducible,
-            TipoMoneda: detalle.TipoMoneda,
-            EsAmparada: detalle.EsAmparada,
-            SumaAseguradaPorPasajero: detalle.SumaAseguradaPorPasajero,
-            TipoDeducible: detalle.TipoDeducible,
-            DisplaySumaAsegurada: detalle.DisplaySumaAsegurada
-        }));
     };
 
     const handleFinalSubmit = async (e: React.MouseEvent) => {
