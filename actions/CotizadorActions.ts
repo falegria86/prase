@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetCotizacion, iPatchCotizacion, iPostCotizacion } from "@/interfaces/CotizacionInterface";
+import { iGetCotizacion, iPatchCotizacion, iPostCotizacion, iSendMail } from "@/interfaces/CotizacionInterface";
 
 const url = process.env.API_URL;
 
@@ -77,3 +77,22 @@ export const deleteCotizacion = async (id: number) => {
         return null;
     }
 };
+
+export const sendMail = async (body: iSendMail) => {
+    try {
+        const resp = await fetch(`${url}/mailer/send`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al crear cotización: ', error);
+    }
+}

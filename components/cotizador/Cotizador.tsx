@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { z } from "zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -25,8 +26,10 @@ import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInter
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import { postCotizacion } from "@/actions/CotizadorActions";
-import { iPostCotizacion } from "@/interfaces/CotizacionInterface";
-import { useRouter } from "next/navigation";
+import { Detalle, iPostCotizacion } from "@/interfaces/CotizacionInterface";
+import { useToast } from "@/hooks/use-toast";
+import Loading from "@/app/(protected)/loading";
+import { manejarEnvioCotizacion } from "./ManejarEnvioCotizacion";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -72,6 +75,8 @@ export const Cotizador = ({
     const [currentStep, setCurrentStep] = useState(1);
     const [isStepValid, setIsStepValid] = useState(false);
     const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
 
     const router = useRouter();
 
@@ -125,7 +130,7 @@ export const Cotizador = ({
             "inicioVigencia",
         ],
         4: ["PaqueteCoberturaID"],
-        5: [],
+        5: ["Correo", "Telefono"],
     };
 
     // Manejadores de navegación entre pasos
@@ -147,69 +152,71 @@ export const Cotizador = ({
         form.trigger(fields).then(setIsStepValid);
     };
 
+    const mapearDetallesParaAPI = (detalles: any[]): Detalle[] => {
+        return detalles.map(detalle => ({
+            CoberturaID: detalle.CoberturaID,
+            NombreCobertura: detalle.NombreCobertura,
+            Descripcion: detalle.Descripcion,
+            MontoSumaAsegurada: detalle.MontoSumaAsegurada,
+            DeducibleID: detalle.DeducibleID,
+            MontoDeducible: detalle.MontoDeducible,
+            PrimaCalculada: detalle.PrimaCalculada,
+            PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
+            ValorAseguradoUsado: detalle.ValorAseguradoUsado,
+            Obligatoria: detalle.Obligatoria,
+            DisplayDeducible: detalle.DisplayDeducible,
+            TipoMoneda: detalle.TipoMoneda,
+            EsAmparada: detalle.EsAmparada,
+            SumaAseguradaPorPasajero: detalle.SumaAseguradaPorPasajero,
+            TipoDeducible: detalle.TipoDeducible,
+            DisplaySumaAsegurada: detalle.DisplaySumaAsegurada
+        }));
+    };
+
     const handleFinalSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
         const datosFormulario = form.getValues();
 
-        try {
-            if (!datosFormulario) {
-                console.error("No hay datos del formulario");
-                return;
+        startTransition(async () => {
+            try {
+                const resultado = await manejarEnvioCotizacion({
+                    datosFormulario,
+                    tiposVehiculo,
+                    usosVehiculo
+                });
+
+                if (resultado.success) {
+                    toast({
+                        title: "Cotización creada",
+                        description: "La cotización se ha creado y enviado exitosamente.",
+                        variant: "default",
+                    });
+
+                    if (!resultado.correoEnviado) {
+                        toast({
+                            title: "Advertencia",
+                            description: "La cotización se creó pero hubo un problema al enviar el correo.",
+                            variant: "warning",
+                        });
+                    }
+
+                    form.reset();
+                    router.push('/cotizaciones/lista');
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Hubo un problema al procesar la cotización.",
+                        variant: "destructive",
+                    });
+                }
+            } catch (error) {
+                toast({
+                    title: "Error",
+                    description: "Hubo un problema al crear la cotización.",
+                    variant: "destructive",
+                });
             }
-
-            // Crear el objeto que coincida exactamente con iPostCotizacion
-            const datosParaEnviar: iPostCotizacion = {
-                UsuarioID: datosFormulario.UsuarioID,
-                PrimaTotal: datosFormulario.PrimaTotal,
-                EstadoCotizacion: datosFormulario.EstadoCotizacion,
-                TipoPagoID: datosFormulario.TipoPagoID,
-                PorcentajeDescuento: datosFormulario.PorcentajeDescuento,
-                DerechoPoliza: datosFormulario.DerechoPoliza,
-                TipoSumaAseguradaID: datosFormulario.TipoSumaAseguradaID,
-                SumaAsegurada: Number(datosFormulario.SumaAsegurada),
-                PeriodoGracia: datosFormulario.PeriodoGracia,
-                PaqueteCoberturaID: datosFormulario.PaqueteCoberturaID,
-                UsoVehiculo: datosFormulario.UsoVehiculo,
-                TipoVehiculo: datosFormulario.TipoVehiculo,
-                NombrePersona: datosFormulario.NombrePersona,
-                Correo: datosFormulario.Correo,
-                Telefono: datosFormulario.Telefono,
-                UnidadSalvamento: datosFormulario.UnidadSalvamento,
-                VIN: datosFormulario.VIN,
-                CP: datosFormulario.CP,
-                Marca: datosFormulario.Marca,
-                Submarca: datosFormulario.Submarca,
-                Modelo: datosFormulario.Modelo,
-                Version: datosFormulario.Version,
-                detalles: datosFormulario.detalles.map(detalle => ({
-                    CoberturaID: detalle.CoberturaID,
-                    MontoSumaAsegurada: Number(detalle.MontoSumaAsegurada),
-                    DeducibleID: detalle.DeducibleID,
-                    MontoDeducible: detalle.MontoDeducible,
-                    PrimaCalculada: detalle.PrimaCalculada,
-                    PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
-                    ValorAseguradoUsado: Number(detalle.ValorAseguradoUsado)
-                }))
-            };
-
-            const resp = await postCotizacion(datosParaEnviar);
-            console.log(resp)
-            // Generar PDF solo si el post fue exitoso
-            generarPDFCotizacion({
-                datos: datosFormulario,
-                tiposVehiculo,
-                usosVehiculo
-            });
-
-            router.push('/cotizaciones/lista')
-
-        } catch (error) {
-            console.error("Error al procesar la cotización:", error);
-            if (error instanceof Error) {
-                console.error("Mensaje de error:", error.message);
-                console.error("Stack trace:", error.stack);
-            }
-        }
+        });
     };
 
     // Renderizado condicional del paso actual
@@ -247,7 +254,10 @@ export const Cotizador = ({
     };
 
     return (
-        <div className="">
+        <>
+            {isPending && (
+                <Loading />
+            )}
             <StepIndicator
                 pasos={steps}
                 pasoActual={currentStep}
@@ -307,7 +317,7 @@ export const Cotizador = ({
                     </form>
                 </Form>
             </div>
-        </div>
+        </>
     );
 };
 

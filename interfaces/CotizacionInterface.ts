@@ -31,20 +31,21 @@ export interface iGetCotizacion {
 
 export interface iPostCotizacion {
     UsuarioID: number;
-    PrimaTotal: number;
-    Correo: string;
-    Telefono: string;
     EstadoCotizacion: string;
+    PrimaTotal: number;
     TipoPagoID: number;
     PorcentajeDescuento: number;
     DerechoPoliza: number;
     TipoSumaAseguradaID: number;
-    SumaAsegurada: number;
+    SumaAsegurada: string;
     PeriodoGracia: number;
-    PaqueteCoberturaID: number;
     UsoVehiculo: number;
     TipoVehiculo: number;
+    meses: number;
+    vigencia: string;
     NombrePersona: string;
+    Correo: string;
+    Telefono: string;
     UnidadSalvamento: boolean;
     VIN: string;
     CP: string;
@@ -52,17 +53,35 @@ export interface iPostCotizacion {
     Submarca: string;
     Modelo: string;
     Version: string;
+    inicioVigencia: Date;
+    finVigencia: Date;
     detalles: Detalle[];
+    versionNombre: string;
+    marcaNombre: string;
+    modeloNombre: string;
+    Estado: string;
+    minSumaAsegurada: string;
+    maxSumaAsegurada: string;
+    PaqueteCoberturaID: number;
 }
 
 export interface Detalle {
     CoberturaID: number;
-    MontoSumaAsegurada: number;
-    DeducibleID: number;
+    NombreCobertura: string;
+    Descripcion: string;
+    MontoSumaAsegurada: number | string;
+    DeducibleID?: number;
     MontoDeducible: number;
     PrimaCalculada: number;
     PorcentajePrimaAplicado: number;
-    ValorAseguradoUsado: number;
+    ValorAseguradoUsado: number | string;
+    Obligatoria: boolean;
+    DisplayDeducible: string;
+    TipoMoneda: string;
+    EsAmparada: boolean;
+    SumaAseguradaPorPasajero: boolean;
+    TipoDeducible: string;
+    DisplaySumaAsegurada?: string;
 }
 
 export interface iPatchCotizacion {
@@ -81,12 +100,9 @@ export interface iPatchCotizacion {
     detalles?: Detalle[];
 }
 
-export interface Detalle {
-    CoberturaID: number;
-    MontoSumaAsegurada: number;
-    DeducibleID: number;
-    MontoDeducible: number;
-    PrimaCalculada: number;
-    PorcentajePrimaAplicado: number;
-    ValorAseguradoUsado: number;
+export interface iSendMail {
+    to: string;
+    subject: string;
+    attachmentBase64?: string;
+    filename?: string;
 }

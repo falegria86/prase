@@ -40,7 +40,7 @@ const generarPlanesPago = (totalAnual: number): PlanesPago[] => {
     ];
 };
 
-export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: GenerarPDFProps): void => {
+export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: GenerarPDFProps) => {
     const doc = new jsPDF();
 
     const MARGEN_X = 15;
@@ -204,4 +204,5 @@ export const generarPDFCotizacion = ({ datos, tiposVehiculo, usosVehiculo }: Gen
     // Guardar el PDF
     const nombreArchivo = `cotizacion_${datos.marcaNombre}_${datos.modeloNombre}_${formatearFecha(new Date())}.pdf`;
     doc.save(nombreArchivo);
+    return doc;
 };
