@@ -1,251 +1,160 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import Image from 'next/image'
-import { Home, FileText, ChevronDown, ChevronUp, Plus, List, Shield, LockKeyhole, User2, Merge, Scale, Bolt, BookOpenCheck, Car, User } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import UserDropdown from './UserDropdown'
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import {
+  Home,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  List,
+  Shield,
+  LockKeyhole,
+  User2,
+  Merge,
+  Scale,
+  Bolt,
+  BookOpenCheck,
+  Car,
+  User,
+  LucideIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import UserDropdown from "./UserDropdown";
+import { Aplicaciones } from "@/next-auth";
 
-export default function Sidebar() {
-    const pathname = usePathname()
-    const [isCotizacionesOpen, setIsCotizacionesOpen] = useState(false);
-    const [isAdminOpen, setIsAdminOpen] = useState(false);
+interface SidebarProps {
+  aplicaciones: Aplicaciones[];
+}
 
-    return (
-        <aside className="w-64 bg-white shadow-lg p-4 flex flex-col fixed h-screen">
-            <div className="flex items-center justify-center mb-8">
-                <Link href="/">
-                    <Image
-                        src='/prase-logo.png'
-                        width={100}
-                        height={100}
-                        alt='Prase logo'
-                        priority={true}
-                    />
-                </Link>
-            </div>
-            <nav className="flex-1">
-                <Link href="/" passHref>
-                    <Button
-                        variant={pathname === '/' ? 'link' : 'ghost'}
-                        className="w-full justify-start mb-4"
+// Mapa de iconos disponibles
+const iconosDisponibles: Record<string, LucideIcon> = {
+  Home,
+  FileText,
+  List,
+  Shield,
+  LockKeyhole,
+  User2,
+  Merge,
+  Scale,
+  Bolt,
+  BookOpenCheck,
+  Car,
+  User,
+  Plus,
+};
+
+export default function Sidebar({ aplicaciones }: SidebarProps) {
+  const pathname = usePathname();
+  const [menuAbierto, setMenuAbierto] = useState<Record<string, boolean>>({});
+
+  // Agrupar aplicaciones por categoría
+  const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
+    if (!acc[app.categoria]) {
+      acc[app.categoria] = [];
+    }
+    acc[app.categoria].push(app);
+    return acc;
+  }, {} as Record<string, Aplicaciones[]>);
+
+  // Obtener el icono correspondiente o un icono por defecto
+  const obtenerIcono = (nombreIcono: string | null): LucideIcon => {
+    if (!nombreIcono) return FileText;
+    return iconosDisponibles[nombreIcono] || FileText;
+  };
+
+  const alternarMenu = (categoria: string) => {
+    setMenuAbierto((prev) => ({
+      ...prev,
+      [categoria]: !prev[categoria],
+    }));
+  };
+
+  return (
+    <aside className="w-64 bg-white shadow-lg p-4 flex flex-col fixed h-screen">
+      <div className="flex items-center justify-center mb-8">
+        <Link href="/">
+          <Image
+            src="/prase-logo.png"
+            width={100}
+            height={100}
+            alt="Prase logo"
+            priority={true}
+          />
+        </Link>
+      </div>
+
+      <nav className="flex-1">
+        <Link href="/" passHref>
+          <Button
+            variant={pathname === "/" ? "link" : "ghost"}
+            className="w-full justify-start mb-4"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Inicio
+          </Button>
+        </Link>
+
+        {Object.entries(aplicacionesPorCategoria).map(([categoria, apps]) => (
+          <div key={categoria} className="mb-4">
+            <Button
+              variant={
+                apps.some((app) => pathname.includes(app.descripcion))
+                  ? "link"
+                  : "ghost"
+              }
+              className="w-full justify-between"
+              onClick={() => alternarMenu(categoria)}
+            >
+              <span className="flex items-center">
+                {categoria === "Administración" ? (
+                  <Shield className="mr-2 h-4 w-4" />
+                ) : (
+                  <FileText className="mr-2 h-4 w-4" />
+                )}
+                {categoria}
+              </span>
+              {menuAbierto[categoria] ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+
+            {menuAbierto[categoria] && (
+              <div className="ml-4 mt-2 space-y-2">
+                {apps.map((app) => {
+                  const IconoApp = obtenerIcono(app.icon);
+                  return (
+                    <Link
+                      key={app.aplicacionId}
+                      href={app.descripcion}
+                      passHref
                     >
-                        <Home className="mr-2 h-4 w-4" />
-                        Inicio
-                    </Button>
-                </Link>
-                <div className="mb-4">
-                    <Button
-                        variant={pathname.includes('/admin') ? 'link' : 'ghost'}
-                        className="w-full justify-between"
-                        onClick={() => setIsAdminOpen(!isAdminOpen)}
-                    >
-                        <span className="flex items-center">
-                            <Shield className="mr-2 h-4 w-4" />
-                            Administración
-                        </span>
-                        {isAdminOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                    {isAdminOpen && (
-                        <div className="ml-4 mt-2 space-y-2">
-                            <Link href="/admin/usuarios" passHref>
-                                <Button
-                                    variant={pathname === '/admin/usuarios' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <User2 className="mr-2 h-3 w-3" />
-                                    Usuarios
-                                </Button>
-                            </Link>
-                            <Link href="/admin/seguridad" passHref>
-                                <Button
-                                    variant={pathname === '/admin/seguridad' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <LockKeyhole className="mr-2 h-3 w-3" />
-                                    Seguridad
-                                </Button>
-                            </Link>
-                            <Link href="/admin/configuracion-global" passHref>
-                                <Button
-                                    variant={pathname === '/admin/configuracion-global' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <Bolt className="mr-2 h-3 w-3" />
-                                    Configuración Global
-                                </Button>
-                            </Link>
-                            <Link href="/admin/reglas-negocio" passHref>
-                                <Button
-                                    variant={pathname === '/admin/reglas-negocio' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <Scale className="mr-2 h-3 w-3" />
-                                    Reglas de negocio
-                                </Button>
-                            </Link>
-                            <Link href="/admin/asociar-paquete-cobertura" passHref>
-                                <Button
-                                    variant={pathname === '/admin/asociar-paquete-cobertura' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <Merge className="mr-2 h-3 w-3" />
-                                    Asociar Póliza-Cobertura
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-paquetes" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-paquetes' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Pólizas
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-deducibles" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-deducibles' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Deducibles
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-coberturas" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-coberturas' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Coberturas
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-monedas" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-monedas' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Monedas
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-tipos-deducible" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-tipos-deducible' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Tipos Deducible
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-usos-vehiculo" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-usos-vehiculo' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Usos de Vehículo
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-tipos-vehiculo" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-tipos-vehiculo' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Tipos de Vehículo
-                                </Button>
-                            </Link>
-                            <Link href="/admin/catalogos-tipos-pago" passHref>
-                                <Button
-                                    variant={pathname === '/admin/catalogos-tipos-pago' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Cat Tipos de Pago
-                                </Button>
-                            </Link>
-                            <Link href="/admin/tipos-sumas-aseguradas" passHref>
-                                <Button
-                                    variant={pathname === '/admin/tipos-sumas-aseguradas' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Tipos Sumas Aseguradas
-                                </Button>
-                            </Link>
-                            <Link href="/admin/vehiculos" passHref>
-                                <Button
-                                    variant={pathname === '/admin/vehiculos' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <Car className="mr-2 h-3 w-3" />
-                                    Vehículos
-                                </Button>
-                            </Link>
-                            <Link href="/admin/clientes" passHref>
-                                <Button
-                                    variant={pathname === '/admin/clientes' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <User className="mr-2 h-3 w-3" />
-                                    Clientes
-                                </Button>
-                            </Link>
+                      <Button
+                        variant={
+                          pathname === app.descripcion ? "link" : "ghost"
+                        }
+                        className="w-full justify-start text-sm"
+                      >
+                        <IconoApp className="mr-2 h-3 w-3" />
+                        {app.nombre}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
 
-                        </div>
-                    )}
-                </div>
-                <div className="mb-4">
-                    <Button
-                        variant={pathname.includes('/cotizaciones') ? 'link' : 'ghost'}
-                        className="w-full justify-between"
-                        onClick={() => setIsCotizacionesOpen(!isCotizacionesOpen)}
-                    >
-                        <span className="flex items-center">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Cotizaciones
-                        </span>
-                        {isCotizacionesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                    {isCotizacionesOpen && (
-                        <div className="ml-4 mt-2 space-y-2">
-                            <Link href="/cotizaciones/nueva" passHref>
-                                <Button
-                                    variant={pathname === '/cotizaciones/nueva' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <Plus className="mr-2 h-3 w-3" />
-                                    Nueva cotización
-                                </Button>
-                            </Link>
-                            <Link href="/cotizaciones/lista" passHref>
-                                <Button
-                                    variant={pathname === '/cotizaciones/lista' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <List className="mr-2 h-3 w-3" />
-                                    Lista de cotizaciones
-                                </Button>
-                            </Link>
-                            <Link href="/cotizaciones/libroAzul" passHref>
-                                <Button
-                                    variant={pathname === '/cotizaciones/libroAzul' ? 'link' : 'ghost'}
-                                    className="w-full justify-start text-sm"
-                                >
-                                    <BookOpenCheck className="mr-2 h-3 w-3" />
-                                    Libro Azul
-                                </Button>
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            </nav>
-            <div className="mt-auto pt-4 border-t">
-                <UserDropdown />
-            </div>
-        </aside>
-    )
+      <div className="mt-auto pt-4 border-t">
+        <UserDropdown />
+      </div>
+    </aside>
+  );
 }

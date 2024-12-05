@@ -7,7 +7,7 @@ import {
   iGetUsosVehiculo,
 } from "@/interfaces/CatVehiculosInterface";
 import { useRouter } from "next/navigation";
-import { Edit, Trash2, Phone, Mail } from "lucide-react";
+import { Edit, Trash2, Phone, Mail, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -45,6 +45,7 @@ import { formatCurrency } from "@/lib/format";
 import { deleteCotizacion } from "@/actions/CotizadorActions";
 import Loading from "@/app/(protected)/loading";
 import { FiltrosCotizaciones } from "./FiltrosCotizaciones";
+import { generarPDFCotizacion } from "@/components/cotizador/GenerarPDFCotizacion";
 
 interface Props {
   cotizaciones: iGetCotizacion[];
@@ -136,8 +137,68 @@ export const TableCotizaciones = ({
     });
   };
 
+  const manejarDescargaPDF = (cotizacion: iGetCotizacion) => {
+    // Preparar los datos necesarios para generar el PDF
+    const datosCotizacion = {
+      UsuarioID: cotizacion.UsuarioID,
+      EstadoCotizacion: cotizacion.EstadoCotizacion,
+      PrimaTotal: Number(cotizacion.PrimaTotal),
+      TipoPagoID: cotizacion.TipoPagoID,
+      PorcentajeDescuento: Number(cotizacion.PorcentajeDescuento),
+      DerechoPoliza: Number(cotizacion.DerechoPoliza),
+      TipoSumaAseguradaID: cotizacion.TipoSumaAseguradaID,
+      SumaAsegurada: Number(cotizacion.SumaAsegurada),
+      PeriodoGracia: cotizacion.PeriodoGracia,
+      UsoVehiculo: cotizacion.UsoVehiculo,
+      TipoVehiculo: cotizacion.TipoVehiculo,
+      meses: 12, // Valor por defecto
+      vigencia: "Anual", // Valor por defecto
+      NombrePersona: cotizacion.NombrePersona,
+      Correo: cotizacion.Correo || "",
+      Telefono: cotizacion.Telefono || "",
+      UnidadSalvamento: Boolean(cotizacion.UnidadSalvamento),
+      VIN: cotizacion.VIN,
+      CP: cotizacion.CP,
+      Marca: cotizacion.Marca,
+      Submarca: cotizacion.Submarca,
+      Modelo: cotizacion.Modelo,
+      Version: cotizacion.Version,
+      inicioVigencia: new Date(),
+      finVigencia: cotizacion.FechaCotizacion.toString(),
+      detalles: cotizacion.detalles,
+      versionNombre: cotizacion.Version,
+      marcaNombre: cotizacion.Marca,
+      modeloNombre: cotizacion.Submarca,
+      Estado: "",
+      minSumaAsegurada: 0,
+      maxSumaAsegurada: 0,
+      PaqueteCoberturaID: cotizacion.PaqueteCoberturaID,
+    };
+
+    try {
+      generarPDFCotizacion({
+        datos: datosCotizacion,
+        tiposVehiculo,
+        usosVehiculo,
+      });
+
+      toast({
+        title: "PDF generado",
+        description: "El PDF se ha descargado correctamente",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al generar el PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <>
+    <div className="max-w-7xl">
       {isPending && <Loading />}
 
       <FiltrosCotizaciones
@@ -231,6 +292,17 @@ export const TableCotizaciones = ({
                 <TableCell className="flex items-center gap-3">
                   <Tooltip>
                     <TooltipTrigger>
+                      <Download
+                        size={16}
+                        className="text-gray-600 cursor-pointer"
+                        onClick={() => manejarDescargaPDF(cotizacion)}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>Descargar PDF</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger>
                       <Edit
                         size={16}
                         className="text-gray-600 cursor-pointer"
@@ -285,6 +357,6 @@ export const TableCotizaciones = ({
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };

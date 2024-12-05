@@ -22,6 +22,7 @@ export const {
                 session.user = {
                     ...session.user,
                     jwt: token.access_token as string,
+                    aplicaciones: token.aplicaciones || [],
                 };
             }
             return session;
@@ -30,6 +31,7 @@ export const {
         async jwt({ token, user }) {
             if (user) {
                 token.access_token = user.jwt;
+                token.aplicaciones = user.aplicaciones;
             }
 
             return token;
