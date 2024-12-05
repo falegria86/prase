@@ -1,131 +1,129 @@
-import { iGetAllCobertura, iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
+import {
+  iGetAllCobertura,
+  iGetAllReglaNegocio,
+} from "@/interfaces/ReglasNegocios";
 
 interface ValoresCobertura {
-    sumaAseguradaMin: number;
-    sumaAseguradaMax: number;
-    primaBase: number;
-    deducibleMin: number;
-    deducibleMax: number;
-    tipoMonedaID?: number;
+  sumaAseguradaMin: number;
+  sumaAseguradaMax: number;
+  primaBase: number;
+  deducibleMin: number;
+  deducibleMax: number;
+  tipoMonedaID?: number;
 }
 
 interface ValoresFormulario {
-    Estado?: string;
-    Modelo?: string;
-    Marca?: string;
-    marcaNombre?: string;
-    Submarca?: string;
-    modeloNombre?: string;
-    Version?: string;
-    versionNombre?: string;
-    CP?: string;
-    UsoVehiculo?: number;
-    TipoVehiculo?: number;
-    SumaAsegurada?: number;
-    [key: string]: any;
+  Estado?: string;
+  Modelo?: string;
+  Marca?: string;
+  marcaNombre?: string;
+  Submarca?: string;
+  modeloNombre?: string;
+  Version?: string;
+  versionNombre?: string;
+  CP?: string;
+  UsoVehiculo?: number;
+  TipoVehiculo?: number;
+  SumaAsegurada?: number;
+  [key: string]: any;
 }
 
-// Función para evaluar una condición individual
 const evaluarCondicion = (
-    condicion: {
-        Campo: string;
-        Operador: string;
-        Evaluacion: string;
-    },
-    valoresFormulario: Record<string, any>
+  condicion: {
+    Campo: string;
+    Operador: string;
+    Evaluacion: string;
+  },
+  valoresFormulario: Record<string, any>
 ): boolean => {
-    const valorCampo = valoresFormulario[condicion.Campo];
-    const valorEvaluacion = condicion.Evaluacion;
+  const valorCampo = valoresFormulario[condicion.Campo];
+  const valorEvaluacion = condicion.Evaluacion;
 
-    switch (condicion.Operador) {
-        case "=":
-            return valorCampo === valorEvaluacion;
-        case ">":
-            return Number(valorCampo) > Number(valorEvaluacion);
-        case "<":
-            return Number(valorCampo) < Number(valorEvaluacion);
-        case ">=":
-            return Number(valorCampo) >= Number(valorEvaluacion);
-        case "<=":
-            return Number(valorCampo) <= Number(valorEvaluacion);
-        default:
-            return false;
-    }
+  if (!valorCampo) return false;
+
+  switch (condicion.Operador) {
+    case "=":
+      return valorCampo.toLowerCase() === valorEvaluacion.toLowerCase();
+    case ">":
+      return Number(valorCampo) > Number(valorEvaluacion);
+    case "<":
+      return Number(valorCampo) < Number(valorEvaluacion);
+    case ">=":
+      return Number(valorCampo) >= Number(valorEvaluacion);
+    case "<=":
+      return Number(valorCampo) <= Number(valorEvaluacion);
+    default:
+      return false;
+  }
 };
 
-// Función principal para aplicar las reglas
 export const aplicarReglasPorCobertura = (
-    cobertura: iGetAllCobertura,
-    reglas: iGetAllReglaNegocio[],
-    valoresFormulario: ValoresFormulario,
+  cobertura: iGetAllCobertura,
+  reglas: iGetAllReglaNegocio[],
+  valoresFormulario: ValoresFormulario
 ): ValoresCobertura => {
-    // Valores iniciales de la cobertura
-    const valores: ValoresCobertura = {
-        sumaAseguradaMin: Number(cobertura.SumaAseguradaMin),
-        sumaAseguradaMax: Number(cobertura.SumaAseguradaMax),
-        primaBase: Number(cobertura.PrimaBase),
-        deducibleMin: Number(cobertura.DeducibleMin),
-        deducibleMax: Number(cobertura.DeducibleMax),
-        tipoMonedaID: cobertura.tipoMoneda?.TipoMonedaID
-    };
+  const valores: ValoresCobertura = {
+    sumaAseguradaMin: Number(cobertura.SumaAseguradaMin),
+    sumaAseguradaMax: Number(cobertura.SumaAseguradaMax),
+    primaBase: Number(cobertura.PrimaBase),
+    deducibleMin: Number(cobertura.DeducibleMin),
+    deducibleMax: Number(cobertura.DeducibleMax),
+    tipoMonedaID: cobertura.tipoMoneda?.TipoMonedaID,
+  };
 
-    // Filtrar reglas aplicables a esta cobertura
-    const reglasAplicables = reglas.filter(
-        regla =>
-            regla.Activa &&
-            (regla.EsGlobal || regla.cobertura?.CoberturaID === cobertura.CoberturaID)
+  const reglasAplicables = reglas.filter(
+    (regla) =>
+      regla.Activa &&
+      (regla.EsGlobal || regla.cobertura?.CoberturaID === cobertura.CoberturaID)
+  );
+
+  reglasAplicables.forEach((regla) => {
+    const condicionesCumplidas = regla.condiciones.every((condicion) =>
+      evaluarCondicion(condicion, valoresFormulario)
     );
 
-    // Aplicar cada regla
-    reglasAplicables.forEach(regla => {
-        // Verificar si todas las condiciones de la regla se cumplen
-        const condicionesCumplidas = regla.condiciones.every(
-            condicion => evaluarCondicion(condicion, valoresFormulario)
-        );
+    if (condicionesCumplidas) {
+      const valorCondicion = regla.condiciones[0]?.Valor;
+      const valorAjuste = Number(regla.ValorAjuste || valorCondicion || 0);
 
-        if (condicionesCumplidas) {
-            const valorAjuste = Number(regla.ValorAjuste || 0);
+      if (regla.TipoMonedaID) {
+        valores.tipoMonedaID = regla.TipoMonedaID;
+      }
 
-            // Si la regla tiene un tipo de moneda específico, actualizar el tipo de moneda
-            if (regla.TipoMonedaID) {
-                valores.tipoMonedaID = regla.TipoMonedaID;
-            }
+      switch (regla.TipoRegla) {
+        case "SumaAsegurada":
+          valores.sumaAseguradaMin = valorAjuste;
+          valores.sumaAseguradaMax = valorAjuste;
+          break;
+        case "Prima":
+          valores.primaBase = valorAjuste;
+          break;
+        case "Deducible":
+          valores.deducibleMin = valorAjuste;
+          valores.deducibleMax = valorAjuste;
+          break;
+      }
+    }
+  });
 
-            switch (regla.TipoRegla) {
-                case "SumaAsegurada":
-                    valores.sumaAseguradaMin = valorAjuste;
-                    valores.sumaAseguradaMax = valorAjuste;
-                    break;
-                case "Prima":
-                    valores.primaBase = valorAjuste;
-                    break;
-                case "Deducible":
-                    valores.deducibleMin = valorAjuste;
-                    valores.deducibleMax = valorAjuste;
-                    break;
-            }
-        }
-    });
-
-    return valores;
+  return valores;
 };
 
 export const obtenerValorAjustado = (
-    valor: number,
-    tipoMonedaOriginal: number,
-    tipoMonedaNuevo: number | undefined,
-    valorUMA: number
+  valor: number,
+  tipoMonedaOriginal: number,
+  tipoMonedaNuevo: number | undefined,
+  valorUMA: number
 ): number => {
-    if (!tipoMonedaNuevo || tipoMonedaOriginal === tipoMonedaNuevo) {
-        return valor;
-    }
-
-    // Implementar las conversiones necesarias según los tipos de moneda
-    if (tipoMonedaOriginal === 1 && tipoMonedaNuevo === 5) { // Pesos a UMAs
-        return valor / valorUMA;
-    } else if (tipoMonedaOriginal === 5 && tipoMonedaNuevo === 1) { // UMAs a Pesos
-        return valor * valorUMA;
-    }
-
+  if (!tipoMonedaNuevo || tipoMonedaOriginal === tipoMonedaNuevo) {
     return valor;
+  }
+
+  if (tipoMonedaOriginal === 1 && tipoMonedaNuevo === 5) {
+    return valor / valorUMA;
+  } else if (tipoMonedaOriginal === 5 && tipoMonedaNuevo === 1) {
+    return valor * valorUMA;
+  }
+
+  return valor;
 };
