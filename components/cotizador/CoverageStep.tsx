@@ -497,7 +497,7 @@ export const CoverageStep = ({
     }, []);
 
     const renderizarSelectorDeducible = useCallback((cobertura: CoberturaExtendida) => {
-        if (cobertura.CoberturaAmparada) return "NO APLICA";
+        // if (cobertura.CoberturaAmparada) return "NO APLICA";
 
         const deducibles = generarRangoDeducibles(cobertura);
 

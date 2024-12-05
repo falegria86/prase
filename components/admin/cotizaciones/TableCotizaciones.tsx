@@ -151,8 +151,8 @@ export const TableCotizaciones = ({
       PeriodoGracia: cotizacion.PeriodoGracia,
       UsoVehiculo: cotizacion.UsoVehiculo,
       TipoVehiculo: cotizacion.TipoVehiculo,
-      meses: 12, // Valor por defecto
-      vigencia: "Anual", // Valor por defecto
+      meses: 12,
+      vigencia: "Anual",
       NombrePersona: cotizacion.NombrePersona,
       Correo: cotizacion.Correo || "",
       Telefono: cotizacion.Telefono || "",

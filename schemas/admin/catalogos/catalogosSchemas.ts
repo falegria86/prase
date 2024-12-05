@@ -58,6 +58,7 @@ export const nuevaCoberturaSchema = z.object({
     RangoSeleccion: z.coerce.number(),
     EsCoberturaEspecial: z.boolean(),
     SinValor: z.boolean(),
+    IndiceSiniestralidad: z.boolean(),
     AplicaSumaAsegurada: z.boolean(),
     tipoMoneda: z.coerce.number().min(1, {
         message: 'El tipo de moneda es requerido'

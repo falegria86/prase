@@ -25,7 +25,7 @@ export interface iGetAllCobertura {
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
-    IndiceSiniestralidad: null;
+    IndiceSiniestralidad: boolean | null;
     tipoDeducible: TipoDeducible | null;
     tipoMoneda: TipoMoneda | null;
 }

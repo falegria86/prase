@@ -13,7 +13,7 @@ export interface iGetCoberturas {
     Variable: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
-    IndiceSiniestralidad: null;
+    IndiceSiniestralidad: boolean |null;
     CoberturaAmparada: boolean;
     sumaAseguradaPorPasajero: boolean;
     tipoDeducible: TipoDeducible;
@@ -50,6 +50,7 @@ export interface iPostCobertura {
     EsCoberturaEspecial: boolean;
     SinValor: boolean;
     AplicaSumaAsegurada: boolean;
+    IndiceSiniestralidad: boolean | null;
     tipoDeducible: TipoDeduciblePost;
     tipoMoneda: TipoMonedaPost;
     CoberturaAmparada: boolean;

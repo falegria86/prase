@@ -45,6 +45,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             DeducibleMax: 0,
             PorcentajePrima: 0,
             RangoSeleccion: 0,
+            IndiceSiniestralidad: false,
             EsCoberturaEspecial: false,
             SinValor: false,
             AplicaSumaAsegurada: false,
