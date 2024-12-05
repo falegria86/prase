@@ -44,7 +44,7 @@ export const PlanPago = ({
       if (!cp) return;
       try {
         const respuesta = await getAjustesCP(cp);
-        setAjustes(respuesta);
+        if (respuesta?.ajuste) setAjustes(respuesta);
       } catch (error) {
         console.error("Error al obtener ajustes:", error);
       }
@@ -73,6 +73,7 @@ export const PlanPago = ({
     const ajusteSiniestralidad = ajustes
       ? costoBase * (parseFloat(ajustes.ajuste.AjustePrima) / 100)
       : 0;
+
     const costoConAjuste = costoBase + ajusteSiniestralidad;
 
     const costoAjustado = aplicarPorcentajeAjuste(costoConAjuste, tipoPago);
