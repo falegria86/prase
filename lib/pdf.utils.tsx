@@ -21,7 +21,7 @@ interface DetalleMostrado {
 
 // Funciones de utilidad compartidas
 export const obtenerValorSumaAsegurada = (detalle: DetalleMostrado): React.ReactNode => {
-    if (detalle.EsAmparada) {
+    if (detalle.EsAmparada || detalle.MontoSumaAsegurada === 0) {
         return "AMPARADA";
     }
 
@@ -46,10 +46,6 @@ export const obtenerValorSumaAsegurada = (detalle: DetalleMostrado): React.React
 };
 
 export const obtenerValorDeducible = (detalle: DetalleMostrado): string => {
-    if (detalle.EsAmparada) {
-        return "NO APLICA";
-    }
-
     if (detalle.TipoDeducible === "UMA") {
         return `${detalle.MontoDeducible} UMAS`;
     }
@@ -60,8 +56,9 @@ export const obtenerValorDeducible = (detalle: DetalleMostrado): string => {
 export const generarColumnasPDF = (detalles: DetalleMostrado[]): string[][] => {
     return detalles.map(detalle => [
         detalle.NombreCobertura,
-        detalle.EsAmparada ? 'AMPARADA' :
-            detalle.TipoMoneda === "UMA" ? `${detalle.MontoSumaAsegurada} UMAS` :
+        detalle.EsAmparada
+        ? 'AMPARADA' : detalle.MontoSumaAsegurada === 0 ? 'AMPARADA'
+        : detalle.TipoMoneda === "UMA" ? `${detalle.MontoSumaAsegurada} UMAS` :
                 detalle.SumaAseguradaPorPasajero ? `${formatCurrency(detalle.MontoSumaAsegurada)} POR PASAJERO` :
                     formatCurrency(detalle.MontoSumaAsegurada),
         obtenerValorDeducible(detalle),

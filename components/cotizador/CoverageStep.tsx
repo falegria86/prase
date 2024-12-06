@@ -117,7 +117,8 @@ export const CoverageStep = ({
 );
 
   const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
-    if (cobertura.CoberturaAmparada) return 0; if (cobertura.tipoDeducible.Nombre === "UMA") {
+    // if (cobertura.CoberturaAmparada) return 0; 
+    if (cobertura.tipoDeducible.Nombre === "UMA") {
       return (
         cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMax)
       );
@@ -163,9 +164,7 @@ export const CoverageStep = ({
     (coberturas: CoberturaExtendida[]) => {
       const detalles = coberturas.map((cobertura) => {
         const deducible = obtenerDeducible(cobertura);
-        const displayDeducible = cobertura.CoberturaAmparada
-          ? "NO APLICA"
-          : cobertura.tipoDeducible.Nombre === "UMA"
+        const displayDeducible = cobertura.tipoDeducible.Nombre === "UMA"
             ? `${deducible} UMAS`
             : `${deducible}%`;
 
