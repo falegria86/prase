@@ -145,9 +145,6 @@ export const CoverageStep = ({
       const primaBase = sumaAsegurada * primaPorcentaje;
   
       if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
-        console.log(`cobertura: ${cobertura.NombreCobertura}`)
-        console.log(`suma asegurada: ${sumaAsegurada}`)
-        console.log(`prima porcentaje: ${primaPorcentaje}`)
         return primaBase;
       }
   
@@ -633,7 +630,7 @@ export const CoverageStep = ({
                 </SelectContent>
               </Select>
             ) : (
-              <div>NO APLICA DEDUCIBLE</div>
+              <div>NO APLICA</div>
             )}
           </>
         );
@@ -663,7 +660,7 @@ export const CoverageStep = ({
               </SelectContent>
             </Select>
           ) : (
-            <div>NO APLICA DEDUCIBLE</div>
+            <div>NO APLICA</div>
           )}
         </>
       );

@@ -103,7 +103,7 @@ export const aplicarReglasPorCobertura = (
           // Si el tipo de moneda cambia, convertir el valor
           const valorAjustadoSuma = obtenerValorAjustado(
             valorAjuste,
-            cobertura.tipoMoneda?.TipoMonedaID || 4, // 4 es MXN por defecto
+            cobertura.tipoMoneda?.TipoMonedaID || 4,
             regla.TipoMonedaID,
             Number(process.env.VALOR_UMA || 0)
           );
@@ -120,8 +120,12 @@ export const aplicarReglasPorCobertura = (
           valores.deducibleMax = valorAjuste;
           break;
 
-        case "PorcentajePrima":
-          valores.porcentajePrima = valorAjuste;
+        case "TasaBase":
+          valores.porcentajePrima = Math.max(
+            0,
+            valores.porcentajePrima * (1 + valorAjuste / 100)
+          );
+          console.log(valores.porcentajePrima)
           break;
 
         case "RangoSeleccion":

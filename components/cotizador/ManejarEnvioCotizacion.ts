@@ -19,10 +19,9 @@ export const manejarEnvioCotizacion = async ({
     tiposVehiculo,
     usosVehiculo
 }: ManejarEnvioCotizacionProps) => {
-    // Función auxiliar para convertir PDF a base64
-    const obtenerPDFBase64 = (doc: jsPDF): string => {
+        const obtenerPDFBase64 = (doc: jsPDF): string => {
         const pdfBase64 = doc.output('datauristring');
-        return pdfBase64.split(',')[1]; // Removemos el prefijo data:application/pdf;base64,
+        return pdfBase64.split(',')[1];
     };
 
     // Mapear detalles para la API
@@ -48,7 +47,6 @@ export const manejarEnvioCotizacion = async ({
     };
 
     try {
-        // Preparar datos para la API
         const cotizacionParaAPI: iPostCotizacion = {
             ...datosFormulario,
             inicioVigencia: new Date(datosFormulario.inicioVigencia),
@@ -59,13 +57,11 @@ export const manejarEnvioCotizacion = async ({
             maxSumaAsegurada: datosFormulario.maxSumaAsegurada?.toString() || "0",
         };
 
-        // Crear la cotización
         const respuestaCotizacion = await postCotizacion(cotizacionParaAPI);
         if (!respuestaCotizacion) {
             throw new Error('Error al crear la cotización');
         }
 
-        // Generar el PDF y obtener su versión base64
         const doc = generarPDFCotizacion({
             datos: datosFormulario,
             tiposVehiculo,
@@ -74,7 +70,6 @@ export const manejarEnvioCotizacion = async ({
 
         const pdfBase64 = obtenerPDFBase64(doc as any);
 
-        // Enviar el correo con el PDF adjunto
         const datosCorreo: iSendMail = {
             to: datosFormulario.Correo,
             subject: 'Cotización PRASE Seguros',
@@ -83,10 +78,6 @@ export const manejarEnvioCotizacion = async ({
         };
 
         const respuestaCorreo = await sendMail(datosCorreo);
-        // console.log(respuestaCorreo)
-        // if (!respuestaCorreo) {
-        //     console.error('Error al enviar el correo');
-        // }
 
         return {
             success: true,
