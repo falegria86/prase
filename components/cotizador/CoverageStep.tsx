@@ -117,20 +117,17 @@ export const CoverageStep = ({
     [form]
   );
 
-  const obtenerDeducible = useCallback(
-    (cobertura: CoberturaExtendida): number => {
-      if (cobertura.CoberturaAmparada) return 0;
-
-      if (cobertura.tipoDeducible.Nombre === "UMA") {
-        return (
-          cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMax)
-        );
-      }
-
+  const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
+    if (cobertura.CoberturaAmparada) return 0; if (cobertura.tipoDeducible.Nombre === "UMA") {
       return (
-        cobertura.deducibleSeleccionado || parseFloat(cobertura.DeducibleMin)
+        cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMax)
       );
-    },
+    }
+
+    return (
+      cobertura.deducibleSeleccionado || parseFloat(cobertura.DeducibleMin)
+    );
+  },
     []
   );
 
@@ -173,8 +170,8 @@ export const CoverageStep = ({
         const displayDeducible = cobertura.CoberturaAmparada
           ? "NO APLICA"
           : cobertura.tipoDeducible.Nombre === "UMA"
-          ? `${deducible} UMAS`
-          : `${deducible}%`;
+            ? `${deducible} UMAS`
+            : `${deducible}%`;
 
         return {
           CoberturaID: cobertura.CoberturaID,
@@ -190,8 +187,8 @@ export const CoverageStep = ({
           DisplaySumaAsegurada: cobertura.CoberturaAmparada
             ? "AMPARADA"
             : cobertura.tipoMoneda.Abreviacion === "UMA"
-            ? `${cobertura.SumaAseguradaMax} UMAS`
-            : undefined,
+              ? `${cobertura.SumaAseguradaMax} UMAS`
+              : undefined,
           DisplayDeducible: displayDeducible,
           TipoMoneda: cobertura.tipoMoneda.Abreviacion,
           EsAmparada: cobertura.CoberturaAmparada,
@@ -639,7 +636,7 @@ export const CoverageStep = ({
                 </SelectContent>
               </Select>
             ) : (
-              <div>NO APLICA</div>
+              <div>NO APLICA DEDUCIBLE</div>
             )}
           </>
         );
@@ -669,7 +666,7 @@ export const CoverageStep = ({
               </SelectContent>
             </Select>
           ) : (
-            <div>NO APLICA</div>
+            <div>NO APLICA DEDUCIBLE</div>
           )}
         </>
       );
@@ -861,10 +858,10 @@ export const CoverageStep = ({
               tipoCalculo === "fijo"
                 ? parseFloat(montoFijo) || 0
                 : coberturasSeleccionadas.reduce(
-                    (total, cobertura) =>
-                      total + calcularPrima(cobertura, "cobertura"),
-                    0
-                  )
+                  (total, cobertura) =>
+                    total + calcularPrima(cobertura, "cobertura"),
+                  0
+                )
             }
             derechoPoliza={form.getValues("DerechoPoliza") ?? 0}
           />

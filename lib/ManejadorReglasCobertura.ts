@@ -9,6 +9,8 @@ interface ValoresCobertura {
   primaBase: number;
   deducibleMin: number;
   deducibleMax: number;
+  porcentajePrima: number;
+  rangoSeleccion: number;
   tipoMonedaID?: number;
 }
 
@@ -62,15 +64,19 @@ export const aplicarReglasPorCobertura = (
   reglas: iGetAllReglaNegocio[],
   valoresFormulario: ValoresFormulario
 ): ValoresCobertura => {
+  // Inicializar todos los valores desde la cobertura original
   const valores: ValoresCobertura = {
     sumaAseguradaMin: Number(cobertura.SumaAseguradaMin),
     sumaAseguradaMax: Number(cobertura.SumaAseguradaMax),
     primaBase: Number(cobertura.PrimaBase),
     deducibleMin: Number(cobertura.DeducibleMin),
     deducibleMax: Number(cobertura.DeducibleMax),
+    porcentajePrima: Number(cobertura.PorcentajePrima),
+    rangoSeleccion: Number(cobertura.RangoSeleccion),
     tipoMonedaID: cobertura.tipoMoneda?.TipoMonedaID,
   };
 
+  // Filtrar reglas aplicables (globales o específicas para esta cobertura)
   const reglasAplicables = reglas.filter(
     (regla) =>
       regla.Activa &&
@@ -86,21 +92,40 @@ export const aplicarReglasPorCobertura = (
       const valorCondicion = regla.condiciones[0]?.Valor;
       const valorAjuste = Number(regla.ValorAjuste || valorCondicion || 0);
 
+      // Actualizar tipo de moneda si está especificado
       if (regla.TipoMonedaID) {
         valores.tipoMonedaID = regla.TipoMonedaID;
       }
 
+      // Aplicar la regla según su tipo
       switch (regla.TipoRegla) {
         case "SumaAsegurada":
-          valores.sumaAseguradaMin = valorAjuste;
-          valores.sumaAseguradaMax = valorAjuste;
+          // Si el tipo de moneda cambia, convertir el valor
+          const valorAjustadoSuma = obtenerValorAjustado(
+            valorAjuste,
+            cobertura.tipoMoneda?.TipoMonedaID || 4, // 4 es MXN por defecto
+            regla.TipoMonedaID,
+            Number(process.env.VALOR_UMA || 0)
+          );
+          valores.sumaAseguradaMin = valorAjustadoSuma;
+          valores.sumaAseguradaMax = valorAjustadoSuma;
           break;
+
         case "Prima":
           valores.primaBase = valorAjuste;
           break;
+
         case "Deducible":
           valores.deducibleMin = valorAjuste;
           valores.deducibleMax = valorAjuste;
+          break;
+
+        case "PorcentajePrima":
+          valores.porcentajePrima = valorAjuste;
+          break;
+
+        case "RangoSeleccion":
+          valores.rangoSeleccion = valorAjuste;
           break;
       }
     }
