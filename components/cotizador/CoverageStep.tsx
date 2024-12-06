@@ -44,8 +44,6 @@ import { formatCurrency } from "@/lib/format";
 import { PlanPago } from "./PlanPago";
 import { aplicarReglasPorCobertura } from "../../lib/ManejadorReglasCobertura";
 
-const VALOR_UMA = Number(process.env.VALOR_UMA) || 0;
-
 type TipoCalculo = "fijo" | "cobertura";
 
 interface CoberturaExtendida {
@@ -101,21 +99,22 @@ export const CoverageStep = ({
     (cobertura: CoberturaExtendida): number => {
       if (cobertura.CoberturaAmparada) return 0;
 
+      if (cobertura.valorSeleccionado !== undefined) {
+        return cobertura.valorSeleccionado;
+      }
+
       if (cobertura.AplicaSumaAsegurada) {
-        return (
-          cobertura.sumaAseguradaPersonalizada ||
-          form.getValues("SumaAsegurada")
-        );
+        return cobertura.sumaAseguradaPersonalizada || form.getValues("SumaAsegurada");
       }
 
       if (cobertura.tipoMoneda.Abreviacion === "UMA") {
-        return parseFloat(cobertura.SumaAseguradaMax) * VALOR_UMA;
+        return parseFloat(cobertura.SumaAseguradaMax) * 108.57;
       }
 
       return parseFloat(cobertura.SumaAseguradaMax);
     },
     [form]
-  );
+);
 
   const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
     if (cobertura.CoberturaAmparada) return 0; if (cobertura.tipoDeducible.Nombre === "UMA") {
@@ -134,30 +133,30 @@ export const CoverageStep = ({
   const calcularPrima = useCallback(
     (cobertura: CoberturaExtendida, tipo: TipoCalculo): number => {
       if (tipo === "fijo" || cobertura.SinValor) return 0;
-
+  
       const sumaAsegurada = obtenerSumaAsegurada(cobertura);
       const deducible = obtenerDeducible(cobertura);
-
-      // Prima base fija sin deducible
+  
       if (Number(cobertura.PrimaBase) > 1) {
         return parseFloat(cobertura.PrimaBase);
       }
-
+  
       const primaPorcentaje = parseFloat(cobertura.PorcentajePrima) / 100;
       const primaBase = sumaAsegurada * primaPorcentaje;
-
-      // Sin deducible o cobertura amparada
+  
       if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
+        console.log(`cobertura: ${cobertura.NombreCobertura}`)
+        console.log(`suma asegurada: ${sumaAsegurada}`)
+        console.log(`prima porcentaje: ${primaPorcentaje}`)
         return primaBase;
       }
-
-      // Deducible en UMAs
+  
       if (cobertura.tipoDeducible.Nombre === "UMA") {
-        const deduciblePesos = deducible * VALOR_UMA;
+        const deduciblePesos = deducible * 108.57;
+        
         return Math.max(0, primaBase - deduciblePesos);
       }
 
-      // Deducible en porcentaje
       return primaBase * (1 - deducible / 100);
     },
     [obtenerSumaAsegurada, obtenerDeducible]
@@ -342,24 +341,37 @@ export const CoverageStep = ({
           ? { ...cobertura, deducibleSeleccionado: parseInt(valor) }
           : cobertura
       );
-
+  
       setCoberturasSeleccionadas(nuevasCoberturas);
-      actualizarDetalles(nuevasCoberturas);
-
-      const primaTotal = nuevasCoberturas.reduce(
-        (total, cobertura) =>
-          total + calcularPrima(cobertura, tipoCalculo || "cobertura"),
+  
+      const nuevosDetalles = nuevasCoberturas.map((cobertura) => {
+        const montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
+        const deducible = obtenerDeducible(cobertura);
+        const prima = calcularPrima(cobertura, "cobertura");
+  
+        return {
+          CoberturaID: cobertura.CoberturaID,
+          NombreCobertura: cobertura.NombreCobertura,
+          Descripcion: cobertura.Descripcion,
+          MontoSumaAsegurada: montoSumaAsegurada,
+          DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
+          MontoDeducible: deducible,
+          PrimaCalculada: prima,
+          PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
+          ValorAseguradoUsado: montoSumaAsegurada,
+          Obligatoria: cobertura.Obligatoria || false,
+        };
+      });
+  
+      form.setValue("detalles", nuevosDetalles);
+  
+      const nuevaPrimaTotal = nuevosDetalles.reduce(
+        (total, detalle) => total + detalle.PrimaCalculada,
         0
       );
-      form.setValue("PrimaTotal", primaTotal);
+      form.setValue("PrimaTotal", nuevaPrimaTotal);
     },
-    [
-      tipoCalculo,
-      coberturasSeleccionadas,
-      actualizarDetalles,
-      calcularPrima,
-      form,
-    ]
+    [coberturasSeleccionadas, obtenerSumaAsegurada, obtenerDeducible, calcularPrima, form]
   );
 
   const manejarEliminarCobertura = useCallback(
@@ -397,57 +409,42 @@ export const CoverageStep = ({
           return {
             ...cobertura,
             sumaAseguradaPersonalizada: valorNumerico,
-            valorSeleccionado: valorNumerico, // Agregamos esta propiedad
+            valorSeleccionado: valorNumerico
           };
         }
         return cobertura;
       });
-
+  
       setCoberturasSeleccionadas(nuevasCoberturas);
-
-      const detallesActualizados = nuevasCoberturas.map((cobertura) => {
-        let montoSumaAsegurada;
-
-        if (cobertura.AplicaSumaAsegurada) {
-          montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
-        } else {
-          // Usamos el valor seleccionado si existe, sino el valor por defecto
-          montoSumaAsegurada =
-            cobertura.valorSeleccionado ||
-            (cobertura.CoberturaID === coberturaId
-              ? valorNumerico
-              : Number(cobertura.SumaAseguradaMax));
-        }
-
+  
+      const nuevosDetalles = nuevasCoberturas.map((cobertura) => {
+        const montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
+        const deducible = obtenerDeducible(cobertura);
+        const prima = calcularPrima(cobertura, "cobertura");
+  
         return {
           CoberturaID: cobertura.CoberturaID,
           NombreCobertura: cobertura.NombreCobertura,
           Descripcion: cobertura.Descripcion,
           MontoSumaAsegurada: montoSumaAsegurada,
           DeducibleID: cobertura.tipoDeducible.TipoDeducibleID,
-          MontoDeducible: obtenerDeducible(cobertura),
-          PrimaCalculada: calcularPrima(cobertura, "cobertura"),
+          MontoDeducible: deducible,
+          PrimaCalculada: prima,
           PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
           ValorAseguradoUsado: montoSumaAsegurada,
           Obligatoria: cobertura.Obligatoria || false,
         };
       });
-
-      form.setValue("detalles", detallesActualizados);
-
-      const nuevaPrimaTotal = detallesActualizados.reduce(
+  
+      form.setValue("detalles", nuevosDetalles);
+      
+      const nuevaPrimaTotal = nuevosDetalles.reduce(
         (total, detalle) => total + detalle.PrimaCalculada,
         0
       );
       form.setValue("PrimaTotal", nuevaPrimaTotal);
     },
-    [
-      coberturasSeleccionadas,
-      obtenerSumaAsegurada,
-      obtenerDeducible,
-      calcularPrima,
-      form,
-    ]
+    [coberturasSeleccionadas, obtenerSumaAsegurada, obtenerDeducible, calcularPrima, form]
   );
 
   const generarRangosSumaAsegurada = useCallback(
