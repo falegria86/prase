@@ -111,7 +111,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                 TipoMonedaID: values.tipoMoneda,
             }
         };
-        console.log(formattedData)
+  
         startTransition(async () => {
             try {
                 const resp = await postCobertura(formattedData);

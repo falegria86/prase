@@ -51,6 +51,7 @@ export const patchCotizacion = async (id: number, body: iPatchCotizacion) => {
         if (!resp.ok) return null;
 
         const data = await resp.json();
+        console.log(data)
         return data;
     } catch (error) {
         console.log('Error al modificar cotización: ', error);

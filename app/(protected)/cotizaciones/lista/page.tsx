@@ -1,12 +1,16 @@
+import { getCoberturas } from "@/actions/CatCoberturasActions";
+import { getTipoPagos } from "@/actions/CatTipoPagos";
 import { getTiposVehiculo, getUsoVehiculo } from "@/actions/CatVehiculosActions";
 import { getCotizaciones } from "@/actions/CotizadorActions";
 import { TableCotizaciones } from "@/components/admin/cotizaciones/TableCotizaciones";
 
 export default async function CotizacionesListaPage() {
-    const [cotizaciones, tiposVehiculo, usosVehiculo] = await Promise.all([
+    const [cotizaciones, tiposVehiculo, usosVehiculo, coberturas, tiposPago] = await Promise.all([
         getCotizaciones(),
         getTiposVehiculo(),
-        getUsoVehiculo()
+        getUsoVehiculo(),
+        getCoberturas(),
+        getTipoPagos(),
     ]);
 
     if (!cotizaciones || cotizaciones.length === 0) {
@@ -32,6 +36,8 @@ export default async function CotizacionesListaPage() {
                 cotizaciones={cotizaciones}
                 tiposVehiculo={tiposVehiculo}
                 usosVehiculo={usosVehiculo}
+                coberturasData={coberturas}
+                tiposPago={tiposPago}
             />
         </>
     );

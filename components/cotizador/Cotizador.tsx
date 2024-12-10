@@ -151,7 +151,14 @@ export const Cotizador = ({
 
     const handleFinalSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-        const datosFormulario = form.getValues();
+        const datos = form.getValues();
+
+        const datosFormulario = {
+            ...datos,
+            Marca: datos.marcaNombre,
+            Version: datos.versionNombre,
+            Submarca: datos.modeloNombre,
+        }
 
         startTransition(async () => {
             try {
@@ -167,14 +174,6 @@ export const Cotizador = ({
                         description: "La cotización se ha creado y enviado exitosamente.",
                         variant: "default",
                     });
-
-                    if (!resultado.correoEnviado) {
-                        toast({
-                            title: "Advertencia",
-                            description: "La cotización se creó pero hubo un problema al enviar el correo.",
-                            variant: "warning",
-                        });
-                    }
 
                     form.reset();
                     router.push('/cotizaciones/lista');

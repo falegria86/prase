@@ -15,12 +15,12 @@ import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 
 interface FiltrosCotizacionesProps {
     cotizaciones: iGetCotizacion[];
-    onFiltrarCotizaciones: (cotizaciones: iGetCotizacion[]) => void;
+    onFiltrar: (filtros: any) => void;
 }
 
 export const FiltrosCotizaciones = ({
     cotizaciones,
-    onFiltrarCotizaciones
+    onFiltrar
 }: FiltrosCotizacionesProps) => {
     const [textoBusqueda, setTextoBusqueda] = useState("");
     const [rangoFechas, setRangoFechas] = useState<{
@@ -53,13 +53,13 @@ export const FiltrosCotizaciones = ({
             });
         }
 
-        onFiltrarCotizaciones(cotizacionesFiltradas);
+        onFiltrar(cotizacionesFiltradas);
     };
 
     const limpiarFiltros = () => {
         setTextoBusqueda("");
         setRangoFechas({ desde: undefined, hasta: undefined });
-        onFiltrarCotizaciones(cotizaciones);
+        onFiltrar(cotizaciones);
     };
 
     return (
@@ -74,7 +74,7 @@ export const FiltrosCotizaciones = ({
                             onChange={(e) => {
                                 setTextoBusqueda(e.target.value);
                                 if (!e.target.value && !rangoFechas.desde && !rangoFechas.hasta) {
-                                    onFiltrarCotizaciones(cotizaciones);
+                                    onFiltrar(cotizaciones);
                                 }
                             }}
                             className="pl-9"
@@ -87,7 +87,7 @@ export const FiltrosCotizaciones = ({
                                 onClick={() => {
                                     setTextoBusqueda("");
                                     if (!rangoFechas.desde && !rangoFechas.hasta) {
-                                        onFiltrarCotizaciones(cotizaciones);
+                                        onFiltrar(cotizaciones);
                                     }
                                 }}
                             >
@@ -124,7 +124,7 @@ export const FiltrosCotizaciones = ({
                 </Popover>
 
                 <Button onClick={aplicarFiltros}>
-                <FilterIcon className="h-4 w-4 mr-2" />
+                    <FilterIcon className="h-4 w-4 mr-2" />
                     Aplicar filtros
                 </Button>
 
@@ -148,7 +148,7 @@ export const FiltrosCotizaciones = ({
                                 onClick={() => {
                                     setTextoBusqueda("");
                                     if (!rangoFechas.desde && !rangoFechas.hasta) {
-                                        onFiltrarCotizaciones(cotizaciones);
+                                        onFiltrar(cotizaciones);
                                     }
                                 }}
                             />
@@ -162,7 +162,7 @@ export const FiltrosCotizaciones = ({
                                 onClick={() => {
                                     setRangoFechas({ desde: undefined, hasta: undefined });
                                     if (!textoBusqueda) {
-                                        onFiltrarCotizaciones(cotizaciones);
+                                        onFiltrar(cotizaciones);
                                     }
                                 }}
                             />

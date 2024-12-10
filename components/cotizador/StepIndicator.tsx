@@ -122,5 +122,3 @@ export const StepIndicator = ({
         </div>
     );
 };
-
-export default StepIndicator;

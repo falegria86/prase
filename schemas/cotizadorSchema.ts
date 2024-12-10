@@ -104,6 +104,36 @@ export const nuevaCotizacionSchema = z.object({
 export type CotizacionFormData = z.infer<typeof nuevaCotizacionSchema>;
 
 export const editarCotizacionSchema = z.object({
-    NombrePersona: z.string(),
+    NombrePersona: z.string().min(1, {
+        message: "El nombre es requerido"
+    }),
     EstadoCotizacion: z.string(),
+    TipoPagoID: z.coerce.number(),
+    PorcentajeDescuento: z.coerce.number(),
+    DerechoPoliza: z.coerce.number(),
+    Marca: z.string().min(1, {
+        message: "Obligatorio"
+    }),
+    Submarca: z.string().min(1, {
+        message: "Obligatorio"
+    }),
+    Modelo: z.string().min(1, {
+        message: "Obligatorio"
+    }),
+    Version: z.string().min(1, {
+        message: "Obligatorio"
+    }),
+    detalles: z.array(
+        z.object({
+            DetalleID: z.number(),
+            PolizaID: z.any(),
+            CoberturaID: z.number(),
+            MontoSumaAsegurada: z.coerce.number(),
+            MontoDeducible: z.coerce.number(),
+            PrimaCalculada: z.coerce.number(),
+            EsPoliza: z.null(),
+            PorcentajePrimaAplicado: z.coerce.number(),
+            ValorAseguradoUsado: z.coerce.number()
+        })
+    )
 });

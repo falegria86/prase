@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import {
   iGetTiposVehiculo,
@@ -46,26 +46,56 @@ import { deleteCotizacion } from "@/actions/CotizadorActions";
 import Loading from "@/app/(protected)/loading";
 import { FiltrosCotizaciones } from "./FiltrosCotizaciones";
 import { generarPDFCotizacion } from "@/components/cotizador/GenerarPDFCotizacion";
+import { ReenviarPDFModal } from "./ReenviarPDFModal";
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { ActivarPolizaForm } from "../polizas/ActivarPolizaForm";
+import { cn } from "@/lib/utils";
 
-interface Props {
+type EstadoCotizacion = "REGISTRO" | "EMITIDA" | "RECHAZADA";
+
+interface TableCotizacionesProps {
   cotizaciones: iGetCotizacion[];
   tiposVehiculo: iGetTiposVehiculo[];
   usosVehiculo: iGetUsosVehiculo[];
+  coberturasData: iGetCoberturas[] | null | undefined;
+  tiposPago: iGetTipoPagos[] | null | undefined;
+}
+
+interface ModalesControlProps {
+  modalEdicionAbierto: boolean;
+  modalReenvioAbierto: boolean;
+  modalActivarAbierto: boolean;
+  cotizacionSeleccionada: iGetCotizacion | null;
+  cotizacionParaReenvio: iGetCotizacion | null;
+  tiposVehiculo: iGetTiposVehiculo[];
+  usosVehiculo: iGetUsosVehiculo[];
+  onCerrarEdicion: () => void;
+  onCerrarReenvio: () => void;
+  coberturas: iGetCoberturas[] | null | undefined;
+  tiposPago: iGetTipoPagos[] | null | undefined;
 }
 
 export const TableCotizaciones = ({
   cotizaciones,
   tiposVehiculo,
   usosVehiculo,
-}: Props) => {
-  const [cotizacionSeleccionada, setCotizacionSeleccionada] =
-    useState<iGetCotizacion | null>(null);
+  coberturasData,
+  tiposPago,
+}: TableCotizacionesProps) => {
+  const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState<iGetCotizacion | null>(null);
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
+  const [modalReenvioAbierto, setModalReenvioAbierto] = useState(false);
+  const [modalActivarAbierto, setModalActivarAbierto] = useState(false);
+  const [cotizacionParaReenvio, setCotizacionParaReenvio] = useState<iGetCotizacion | null>(null);
+  const [filtros, setFiltros] = useState<any>({});
   const [isPending, startTransition] = useTransition();
-  const [cotizacionesFiltradas, setCotizacionesFiltradas] =
-    useState<iGetCotizacion[]>(cotizaciones);
   const { toast } = useToast();
   const router = useRouter();
+
+  const cotizacionesFiltradas = useMemo(() => {
+    return cotizaciones;
+  }, [cotizaciones, filtros]);
 
   const formatearFecha = (fecha: Date) => {
     return new Date(fecha).toLocaleDateString("es-MX", {
@@ -75,31 +105,20 @@ export const TableCotizaciones = ({
     });
   };
 
-  const obtenerNombreTipoVehiculo = (tipoId: number) => {
-    return (
-      tiposVehiculo.find((tipo) => tipo.TipoID === tipoId)?.Nombre ||
-      "No especificado"
-    );
-  };
+  const obtenerNombreTipoVehiculo = (tipoId: number) =>
+    tiposVehiculo.find((tipo) => tipo.TipoID === tipoId)?.Nombre || "No especificado";
 
-  const obtenerNombreUsoVehiculo = (usoId: number) => {
-    return (
-      usosVehiculo.find((uso) => uso.UsoID === usoId)?.Nombre ||
-      "No especificado"
-    );
-  };
+  const obtenerNombreUsoVehiculo = (usoId: number) =>
+    usosVehiculo.find((uso) => uso.UsoID === usoId)?.Nombre || "No especificado";
 
-  const obtenerColorEstado = (estado: string) => {
-    switch (estado.toUpperCase()) {
-      case "REGISTRO":
-        return "default";
-      case "EMITIDA":
-        return "success";
-      case "RECHAZADA":
-        return "destructive";
-      default:
-        return "secondary";
-    }
+  const obtenerColorEstado = (estado: string): "default" | "secondary" | "destructive" | "outline" | "success" => {
+    const estados: Record<EstadoCotizacion, "default" | "secondary" | "destructive" | "outline" | "success"> = {
+      "REGISTRO": "default",
+      "EMITIDA": "success",
+      "RECHAZADA": "destructive"
+    } as const;
+
+    return estados[estado.toUpperCase() as EstadoCotizacion] || "secondary";
   };
 
   const handleEliminar = async () => {
@@ -107,9 +126,7 @@ export const TableCotizaciones = ({
 
     startTransition(async () => {
       try {
-        const respuesta = await deleteCotizacion(
-          cotizacionSeleccionada.CotizacionID
-        );
+        const respuesta = await deleteCotizacion(cotizacionSeleccionada.CotizacionID);
 
         if (!respuesta) {
           toast({
@@ -123,10 +140,11 @@ export const TableCotizaciones = ({
         toast({
           title: "Cotización eliminada",
           description: "La cotización se eliminó correctamente.",
-          variant: "default",
         });
 
+        setCotizacionSeleccionada(null);
         router.refresh();
+
       } catch (error) {
         toast({
           title: "Error",
@@ -137,58 +155,29 @@ export const TableCotizaciones = ({
     });
   };
 
-  const manejarDescargaPDF = (cotizacion: iGetCotizacion) => {
-    // Preparar los datos necesarios para generar el PDF
-    const datosCotizacion = {
-      UsuarioID: cotizacion.UsuarioID,
-      EstadoCotizacion: cotizacion.EstadoCotizacion,
-      PrimaTotal: Number(cotizacion.PrimaTotal),
-      TipoPagoID: cotizacion.TipoPagoID,
-      PorcentajeDescuento: Number(cotizacion.PorcentajeDescuento),
-      DerechoPoliza: Number(cotizacion.DerechoPoliza),
-      TipoSumaAseguradaID: cotizacion.TipoSumaAseguradaID,
-      SumaAsegurada: Number(cotizacion.SumaAsegurada),
-      PeriodoGracia: cotizacion.PeriodoGracia,
-      UsoVehiculo: cotizacion.UsoVehiculo,
-      TipoVehiculo: cotizacion.TipoVehiculo,
-      meses: 12,
-      vigencia: "Anual",
-      NombrePersona: cotizacion.NombrePersona,
-      Correo: cotizacion.Correo || "",
-      Telefono: cotizacion.Telefono || "",
-      UnidadSalvamento: Boolean(cotizacion.UnidadSalvamento),
-      VIN: cotizacion.VIN,
-      CP: cotizacion.CP,
-      Marca: cotizacion.Marca,
-      Submarca: cotizacion.Submarca,
-      Modelo: cotizacion.Modelo,
-      Version: cotizacion.Version,
-      inicioVigencia: new Date(),
-      finVigencia: cotizacion.FechaCotizacion.toString(),
-      detalles: cotizacion.detalles,
-      versionNombre: cotizacion.Version,
-      marcaNombre: cotizacion.Marca,
-      modeloNombre: cotizacion.Submarca,
-      Estado: "",
-      minSumaAsegurada: 0,
-      maxSumaAsegurada: 0,
-      PaqueteCoberturaID: cotizacion.PaqueteCoberturaID,
-    };
+  const handleCerrarEdicion = () => {
+    setModalEdicionAbierto(false);
+    setCotizacionSeleccionada(null);
+    setModalActivarAbierto(false);
+    startTransition(() => {
+      router.refresh();
+    });
+  };
 
+  const manejarDescargaPDF = async (cotizacion: iGetCotizacion) => {
     try {
-      generarPDFCotizacion({
-        datos: datosCotizacion,
+      await generarPDFCotizacion({
+        datos: cotizacion,
         tiposVehiculo,
         usosVehiculo,
+        isSave: true
       });
 
       toast({
         title: "PDF generado",
         description: "El PDF se ha descargado correctamente",
-        variant: "default",
       });
     } catch (error) {
-      console.error("Error al generar PDF:", error);
       toast({
         title: "Error",
         description: "Hubo un problema al generar el PDF",
@@ -203,7 +192,7 @@ export const TableCotizaciones = ({
 
       <FiltrosCotizaciones
         cotizaciones={cotizaciones}
-        onFiltrarCotizaciones={setCotizacionesFiltradas}
+        onFiltrar={setFiltros}
       />
 
       <AlertDialog>
@@ -211,22 +200,15 @@ export const TableCotizaciones = ({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              la cotización
+              Esta acción no se puede deshacer. Esto eliminará permanentemente la cotización
               {cotizacionSeleccionada && (
-                <>
-                  {" "}
-                  del cliente{" "}
-                  <strong>{cotizacionSeleccionada.NombrePersona}</strong>
-                </>
-              )}{" "}
+                <> del cliente <strong>{cotizacionSeleccionada.NombrePersona}</strong></>
+              )}
               y todos sus datos asociados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-md">
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel className="rounded-md">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="rounded-md"
               variant="destructive"
@@ -240,6 +222,7 @@ export const TableCotizaciones = ({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Activa</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Información del Cliente</TableHead>
               <TableHead>Uso del Vehículo</TableHead>
@@ -252,8 +235,34 @@ export const TableCotizaciones = ({
             {cotizacionesFiltradas.map((cotizacion) => (
               <TableRow key={cotizacion.CotizacionID}>
                 <TableCell>
-                  {formatearFecha(cotizacion.FechaCotizacion)}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          "inline-flex h-8 items-center justify-center rounded-full px-3 text-sm",
+                          "cursor-pointer transition-colors",
+                          "border border-input hover:bg-accent hover:text-accent-foreground",
+                          cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
+                            ? "bg-green-600 text-primary-foreground border-none"
+                            : "bg-background"
+                        )}
+                        onClick={() => {
+                          setCotizacionSeleccionada(cotizacion);
+                          setModalActivarAbierto(true);
+                        }}
+                      >
+                        {cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
+                          ? 'ACTIVA'
+                          : 'NO ACTIVA'
+                        }
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Activar
+                    </TooltipContent>
+                  </Tooltip>
                 </TableCell>
+                <TableCell>{formatearFecha(cotizacion.FechaCotizacion)}</TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <p className="font-medium">{cotizacion.NombrePersona}</p>
@@ -271,62 +280,30 @@ export const TableCotizaciones = ({
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <p>
-                      Tipo: {obtenerNombreTipoVehiculo(cotizacion.TipoVehiculo)}
-                    </p>
-                    <p>
-                      Uso: {obtenerNombreUsoVehiculo(cotizacion.UsoVehiculo)}
-                    </p>
+                    <p>Tipo: {obtenerNombreTipoVehiculo(cotizacion.TipoVehiculo)}</p>
+                    <p>Uso: {obtenerNombreUsoVehiculo(cotizacion.UsoVehiculo)}</p>
                   </div>
                 </TableCell>
+                <TableCell>{formatCurrency(Number(cotizacion.PrimaTotal))}</TableCell>
                 <TableCell>
-                  {formatCurrency(Number(cotizacion.PrimaTotal))}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={obtenerColorEstado(cotizacion.EstadoCotizacion)}
-                  >
+                  <Badge variant={obtenerColorEstado(cotizacion.EstadoCotizacion)}>
                     {cotizacion.EstadoCotizacion}
                   </Badge>
                 </TableCell>
-                <TableCell className="flex items-center gap-3">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Download
-                        size={16}
-                        className="text-gray-600 cursor-pointer"
-                        onClick={() => manejarDescargaPDF(cotizacion)}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>Descargar PDF</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Edit
-                        size={16}
-                        className="text-gray-600 cursor-pointer"
-                        onClick={() => {
-                          setCotizacionSeleccionada(cotizacion);
-                          setModalEdicionAbierto(true);
-                        }}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>Editar</TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <AlertDialogTrigger asChild>
-                        <Trash2
-                          size={16}
-                          className="text-gray-600 cursor-pointer"
-                          onClick={() => setCotizacionSeleccionada(cotizacion)}
-                        />
-                      </AlertDialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>Eliminar</TooltipContent>
-                  </Tooltip>
+                <TableCell className="flex items-center gap-3 mt-3">
+                  <AccionesMenu
+                    cotizacion={cotizacion}
+                    onDescargar={manejarDescargaPDF}
+                    onEditar={() => {
+                      setCotizacionSeleccionada(cotizacion);
+                      setModalEdicionAbierto(true);
+                    }}
+                    onEliminar={() => setCotizacionSeleccionada(cotizacion)}
+                    onReenviar={() => {
+                      setCotizacionParaReenvio(cotizacion);
+                      setModalReenvioAbierto(true);
+                    }}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -334,29 +311,152 @@ export const TableCotizaciones = ({
         </Table>
       </AlertDialog>
 
-      <Dialog
-        open={modalEdicionAbierto}
-        onOpenChange={() => {
-          setCotizacionSeleccionada(null);
-          setModalEdicionAbierto(false);
+      <ModalesControl
+        modalEdicionAbierto={modalEdicionAbierto}
+        modalReenvioAbierto={modalReenvioAbierto}
+        modalActivarAbierto={modalActivarAbierto}
+        cotizacionSeleccionada={cotizacionSeleccionada}
+        cotizacionParaReenvio={cotizacionParaReenvio}
+        tiposVehiculo={tiposVehiculo}
+        usosVehiculo={usosVehiculo}
+        onCerrarEdicion={handleCerrarEdicion}
+        onCerrarReenvio={() => {
+          setModalReenvioAbierto(false);
+          setCotizacionParaReenvio(null);
         }}
-      >
-        <DialogContent className="max-w-[80vw]">
-          <DialogHeader>
-            <DialogTitle>Editar Cotización</DialogTitle>
-          </DialogHeader>
-          {cotizacionSeleccionada && (
-            <EditarCotizacionForm
-              cotizacion={cotizacionSeleccionada}
-              onGuardar={() => {
-                setCotizacionSeleccionada(null);
-                setModalEdicionAbierto(false);
-                router.refresh();
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        coberturas={coberturasData}
+        tiposPago={tiposPago}
+      />
     </div>
   );
 };
+
+const AccionesMenu = ({
+  cotizacion,
+  onDescargar,
+  onEditar,
+  onEliminar,
+  onReenviar
+}: {
+  cotizacion: iGetCotizacion;
+  onDescargar: (cotizacion: iGetCotizacion) => void;
+  onEditar: () => void;
+  onEliminar: () => void;
+  onReenviar: () => void;
+}) => (
+  <>
+    <Tooltip>
+      <TooltipTrigger>
+        <Download
+          size={16}
+          className="text-gray-600 cursor-pointer"
+          onClick={() => onDescargar(cotizacion)}
+        />
+      </TooltipTrigger>
+      <TooltipContent>Descargar PDF</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger>
+        <Edit
+          size={16}
+          className="text-gray-600 cursor-pointer"
+          onClick={onEditar}
+        />
+      </TooltipTrigger>
+      <TooltipContent>Editar</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger>
+        <Mail
+          size={16}
+          className="text-gray-600 cursor-pointer"
+          onClick={onReenviar}
+        />
+      </TooltipTrigger>
+      <TooltipContent>Reenviar PDF</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger>
+        <AlertDialogTrigger asChild>
+          <Trash2
+            size={16}
+            className="text-gray-600 cursor-pointer"
+            onClick={onEliminar}
+          />
+        </AlertDialogTrigger>
+      </TooltipTrigger>
+      <TooltipContent>Eliminar</TooltipContent>
+    </Tooltip>
+  </>
+);
+
+const ModalesControl = ({
+  modalEdicionAbierto,
+  modalReenvioAbierto,
+  modalActivarAbierto,
+  cotizacionSeleccionada,
+  cotizacionParaReenvio,
+  tiposVehiculo,
+  usosVehiculo,
+  onCerrarEdicion,
+  onCerrarReenvio,
+  coberturas,
+  tiposPago,
+}: ModalesControlProps) => (
+  <>
+    <Dialog open={modalEdicionAbierto} onOpenChange={onCerrarEdicion}>
+      <DialogContent className="max-w-[80vw] max-h-[800px] overflow-y-scroll">
+        <DialogHeader>
+          <DialogTitle>Editar Cotización</DialogTitle>
+        </DialogHeader>
+        <>
+          {coberturas && coberturas.length > 0 && tiposPago && tiposPago.length > 0 ? (
+            <>
+              {cotizacionSeleccionada && (
+                <EditarCotizacionForm
+                  cotizacion={cotizacionSeleccionada}
+                  onGuardar={onCerrarEdicion}
+                  coberturas={coberturas}
+                  tiposPago={tiposPago}
+                />
+              )}
+            </>
+          ) : (
+            <div>
+              No se pudieron obtener los datos necesarios.
+            </div>
+          )}
+        </>
+        <>
+
+        </>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={modalActivarAbierto} onOpenChange={onCerrarEdicion}>
+      <DialogContent className="max-w-[80vw] max-h-[800px] overflow-y-scroll">
+        <DialogHeader>
+          <DialogTitle>Activar Póliza</DialogTitle>
+        </DialogHeader>
+        {(cotizacionSeleccionada && tiposPago && tiposPago.length > 0) && (
+          <ActivarPolizaForm
+            cotizacion={cotizacionSeleccionada}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+
+    {cotizacionParaReenvio && (
+      <ReenviarPDFModal
+        cotizacion={cotizacionParaReenvio}
+        tiposVehiculo={tiposVehiculo}
+        usosVehiculo={usosVehiculo}
+        abierto={modalReenvioAbierto}
+        alCerrar={onCerrarReenvio}
+      />
+    )}
+  </>
+);

@@ -1,16 +1,9 @@
+import { iDetallesGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { formatCurrency } from "./format";
 
-// Interfaces compartidas
-interface DetalleMostrado {
-    CoberturaID: number;
-    NombreCobertura: string;
-    Descripcion: string;
-    MontoSumaAsegurada: number;
-    DeducibleID: number;
-    MontoDeducible: number;
-    PrimaCalculada: number;
-    PorcentajePrimaAplicado: number;
-    ValorAseguradoUsado: number;
+interface DetalleMostrado extends iDetallesGetCotizacion {
+    NombreCobertura?: string;
+    Descripcion?: string;
     DisplaySumaAsegurada?: string;
     DisplayDeducible?: string;
     TipoMoneda?: string;
@@ -19,9 +12,8 @@ interface DetalleMostrado {
     TipoDeducible?: string;
 }
 
-// Funciones de utilidad compartidas
-export const obtenerValorSumaAsegurada = (detalle: DetalleMostrado): React.ReactNode => {
-    if (detalle.EsAmparada || detalle.MontoSumaAsegurada === 0) {
+const obtenerValorSumaAsegurada = (detalle: any): React.ReactNode => {
+    if (detalle.EsAmparada || Number(detalle.MontoSumaAsegurada) === 0) {
         return "AMPARADA";
     }
 
@@ -35,33 +27,43 @@ export const obtenerValorSumaAsegurada = (detalle: DetalleMostrado): React.React
 
     if (detalle.SumaAseguradaPorPasajero) {
         return (
-            <div className="flex flex-col gap-1" >
-                <span>{formatCurrency(detalle.MontoSumaAsegurada)} </span>
-                <span className="text-sm text-muted-foreground" > POR CADA PASAJERO </span>
+            <div className="flex flex-col gap-1">
+                <span>{formatCurrency(Number(detalle.MontoSumaAsegurada))}</span>
+                <span className="text-sm text-muted-foreground">POR CADA PASAJERO</span>
             </div>
         );
     }
 
-    return formatCurrency(detalle.MontoSumaAsegurada);
+    return formatCurrency(Number(detalle.MontoSumaAsegurada));
 };
 
-export const obtenerValorDeducible = (detalle: DetalleMostrado): string => {
+const obtenerValorDeducible = (detalle: any): string => {
     if (detalle.TipoDeducible === "UMA") {
         return `${detalle.MontoDeducible} UMAS`;
     }
 
-    return detalle.MontoDeducible > 0 ? `${detalle.MontoDeducible}%` : "NO APLICA";
+    const deducible = Number(detalle.MontoDeducible);
+    return deducible > 0 ? `${deducible}%` : "NO APLICA";
 };
 
-export const generarColumnasPDF = (detalles: DetalleMostrado[]): string[][] => {
+const generarColumnasPDF = (detalles: DetalleMostrado[]) => {
     return detalles.map(detalle => [
-        detalle.NombreCobertura,
-        detalle.EsAmparada
-        ? 'AMPARADA' : detalle.MontoSumaAsegurada === 0 ? 'AMPARADA'
-        : detalle.TipoMoneda === "UMA" ? `${detalle.MontoSumaAsegurada} UMAS` :
-                detalle.SumaAseguradaPorPasajero ? `${formatCurrency(detalle.MontoSumaAsegurada)} POR PASAJERO` :
-                    formatCurrency(detalle.MontoSumaAsegurada),
+        detalle.NombreCobertura || '',
+        detalle.EsAmparada || Number(detalle.MontoSumaAsegurada) === 0
+            ? 'AMPARADA'
+            : detalle.TipoMoneda === "UMA"
+                ? `${detalle.MontoSumaAsegurada} UMAS`
+                : detalle.SumaAseguradaPorPasajero
+                    ? `${formatCurrency(Number(detalle.MontoSumaAsegurada))} POR PASAJERO`
+                    : formatCurrency(Number(detalle.MontoSumaAsegurada)),
         obtenerValorDeducible(detalle),
-        formatCurrency(detalle.PrimaCalculada)
+        formatCurrency(Number(detalle.PrimaCalculada))
     ]);
+};
+
+export {
+    obtenerValorSumaAsegurada,
+    obtenerValorDeducible,
+    generarColumnasPDF,
+    type DetalleMostrado
 };
