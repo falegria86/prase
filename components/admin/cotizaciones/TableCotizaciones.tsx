@@ -54,6 +54,12 @@ import { cn } from "@/lib/utils";
 
 type EstadoCotizacion = "REGISTRO" | "EMITIDA" | "RECHAZADA";
 
+interface FiltrosState {
+  textoBusqueda: string;
+  fechaInicio?: Date;
+  fechaFin?: Date;
+}
+
 interface TableCotizacionesProps {
   cotizaciones: iGetCotizacion[];
   tiposVehiculo: iGetTiposVehiculo[];
@@ -88,14 +94,33 @@ export const TableCotizaciones = ({
   const [modalReenvioAbierto, setModalReenvioAbierto] = useState(false);
   const [modalActivarAbierto, setModalActivarAbierto] = useState(false);
   const [cotizacionParaReenvio, setCotizacionParaReenvio] = useState<iGetCotizacion | null>(null);
-  const [filtros, setFiltros] = useState<any>({});
+  const [filtros, setFiltros] = useState<FiltrosState>({
+    textoBusqueda: "",
+    fechaInicio: undefined,
+    fechaFin: undefined
+  });
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
 
   const cotizacionesFiltradas = useMemo(() => {
-    return cotizaciones;
+    return cotizaciones.filter(cotizacion => {
+      const cumpleBusqueda = !filtros.textoBusqueda ||
+        cotizacion.NombrePersona.toLowerCase().includes(filtros.textoBusqueda.toLowerCase()) ||
+        (cotizacion.Telefono?.toLowerCase() || "").includes(filtros.textoBusqueda.toLowerCase()) ||
+        (cotizacion.Correo?.toLowerCase() || "").includes(filtros.textoBusqueda.toLowerCase());
+
+      const cumpleFechas = !filtros.fechaInicio || !filtros.fechaFin ||
+        (new Date(cotizacion.FechaCotizacion) >= filtros.fechaInicio &&
+          new Date(cotizacion.FechaCotizacion) <= filtros.fechaFin);
+
+      return cumpleBusqueda && cumpleFechas;
+    });
   }, [cotizaciones, filtros]);
+
+  const handleFiltrosChange = (nuevosFiltros: FiltrosState) => {
+    setFiltros(nuevosFiltros);
+  };
 
   const formatearFecha = (fecha: Date) => {
     return new Date(fecha).toLocaleDateString("es-MX", {
@@ -191,8 +216,7 @@ export const TableCotizaciones = ({
       {isPending && <Loading />}
 
       <FiltrosCotizaciones
-        cotizaciones={cotizaciones}
-        onFiltrar={setFiltros}
+        onFiltrar={handleFiltrosChange}
       />
 
       <AlertDialog>
@@ -247,7 +271,7 @@ export const TableCotizaciones = ({
                             : "bg-background"
                         )}
                         onClick={() => {
-                          if(cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'){
+                          if (cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA') {
                             return;
                           }
                           setCotizacionSeleccionada(cotizacion);

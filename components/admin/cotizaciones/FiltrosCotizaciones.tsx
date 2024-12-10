@@ -1,65 +1,46 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, CalendarRange, X, FilterIcon } from "lucide-react";
+import { Search, CalendarRange, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface FiltrosState {
+    textoBusqueda: string;
+    fechaInicio?: Date;
+    fechaFin?: Date;
+}
 
 interface FiltrosCotizacionesProps {
-    cotizaciones: iGetCotizacion[];
-    onFiltrar: (filtros: any) => void;
+    onFiltrar: (filtros: FiltrosState) => void;
 }
 
 export const FiltrosCotizaciones = ({
-    cotizaciones,
     onFiltrar
 }: FiltrosCotizacionesProps) => {
-    const [textoBusqueda, setTextoBusqueda] = useState("");
-    const [rangoFechas, setRangoFechas] = useState<{
-        desde: Date | undefined;
-        hasta: Date | undefined;
-    }>({
-        desde: undefined,
-        hasta: undefined
+    const [filtrosLocales, setFiltrosLocales] = useState<FiltrosState>({
+        textoBusqueda: "",
+        fechaInicio: undefined,
+        fechaFin: undefined
     });
 
-    const aplicarFiltros = () => {
-        let cotizacionesFiltradas = [...cotizaciones];
-
-        // Filtrar por texto (nombre, teléfono o correo)
-        if (textoBusqueda) {
-            const busqueda = textoBusqueda.toLowerCase();
-            cotizacionesFiltradas = cotizacionesFiltradas.filter(cotizacion =>
-                cotizacion.NombrePersona.toLowerCase().includes(busqueda) ||
-                (cotizacion.Telefono && cotizacion.Telefono.toLowerCase().includes(busqueda)) ||
-                (cotizacion.Correo && cotizacion.Correo.toLowerCase().includes(busqueda))
-            );
-        }
-
-        // Filtrar por rango de fechas
-        if (rangoFechas.desde && rangoFechas.hasta) {
-            cotizacionesFiltradas = cotizacionesFiltradas.filter(cotizacion => {
-                const fechaCotizacion = new Date(cotizacion.FechaCotizacion);
-                return fechaCotizacion >= rangoFechas.desde! &&
-                    fechaCotizacion <= rangoFechas.hasta!;
-            });
-        }
-
-        onFiltrar(cotizacionesFiltradas);
+    const actualizarFiltros = (nuevosFiltros: Partial<FiltrosState>) => {
+        const filtrosActualizados = { ...filtrosLocales, ...nuevosFiltros };
+        setFiltrosLocales(filtrosActualizados);
+        onFiltrar(filtrosActualizados);
     };
 
     const limpiarFiltros = () => {
-        setTextoBusqueda("");
-        setRangoFechas({ desde: undefined, hasta: undefined });
-        onFiltrar(cotizaciones);
+        const filtrosLimpios = {
+            textoBusqueda: "",
+            fechaInicio: undefined,
+            fechaFin: undefined
+        };
+        setFiltrosLocales(filtrosLimpios);
+        onFiltrar(filtrosLimpios);
     };
 
     return (
@@ -70,26 +51,16 @@ export const FiltrosCotizaciones = ({
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Buscar por nombre, teléfono o correo..."
-                            value={textoBusqueda}
-                            onChange={(e) => {
-                                setTextoBusqueda(e.target.value);
-                                if (!e.target.value && !rangoFechas.desde && !rangoFechas.hasta) {
-                                    onFiltrar(cotizaciones);
-                                }
-                            }}
+                            value={filtrosLocales.textoBusqueda}
+                            onChange={(e) => actualizarFiltros({ textoBusqueda: e.target.value })}
                             className="pl-9"
                         />
-                        {textoBusqueda && (
+                        {filtrosLocales.textoBusqueda && (
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
-                                onClick={() => {
-                                    setTextoBusqueda("");
-                                    if (!rangoFechas.desde && !rangoFechas.hasta) {
-                                        onFiltrar(cotizaciones);
-                                    }
-                                }}
+                                onClick={() => actualizarFiltros({ textoBusqueda: "" })}
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -110,23 +81,18 @@ export const FiltrosCotizaciones = ({
                             mode="range"
                             locale={es}
                             selected={{
-                                from: rangoFechas.desde,
-                                to: rangoFechas.hasta
+                                from: filtrosLocales.fechaInicio,
+                                to: filtrosLocales.fechaFin
                             }}
                             onSelect={(rango) => {
-                                setRangoFechas({
-                                    desde: rango?.from,
-                                    hasta: rango?.to
+                                actualizarFiltros({
+                                    fechaInicio: rango?.from,
+                                    fechaFin: rango?.to
                                 });
                             }}
                         />
                     </PopoverContent>
                 </Popover>
-
-                <Button onClick={aplicarFiltros}>
-                    <FilterIcon className="h-4 w-4 mr-2" />
-                    Aplicar filtros
-                </Button>
 
                 <Button
                     variant="secondary"
@@ -137,34 +103,23 @@ export const FiltrosCotizaciones = ({
                 </Button>
             </div>
 
-            {/* Mostrar filtros activos */}
-            {(textoBusqueda || (rangoFechas.desde && rangoFechas.hasta)) && (
+            {(filtrosLocales.textoBusqueda || (filtrosLocales.fechaInicio && filtrosLocales.fechaFin)) && (
                 <div className="flex gap-2">
-                    {textoBusqueda && (
+                    {filtrosLocales.textoBusqueda && (
                         <Badge variant="secondary" className="gap-1">
-                            Búsqueda: {textoBusqueda}
+                            Búsqueda: {filtrosLocales.textoBusqueda}
                             <X
                                 className="h-3 w-3 cursor-pointer"
-                                onClick={() => {
-                                    setTextoBusqueda("");
-                                    if (!rangoFechas.desde && !rangoFechas.hasta) {
-                                        onFiltrar(cotizaciones);
-                                    }
-                                }}
+                                onClick={() => actualizarFiltros({ textoBusqueda: "" })}
                             />
                         </Badge>
                     )}
-                    {rangoFechas.desde && rangoFechas.hasta && (
+                    {filtrosLocales.fechaInicio && filtrosLocales.fechaFin && (
                         <Badge variant="secondary" className="gap-1">
-                            Fechas: {format(rangoFechas.desde, "dd/MM/yyyy")} - {format(rangoFechas.hasta, "dd/MM/yyyy")}
+                            Fechas: {format(filtrosLocales.fechaInicio, "dd/MM/yyyy")} - {format(filtrosLocales.fechaFin, "dd/MM/yyyy")}
                             <X
                                 className="h-3 w-3 cursor-pointer"
-                                onClick={() => {
-                                    setRangoFechas({ desde: undefined, hasta: undefined });
-                                    if (!textoBusqueda) {
-                                        onFiltrar(cotizaciones);
-                                    }
-                                }}
+                                onClick={() => actualizarFiltros({ fechaInicio: undefined, fechaFin: undefined })}
                             />
                         </Badge>
                     )}
