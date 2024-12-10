@@ -247,6 +247,9 @@ export const TableCotizaciones = ({
                             : "bg-background"
                         )}
                         onClick={() => {
+                          if(cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'){
+                            return;
+                          }
                           setCotizacionSeleccionada(cotizacion);
                           setModalActivarAbierto(true);
                         }}

@@ -45,9 +45,7 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
 
     const estadosCotizacion = [
         'REGISTRO',
-        'EMITIDA',
         'ACEPTADA',
-        'RECHAZADA'
     ] as const;
 
     const form = useForm<iPatchCotizacion>({
