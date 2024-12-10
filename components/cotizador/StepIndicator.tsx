@@ -5,6 +5,7 @@ import {
     FileText,
     Shield,
     CheckCircle,
+    User,
     type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const mapaIconos: Record<string, LucideIcon> = {
     FileText,
     Shield,
     CheckCircle,
+    User,
 };
 
 export const StepIndicator = ({

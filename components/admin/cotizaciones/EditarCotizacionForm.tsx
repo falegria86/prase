@@ -63,12 +63,15 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
             Modelo: cotizacion.Modelo,
             Version: cotizacion.Version,
             detalles: cotizacion.detalles.map(detalle => ({
-                ...detalle,
-                MontoSumaAsegurada: Number(detalle.MontoSumaAsegurada),
-                MontoDeducible: Number(detalle.MontoDeducible),
-                PrimaCalculada: Number(detalle.PrimaCalculada),
-                PorcentajePrimaAplicado: Number(detalle.PorcentajePrimaAplicado),
-                ValorAseguradoUsado: Number(detalle.ValorAseguradoUsado)
+                DetalleID: Number(detalle.DetalleID),
+                PolizaID: detalle.PolizaID ?? null,
+                CoberturaID: Number(detalle.CoberturaID) ?? 0,
+                MontoSumaAsegurada: Number(detalle.MontoSumaAsegurada) ?? 0,
+                MontoDeducible: Number(detalle.MontoDeducible) ?? 0,
+                PrimaCalculada: Number(detalle.PrimaCalculada) ?? 0,
+                EsPoliza: null,
+                PorcentajePrimaAplicado: Number(detalle.PorcentajePrimaAplicado) ?? 0,
+                ValorAseguradoUsado: Number(detalle.ValorAseguradoUsado) ?? 0,
             }))
         },
     });
@@ -127,6 +130,7 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
     };
 
     const onSubmit = async (valores: iPatchCotizacion) => {
+        console.log(valores)
         try {
             const primaTotal = calcularPrimaTotal();
             const datosActualizados = {

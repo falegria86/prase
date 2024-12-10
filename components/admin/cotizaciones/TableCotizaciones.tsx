@@ -253,7 +253,7 @@ export const TableCotizaciones = ({
                       >
                         {cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
                           ? 'ACTIVA'
-                          : 'NO ACTIVA'
+                          : 'ACTIVAR'
                         }
                       </div>
                     </TooltipTrigger>

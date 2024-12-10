@@ -8,7 +8,7 @@ import { VehiculoPolizaStep } from "./VehiculoPolizaStep";
 import DocumentosPolizaStep from "./DocumentosPolizaStep";
 
 const pasos = [
-    { title: "Cliente", icon: "Car" },
+    { title: "Cliente", icon: "User" },
     { title: "Vehículo", icon: "Car" },
     { title: "Póliza", icon: "FileText" },
 ];
