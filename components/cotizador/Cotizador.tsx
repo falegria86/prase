@@ -26,7 +26,7 @@ import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInter
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
-import { manejarEnvioCotizacion } from "./ManejarEnvioCotizacion";
+import { manejarCotizacion } from "./ManejarCotizacion";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -151,21 +151,15 @@ export const Cotizador = ({
 
     const handleFinalSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
-        const datos = form.getValues();
-
-        const datosFormulario = {
-            ...datos,
-            Marca: datos.marcaNombre,
-            Version: datos.versionNombre,
-            Submarca: datos.modeloNombre,
-        }
+        const datosFormulario = form.getValues();
 
         startTransition(async () => {
             try {
-                const resultado = await manejarEnvioCotizacion({
+                const resultado = await manejarCotizacion({
                     datosFormulario,
                     tiposVehiculo,
-                    usosVehiculo
+                    usosVehiculo,
+                    guardarCotizacion: true // Aquí especificamos que queremos guardar
                 });
 
                 if (resultado.success) {
@@ -174,6 +168,14 @@ export const Cotizador = ({
                         description: "La cotización se ha creado y enviado exitosamente.",
                         variant: "default",
                     });
+
+                    if (!resultado.correoEnviado) {
+                        toast({
+                            title: "Advertencia",
+                            description: "La cotización se creó pero hubo un problema al enviar el correo.",
+                            variant: "warning",
+                        });
+                    }
 
                     form.reset();
                     router.push('/cotizaciones/lista');

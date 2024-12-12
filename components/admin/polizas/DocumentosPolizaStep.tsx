@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,11 +26,10 @@ import {
 } from "@/components/ui/dialog";
 
 const TIPOS_ARCHIVO_PERMITIDOS = ["image/jpeg", "image/png", "application/pdf"];
-const TAMANO_MAXIMO = 5 * 1024 * 1024; // 5MB
+const TAMANO_MAXIMO = 5 * 1024 * 1024;
 
 const documentosSchema = z.object({
-    ine: z
-        .custom<FileList>()
+    ine: z.custom<FileList>()
         .refine((archivos) => archivos?.length === 1, "La INE es requerida")
         .refine(
             (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
@@ -41,9 +39,8 @@ const documentosSchema = z.object({
             (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
             "Solo se permiten archivos JPG, PNG o PDF"
         ),
-    licencia: z
-        .custom<FileList>()
-        .refine((archivos) => archivos?.length === 1, "La licencia es requerida")
+    tarjetaCirculacion: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La tarjeta de circulación es requerida")
         .refine(
             (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
             "El archivo no debe superar 5MB"
@@ -52,23 +49,78 @@ const documentosSchema = z.object({
             (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
             "Solo se permiten archivos JPG, PNG o PDF"
         ),
-    comprobanteDomicilio: z
-        .custom<FileList>()
-        .refine((archivos) => archivos?.length === 1, "El comprobante es requerido")
+    cartaFactura: z.custom<FileList>()
+        .optional(),
+    comprobanteDomicilio: z.custom<FileList>()
+        .optional(),
+    fotoFrontal: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La foto frontal es requerida")
         .refine(
             (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
             "El archivo no debe superar 5MB"
         )
         .refine(
             (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
-            "Solo se permiten archivos JPG, PNG o PDF"
+            "Solo se permiten archivos JPG o PNG"
+        ),
+    fotoTrasera: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La foto trasera es requerida")
+        .refine(
+            (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
+            "El archivo no debe superar 5MB"
+        )
+        .refine(
+            (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
+            "Solo se permiten archivos JPG o PNG"
+        ),
+    fotoLateralIzquierda: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La foto lateral izquierda es requerida")
+        .refine(
+            (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
+            "El archivo no debe superar 5MB"
+        )
+        .refine(
+            (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
+            "Solo se permiten archivos JPG o PNG"
+        ),
+    fotoLateralDerecha: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La foto lateral derecha es requerida")
+        .refine(
+            (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
+            "El archivo no debe superar 5MB"
+        )
+        .refine(
+            (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
+            "Solo se permiten archivos JPG o PNG"
+        ),
+    fotoVIN: z.custom<FileList>()
+        .refine((archivos) => archivos?.length === 1, "La foto del VIN es requerida")
+        .refine(
+            (archivos) => archivos?.[0]?.size <= TAMANO_MAXIMO,
+            "El archivo no debe superar 5MB"
+        )
+        .refine(
+            (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
+            "Solo se permiten archivos JPG o PNG"
         ),
 });
 
 type DocumentosFormData = z.infer<typeof documentosSchema>;
 
+interface ArchivosBase64 {
+    ine?: string;
+    tarjetaCirculacion?: string;
+    cartaFactura?: string;
+    comprobanteDomicilio?: string;
+    fotoFrontal?: string;
+    fotoTrasera?: string;
+    fotoLateralIzquierda?: string;
+    fotoLateralDerecha?: string;
+    fotoVIN?: string;
+}
+
 interface DocumentosPolizaStepProps {
-    alSubmit: (documentos: FormData) => void;
+    alSubmit: (documentos: ArchivosBase64) => void;
 }
 
 interface PrevisualizacionArchivoProps {
@@ -77,27 +129,13 @@ interface PrevisualizacionArchivoProps {
 }
 
 const PrevisualizacionArchivo = ({ archivo, onEliminar }: PrevisualizacionArchivoProps) => {
-    const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
     const esImagen = archivo.type.startsWith('image/');
     const esPDF = archivo.type === 'application/pdf';
+    const vistaPrevia = esImagen ? URL.createObjectURL(archivo) : undefined;
 
-    useEffect(() => {
-        if (esImagen) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setVistaPrevia(reader.result as string);
-            };
-            reader.readAsDataURL(archivo);
-        } else if (esPDF) {
-            setVistaPrevia(URL.createObjectURL(archivo));
-        }
-
-        return () => {
-            if (vistaPrevia && esPDF) {
-                URL.revokeObjectURL(vistaPrevia);
-            }
-        };
-    }, [archivo, esImagen, esPDF]);
+    if (vistaPrevia) {
+        window.addEventListener('beforeunload', () => URL.revokeObjectURL(vistaPrevia));
+    }
 
     return (
         <div className="space-y-2">
@@ -118,9 +156,9 @@ const PrevisualizacionArchivo = ({ archivo, onEliminar }: PrevisualizacionArchiv
                                 className="w-full h-auto max-h-[80vh] object-contain"
                             />
                         )}
-                        {esPDF && vistaPrevia && (
+                        {esPDF && (
                             <iframe
-                                src={vistaPrevia}
+                                src={URL.createObjectURL(archivo)}
                                 className="w-full h-[80vh]"
                                 title="Vista previa PDF"
                             />
@@ -136,7 +174,7 @@ const PrevisualizacionArchivo = ({ archivo, onEliminar }: PrevisualizacionArchiv
                     <X className="h-4 w-4" />
                 </Button>
             </div>
-            {vistaPrevia && esImagen && (
+            {esImagen && vistaPrevia && (
                 <div className="relative w-full h-32 bg-muted rounded-md overflow-hidden">
                     <img
                         src={vistaPrevia}
@@ -145,7 +183,7 @@ const PrevisualizacionArchivo = ({ archivo, onEliminar }: PrevisualizacionArchiv
                     />
                 </div>
             )}
-            {vistaPrevia && esPDF && (
+            {esPDF && (
                 <div className="relative w-full h-32 bg-muted rounded-md overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center">
                         <File className="h-12 w-12 text-muted-foreground" />
@@ -161,12 +199,40 @@ export const DocumentosPolizaStep = ({ alSubmit }: DocumentosPolizaStepProps) =>
         resolver: zodResolver(documentosSchema),
     });
 
-    const manejarSubmit = (datos: DocumentosFormData) => {
-        const formData = new FormData();
-        if (datos.ine[0]) formData.append("ine", datos.ine[0]);
-        if (datos.licencia[0]) formData.append("licencia", datos.licencia[0]);
-        if (datos.comprobanteDomicilio[0]) formData.append("comprobanteDomicilio", datos.comprobanteDomicilio[0]);
-        alSubmit(formData);
+    const manejarSubmit = async (datos: DocumentosFormData) => {
+        const camposArchivo = {
+            ine: datos.ine,
+            tarjetaCirculacion: datos.tarjetaCirculacion,
+            cartaFactura: datos.cartaFactura,
+            comprobanteDomicilio: datos.comprobanteDomicilio,
+            fotoFrontal: datos.fotoFrontal,
+            fotoTrasera: datos.fotoTrasera,
+            fotoLateralIzquierda: datos.fotoLateralIzquierda,
+            fotoLateralDerecha: datos.fotoLateralDerecha,
+            fotoVIN: datos.fotoVIN
+        };
+
+        const archivosBase64: Record<string, string> = {};
+
+        await Promise.all(
+            Object.entries(camposArchivo).map(async ([nombre, archivos]) => {
+                if (archivos?.[0]) {
+                    const base64 = await convertirArchivoABase64(archivos[0]);
+                    archivosBase64[nombre] = base64;
+                }
+            })
+        );
+
+        alSubmit(archivosBase64);
+    };
+
+    const convertirArchivoABase64 = (archivo: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const lector = new FileReader();
+            lector.readAsDataURL(archivo);
+            lector.onload = () => resolve(lector.result as string);
+            lector.onerror = (error) => reject(error);
+        });
     };
 
     return (
@@ -186,7 +252,7 @@ export const DocumentosPolizaStep = ({ alSubmit }: DocumentosPolizaStepProps) =>
                                 name="ine"
                                 render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
-                                        <FormLabel>INE / IFE</FormLabel>
+                                        <FormLabel>INE / IFE *</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
                                                 <Input
@@ -210,10 +276,37 @@ export const DocumentosPolizaStep = ({ alSubmit }: DocumentosPolizaStepProps) =>
 
                             <FormField
                                 control={form.control}
-                                name="licencia"
+                                name="tarjetaCirculacion"
                                 render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
-                                        <FormLabel>Licencia de Conducir</FormLabel>
+                                        <FormLabel>Tarjeta de Circulación *</FormLabel>
+                                        <FormControl>
+                                            <div className="space-y-2">
+                                                <Input
+                                                    type="file"
+                                                    accept={TIPOS_ARCHIVO_PERMITIDOS.join(",")}
+                                                    onChange={(e) => onChange(e.target.files)}
+                                                    {...field}
+                                                />
+                                                {value?.[0] && (
+                                                    <PrevisualizacionArchivo
+                                                        archivo={value[0]}
+                                                        onEliminar={() => onChange(new DataTransfer().files)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="cartaFactura"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormLabel>Carta Factura (Opcional)</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
                                                 <Input
@@ -240,7 +333,7 @@ export const DocumentosPolizaStep = ({ alSubmit }: DocumentosPolizaStepProps) =>
                                 name="comprobanteDomicilio"
                                 render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
-                                        <FormLabel>Comprobante de Domicilio</FormLabel>
+                                        <FormLabel>Comprobante de Domicilio (Opcional)</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
                                                 <Input
@@ -261,9 +354,149 @@ export const DocumentosPolizaStep = ({ alSubmit }: DocumentosPolizaStepProps) =>
                                     </FormItem>
                                 )}
                             />
+
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4">Fotografías del Vehículo *</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="fotoFrontal"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormLabel>Frontal</FormLabel>
+                                                <FormControl>
+                                                    <div className="space-y-2">
+                                                        <Input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png"
+                                                            onChange={(e) => onChange(e.target.files)}
+                                                            {...field}
+                                                        />
+                                                        {value?.[0] && (
+                                                            <PrevisualizacionArchivo
+                                                                archivo={value[0]}
+                                                                onEliminar={() => onChange(new DataTransfer().files)}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="fotoTrasera"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormLabel>Trasera</FormLabel>
+                                                <FormControl>
+                                                    <div className="space-y-2">
+                                                        <Input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png"
+                                                            onChange={(e) => onChange(e.target.files)}
+                                                            {...field}
+                                                        />
+                                                        {value?.[0] && (
+                                                            <PrevisualizacionArchivo
+                                                                archivo={value[0]}
+                                                                onEliminar={() => onChange(new DataTransfer().files)}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="fotoLateralIzquierda"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormLabel>Lateral Izquierda</FormLabel>
+                                                <FormControl>
+                                                    <div className="space-y-2">
+                                                        <Input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png"
+                                                            onChange={(e) => onChange(e.target.files)}
+                                                            {...field}
+                                                        />
+                                                        {value?.[0] && (
+                                                            <PrevisualizacionArchivo
+                                                                archivo={value[0]}
+                                                                onEliminar={() => onChange(new DataTransfer().files)}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="fotoLateralDerecha"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormLabel>Lateral Derecha</FormLabel>
+                                                <FormControl>
+                                                    <div className="space-y-2">
+                                                        <Input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png"
+                                                            onChange={(e) => onChange(e.target.files)}
+                                                            {...field}
+                                                        />
+                                                        {value?.[0] && (
+                                                            <PrevisualizacionArchivo
+                                                                archivo={value[0]}
+                                                                onEliminar={() => onChange(new DataTransfer().files)}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="fotoVIN"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormLabel>Fotografía del VIN (Número de Serie) *</FormLabel>
+                                        <FormControl>
+                                            <div className="space-y-2">
+                                                <Input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png"
+                                                    onChange={(e) => onChange(e.target.files)}
+                                                    {...field}
+                                                />
+                                                {value?.[0] && (
+                                                    <PrevisualizacionArchivo
+                                                        archivo={value[0]}
+                                                        onEliminar={() => onChange(new DataTransfer().files)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
 
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" >
                             <Upload className="mr-2 h-4 w-4" />
                             Subir Documentos
                         </Button>

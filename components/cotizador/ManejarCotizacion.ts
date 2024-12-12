@@ -1,0 +1,173 @@
+import { jsPDF } from "jspdf";
+import { z } from "zod";
+import { nuevaCotizacionSchema } from "@/schemas/cotizadorSchema";
+import {
+    iGetTiposVehiculo,
+    iGetUsosVehiculo,
+} from "@/interfaces/CatVehiculosInterface";
+import { iSendMail, iPostCotizacion, iGetCotizacion } from "@/interfaces/CotizacionInterface";
+import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
+import { postCotizacion, sendMail } from "@/actions/CotizadorActions";
+
+type FormData = z.infer<typeof nuevaCotizacionSchema>;
+
+interface OpcionesCotizacion {
+    datosFormulario: FormData;
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
+    guardarCotizacion?: boolean;
+}
+
+const obtenerPDFBase64 = (doc: jsPDF): string => {
+    const pdfBase64 = doc.output("datauristring");
+    return pdfBase64.split(",")[1];
+};
+
+const mapearDetallesParaAPI = (detalles: FormData['detalles']): any => {
+    return detalles.map((detalle) => ({
+        CoberturaID: detalle.CoberturaID,
+        MontoSumaAsegurada: detalle.MontoSumaAsegurada,
+        MontoDeducible: detalle.MontoDeducible,
+        PrimaCalculada: detalle.PrimaCalculada,
+        PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
+        ValorAseguradoUsado: detalle.ValorAseguradoUsado,
+        DeducibleID: 4,
+        NombreCobertura: "",
+        Descripcion: "",
+        Obligatoria: false,
+        DisplayDeducible: "",
+        TipoMoneda: "MXN",
+        EsAmparada: false,
+        SumaAseguradaPorPasajero: false,
+        TipoDeducible: "",
+    }));
+};
+
+const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any): iGetCotizacion => {
+    return {
+        CotizacionID: respuestaCotizacion?.CotizacionID || 0,
+        UsuarioID: datosFormulario.UsuarioID,
+        FechaCotizacion: new Date(),
+        PrimaTotal: datosFormulario.PrimaTotal.toString(),
+        EstadoCotizacion: datosFormulario.EstadoCotizacion,
+        TipoPagoID: datosFormulario.TipoPagoID,
+        PorcentajeDescuento: datosFormulario.PorcentajeDescuento.toString(),
+        DerechoPoliza: datosFormulario.DerechoPoliza.toString(),
+        TipoSumaAseguradaID: datosFormulario.TipoSumaAseguradaID,
+        SumaAsegurada: datosFormulario.SumaAsegurada.toString(),
+        PeriodoGracia: datosFormulario.PeriodoGracia,
+        PaqueteCoberturaID: datosFormulario.PaqueteCoberturaID,
+        FechaUltimaActualizacion: null,
+        UsoVehiculo: datosFormulario.UsoVehiculo,
+        TipoVehiculo: datosFormulario.TipoVehiculo,
+        AMIS: null,
+        NombrePersona: datosFormulario.NombrePersona,
+        UnidadSalvamento: Number(datosFormulario.UnidadSalvamento),
+        VIN: datosFormulario.VIN,
+        CP: datosFormulario.CP,
+        Marca: datosFormulario.Marca,
+        Submarca: datosFormulario.Submarca,
+        Modelo: datosFormulario.Modelo,
+        Version: datosFormulario.Version,
+        Correo: datosFormulario.Correo,
+        Telefono: datosFormulario.Telefono,
+        detalles: datosFormulario.detalles.map(detalle => ({
+            DetalleID: 0,
+            PolizaID: null,
+            CoberturaID: detalle.CoberturaID,
+            MontoSumaAsegurada: detalle.MontoSumaAsegurada.toString(),
+            MontoDeducible: detalle.MontoDeducible.toString(),
+            PrimaCalculada: detalle.PrimaCalculada.toString(),
+            EsPoliza: null,
+            PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado.toString(),
+            ValorAseguradoUsado: detalle.ValorAseguradoUsado.toString(),
+        }))
+    };
+};
+
+export const manejarCotizacion = async ({
+    datosFormulario,
+    tiposVehiculo,
+    usosVehiculo,
+    guardarCotizacion = false,
+}: OpcionesCotizacion) => {
+    try {
+        let respuestaCotizacion;
+
+        if (guardarCotizacion) {
+            const cotizacionParaAPI: iPostCotizacion = {
+                UsuarioID: datosFormulario.UsuarioID,
+                EstadoCotizacion: datosFormulario.EstadoCotizacion,
+                PrimaTotal: datosFormulario.PrimaTotal,
+                TipoPagoID: datosFormulario.TipoPagoID,
+                PorcentajeDescuento: datosFormulario.PorcentajeDescuento,
+                DerechoPoliza: datosFormulario.DerechoPoliza,
+                TipoSumaAseguradaID: datosFormulario.TipoSumaAseguradaID,
+                SumaAsegurada: datosFormulario.SumaAsegurada.toString(),
+                PeriodoGracia: datosFormulario.PeriodoGracia,
+                UsoVehiculo: datosFormulario.UsoVehiculo,
+                TipoVehiculo: datosFormulario.TipoVehiculo,
+                meses: datosFormulario.meses,
+                vigencia: datosFormulario.vigencia,
+                NombrePersona: datosFormulario.NombrePersona,
+                Correo: datosFormulario.Correo,
+                Telefono: datosFormulario.Telefono,
+                UnidadSalvamento: datosFormulario.UnidadSalvamento,
+                VIN: datosFormulario.VIN,
+                CP: datosFormulario.CP,
+                Marca: datosFormulario.Marca,
+                Submarca: datosFormulario.Submarca,
+                Modelo: datosFormulario.Modelo,
+                Version: datosFormulario.Version,
+                inicioVigencia: datosFormulario.inicioVigencia,
+                finVigencia: new Date(datosFormulario.finVigencia),
+                detalles: mapearDetallesParaAPI(datosFormulario.detalles),
+                versionNombre: datosFormulario.versionNombre,
+                marcaNombre: datosFormulario.marcaNombre,
+                modeloNombre: datosFormulario.modeloNombre,
+                Estado: datosFormulario.Estado,
+                minSumaAsegurada: datosFormulario.minSumaAsegurada.toString(),
+                maxSumaAsegurada: datosFormulario.maxSumaAsegurada.toString(),
+                PaqueteCoberturaID: datosFormulario.PaqueteCoberturaID,
+            };
+
+            respuestaCotizacion = await postCotizacion(cotizacionParaAPI);
+            if (!respuestaCotizacion) {
+                throw new Error("Error al crear la cotización");
+            }
+        }
+
+        const datosPDF = mapearDatosParaPDF(datosFormulario, respuestaCotizacion);
+
+        const doc = await generarPDFCotizacion({
+            datos: datosPDF,
+            tiposVehiculo,
+            usosVehiculo,
+            isSave: false,
+        });
+
+        if (datosFormulario.Correo) {
+            const pdfBase64 = obtenerPDFBase64(doc);
+            const datosCorreo: iSendMail = {
+                to: datosFormulario.Correo,
+                subject: "Cotización PRASE Seguros",
+                attachmentBase64: pdfBase64,
+                filename: `cotizacion_${datosFormulario.Marca}_${datosFormulario.Submarca}.pdf`,
+            };
+
+            await sendMail(datosCorreo);
+        }
+
+        return {
+            success: true,
+            cotizacion: respuestaCotizacion,
+            correoEnviado: !!datosFormulario.Correo,
+        };
+    } catch (error) {
+        console.error("Error en el proceso:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error desconocido",
+        };
+    }
+};

@@ -76,6 +76,7 @@ export const nuevaCotizacionSchema = z.object({
     marcaNombre: z.string(),
     modeloNombre: z.string(),
     Estado: z.string(),
+    tipoCalculo: z.enum(["fijo", "cobertura"]),
 }).refine(
     (data) => {
         if (data.minSumaAsegurada > 0 && data.maxSumaAsegurada > 0) {

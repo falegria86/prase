@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,6 +29,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 
 const vehiculoSchema = z.object({
     vehiculoExistente: z.string().optional(),
@@ -45,39 +46,41 @@ const vehiculoSchema = z.object({
 
 type VehiculoFormData = z.infer<typeof vehiculoSchema>;
 
-interface VehiculoStepProps {
+interface VehiculoPolizaStepProps {
     clienteId: number;
+    cotizacion: iGetCotizacion;
     alSubmit: (idVehiculo: number) => void;
     zona: string;
 }
 
-export const VehiculoPolizaStep = ({ clienteId, alSubmit, zona }: VehiculoStepProps) => {
+export const VehiculoPolizaStep = ({ 
+    clienteId, 
+    cotizacion, 
+    alSubmit, 
+    zona 
+}: VehiculoPolizaStepProps) => {
     const [vehiculos, setVehiculos] = useState<iGetVehiculo[]>([]);
     const vehiculosCliente = vehiculos.filter(v => v.ClienteID === clienteId);
 
     const form = useForm<VehiculoFormData>({
         resolver: zodResolver(vehiculoSchema),
         defaultValues: {
-            marca: "",
-            modelo: "",
-            anoFabricacion: new Date().getFullYear(),
-            tipoVehiculo: "",
+            marca: cotizacion.Marca,
+            modelo: cotizacion.Modelo,
+            anoFabricacion: Number(cotizacion.Modelo),
+            tipoVehiculo: cotizacion.TipoVehiculo.toString(),
             valorVehiculo: 0,
             valorFactura: 0,
-            usoVehiculo: "",
-            zonaResidencia: zona ?? "",
+            usoVehiculo: cotizacion.UsoVehiculo.toString(),
+            zonaResidencia: zona,
         },
     });
 
     useEffect(() => {
         const cargarVehiculos = async () => {
-            try {
-                const respuesta = await getAllVehiculos();
-                if (respuesta) {
-                    setVehiculos(respuesta);
-                }
-            } catch (error) {
-                console.error('Error al cargar vehículos:', error);
+            const respuesta = await getAllVehiculos();
+            if (respuesta) {
+                setVehiculos(respuesta);
             }
         };
 
@@ -88,14 +91,14 @@ export const VehiculoPolizaStep = ({ clienteId, alSubmit, zona }: VehiculoStepPr
         if (valorSeleccionado === "nuevo") {
             form.reset({
                 vehiculoExistente: undefined,
-                marca: "",
-                modelo: "",
-                anoFabricacion: new Date().getFullYear(),
-                tipoVehiculo: "",
+                marca: cotizacion.Marca,
+                modelo: cotizacion.Modelo,
+                anoFabricacion: Number(cotizacion.Modelo),
+                tipoVehiculo: cotizacion.TipoVehiculo.toString(),
                 valorVehiculo: 0,
                 valorFactura: 0,
-                usoVehiculo: "",
-                zonaResidencia: "",
+                usoVehiculo: cotizacion.UsoVehiculo.toString(),
+                zonaResidencia: zona,
             });
         } else {
             const vehiculoSeleccionado = vehiculos.find(
@@ -139,7 +142,7 @@ export const VehiculoPolizaStep = ({ clienteId, alSubmit, zona }: VehiculoStepPr
 
         try {
             const respuesta = await postVehiculo(datosVehiculo);
-            if (respuesta && respuesta.VehiculoID) {
+            if (respuesta?.VehiculoID) {
                 alSubmit(respuesta.VehiculoID);
             }
         } catch (error) {

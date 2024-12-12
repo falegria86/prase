@@ -1,6 +1,6 @@
 "use server";
 
-import { iPatchPoliza, iPostPoliza } from "@/interfaces/CatPolizas";
+import { iGetPolizas, iPatchPoliza, iPostPoliza } from "@/interfaces/CatPolizas";
 
 const url = process.env.API_URL;
 
@@ -12,7 +12,7 @@ export const getPolizas = async () => {
 
         if (!resp.ok) return null;
 
-        const data = await resp.json();
+        const data: iGetPolizas[] = await resp.json();
         return data;
     } catch (error) {
         console.log("Error al obtener pólizas: ", error);
@@ -57,13 +57,14 @@ export const patchPoliza = async (id: number, body: iPatchPoliza) => {
     }
 };
 
-export const deletePoliza = async (id: number) => {
+export const deletePoliza = async (id: number, body: { motivo: string }) => {
     try {
         const resp = await fetch(`${url}/polizas/${id}/admin`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify(body),
         });
 
         if (resp.ok) {

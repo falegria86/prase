@@ -198,9 +198,10 @@ export const CoverageStep = ({
   );
 
   const manejarCambioTipoCalculo = useCallback(
-    (valor: string) => {
+    (valor: TipoCalculo) => {
       setTipoCalculo(valor as TipoCalculo);
       form.setValue("PaqueteCoberturaID", 0);
+      form.setValue("tipoCalculo", valor)
       setCoberturasSeleccionadas([]);
       setMontoFijo("");
       setIsStepValid?.(false);

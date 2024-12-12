@@ -18,6 +18,7 @@ interface ActivarPolizaFormProps {
 }
 
 export const ActivarPolizaForm = ({ cotizacion }: ActivarPolizaFormProps) => {
+    console.log(cotizacion)
     const [pasoActual, setPasoActual] = useState(1);
     const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
     const [clienteId, setClienteId] = useState<number | null>(null);
@@ -37,7 +38,7 @@ export const ActivarPolizaForm = ({ cotizacion }: ActivarPolizaFormProps) => {
     };
 
     const manejarSubmitDocumentos = (data: any) => {
-        console.log(data)
+        console.log("data", data)
     }
     return (
         <div className="space-y-6">
@@ -59,6 +60,7 @@ export const ActivarPolizaForm = ({ cotizacion }: ActivarPolizaFormProps) => {
 
             {pasoActual === 2 && clienteId && (
                 <VehiculoPolizaStep
+                    cotizacion={cotizacion}
                     clienteId={clienteId}
                     zona={zonaResidencia}
                     alSubmit={manejarSubmitVehiculo}

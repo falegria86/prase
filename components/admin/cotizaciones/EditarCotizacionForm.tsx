@@ -128,7 +128,7 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
     };
 
     const onSubmit = async (valores: iPatchCotizacion) => {
-        console.log(valores)
+        // console.log(valores)
         try {
             const primaTotal = calcularPrimaTotal();
             const datosActualizados = {

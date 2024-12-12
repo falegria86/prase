@@ -50,6 +50,7 @@ import { obtenerValorDeducible, obtenerValorSumaAsegurada } from "@/lib/pdf.util
 
 export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
     const formData = form.getValues();
+    const tipoCalculo = formData.tipoCalculo;
 
     useEffect(() => {
         const validarCampos = async () => {
@@ -262,7 +263,9 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                     <TableHead>Cobertura</TableHead>
                                     <TableHead>Suma Asegurada</TableHead>
                                     <TableHead>Deducible</TableHead>
-                                    <TableHead>Prima</TableHead>
+                                    {tipoCalculo !== "fijo" && (
+                                        <TableHead>Prima</TableHead>
+                                    )}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -289,9 +292,11 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                         <TableCell>
                                             {obtenerValorDeducible(detalle)}
                                         </TableCell>
-                                        <TableCell>
-                                            {formatCurrency(detalle.PrimaCalculada)}
-                                        </TableCell>
+                                        {tipoCalculo !== "fijo" && (
+                                            <TableCell>
+                                                {formatCurrency(detalle.PrimaCalculada)}
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -304,12 +309,14 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <CreditCard className="h-5 w-5" />
-                            Resumen de Costos
+                            {tipoCalculo === "fijo" ? "Monto Fijo" : "Resumen de Costos"}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex justify-between items-center pt-2">
-                            <span className="font-medium">Costo Total Anual</span>
+                            <span className="font-medium">
+                                {tipoCalculo === "fijo" ? "Monto Total" : "Costo Total Anual"}
+                            </span>
                             <span className="text-2xl font-bold text-primary">
                                 {formatCurrency(formData.PrimaTotal)}
                             </span>
