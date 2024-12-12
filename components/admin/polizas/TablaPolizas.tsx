@@ -52,6 +52,7 @@ import { deletePoliza, patchPoliza } from "@/actions/PolizasActions";
 import { EditarPolizaForm } from "./EditarPolizaForm";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { formatDateFullTz } from "@/lib/format-date";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -71,14 +72,6 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
 
     const { toast } = useToast();
     const router = useRouter();
-
-    const formatearFecha = (fecha: Date) => {
-        return new Date(fecha).toLocaleDateString("es-MX", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
-    };
 
     const polizasFiltradas = useMemo(() => {
         if (!terminoBusqueda) return polizas;
@@ -211,8 +204,8 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                 </TableCell>
                                 <TableCell>
                                     <div className="text-sm">
-                                        <p>Del: {formatearFecha(poliza.FechaInicio)}</p>
-                                        <p>Al: {formatearFecha(poliza.FechaFin)}</p>
+                                        <p>Del: {formatDateFullTz(poliza.FechaInicio)}</p>
+                                        <p>Al: {formatDateFullTz(poliza.FechaFin)}</p>
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -346,7 +339,7 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                                                                 </Badge>
                                                                             </TableCell>
                                                                             <TableCell>
-                                                                                {formatearFecha(version.FechaVersion || new Date())}
+                                                                                {formatDateFullTz(version.FechaVersion || new Date())}
                                                                             </TableCell>
                                                                             <TableCell>{version.NumeroPagos}</TableCell>
                                                                             <TableCell>

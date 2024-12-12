@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { editarPolizaSchema } from "@/schemas/polizasSchema";
 import type { iGetPolizas, iPatchPoliza } from "@/interfaces/CatPolizas";
 import { formatCurrency } from "@/lib/format";
+import { Save } from "lucide-react";
 
 interface EditarPolizaFormProps {
     poliza: iGetPolizas;
@@ -27,8 +28,6 @@ export const EditarPolizaForm = ({ poliza, onGuardar }: EditarPolizaFormProps) =
             // FechaInicio: new Date(poliza.FechaInicio),
             // FechaFin: new Date(poliza.FechaFin),
             PrimaTotal: Number(poliza.PrimaTotal),
-            TotalPagos: Number(poliza.TotalPagos),
-            NumeroPagos: poliza.NumeroPagos,
             DescuentoProntoPago: Number(poliza.DescuentoProntoPago || 0),
             // TieneReclamos: poliza.TieneReclamos,
         },
@@ -65,42 +64,6 @@ export const EditarPolizaForm = ({ poliza, onGuardar }: EditarPolizaFormProps) =
 
                     <FormField
                         control={form.control}
-                        name="TotalPagos"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Total de Pagos</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="NumeroPagos"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Número de Pagos</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
                         name="DescuentoProntoPago"
                         render={({ field }) => (
                             <FormItem>
@@ -121,7 +84,8 @@ export const EditarPolizaForm = ({ poliza, onGuardar }: EditarPolizaFormProps) =
                     />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit">
+                    <Save className="w-4 h-4 mr-2" />
                     Guardar Cambios
                 </Button>
             </form>

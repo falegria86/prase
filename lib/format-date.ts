@@ -6,3 +6,22 @@ export const formatDateLocal = (dateString: Date) => {
 
     return `${day}/${month}/${year}`;
 }
+
+export const formatDateFullTz = (dateString: Date) => {
+    const date = fixDate(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNames = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} de ${month} de ${year}`;
+}
+
+export const fixDate = (date: Date) => {
+    const fechaParsed = new Date(date);
+    const offset = fechaParsed.getTimezoneOffset() * 60000;
+    return new Date(fechaParsed.getTime() + offset);
+}
