@@ -468,9 +468,10 @@ const ModalesControl = ({
         <DialogHeader>
           <DialogTitle>Activar Póliza</DialogTitle>
         </DialogHeader>
-        {(cotizacionSeleccionada && tiposPago && tiposPago.length > 0) && (
+        {(cotizacionSeleccionada && tiposPago && tiposPago.length > 0 && coberturas && coberturas.length > 0) && (
           <ActivarPolizaForm
             cotizacion={cotizacionSeleccionada}
+            coberturas={coberturas}
           />
         )}
       </DialogContent>

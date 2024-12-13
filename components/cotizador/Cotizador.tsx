@@ -153,13 +153,20 @@ export const Cotizador = ({
         e.preventDefault();
         const datosFormulario = form.getValues();
 
+        const datosFixed = {
+            ...datosFormulario,
+            Marca: datosFormulario.marcaNombre,
+            Submarca: datosFormulario.modeloNombre,
+            Version: datosFormulario.versionNombre,
+        }
+
         startTransition(async () => {
             try {
                 const resultado = await manejarCotizacion({
-                    datosFormulario,
+                    datosFormulario: datosFixed,
                     tiposVehiculo,
                     usosVehiculo,
-                    guardarCotizacion: true // Aquí especificamos que queremos guardar
+                    guardarCotizacion: true
                 });
 
                 if (resultado.success) {

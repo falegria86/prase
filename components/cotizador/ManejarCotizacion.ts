@@ -143,7 +143,7 @@ export const manejarCotizacion = async ({
             datos: datosPDF,
             tiposVehiculo,
             usosVehiculo,
-            isSave: false,
+            isSave: guardarCotizacion,
         });
 
         if (datosFormulario.Correo) {

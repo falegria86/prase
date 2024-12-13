@@ -1,8 +1,8 @@
 export interface iPostPoliza {
     CotizacionID: number;
     TipoPagoID: number;
-    FechaInicio: Date;
-    FechaFin: Date;
+    FechaInicio: string;
+    FechaFin: string;
     PrimaTotal: number;
     TotalPagos: number;
     NumeroPagos: number;

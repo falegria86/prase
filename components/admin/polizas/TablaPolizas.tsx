@@ -172,7 +172,7 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                     placeholder="Buscar por número de póliza..."
                     value={terminoBusqueda}
                     onChange={(e) => setTerminoBusqueda(e.target.value)}
-                    className="max-w-sm"
+                    className="max-w-sm bg-white"
                 />
             </div>
             <Table>
