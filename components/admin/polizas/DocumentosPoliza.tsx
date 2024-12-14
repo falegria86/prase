@@ -47,7 +47,9 @@ export const DocumentosPoliza = ({ polizaId, tieneDocumentos }: DocumentosPoliza
                         DocumentoID: 1,
                         EstadoDocumento: "Activo"
                     };
-console.log(documento)
+
+                    console.log(documento)
+
                     const respuesta = await postDocumento(documento);
                     console.log(respuesta)
                     if (!respuesta || respuesta.statusCode === 413) {

@@ -25,7 +25,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 
-const TIPOS_ARCHIVO_PERMITIDOS = ["image/jpeg", "image/png", "application/pdf"];
+const TIPOS_ARCHIVO_PERMITIDOS = ["image/jpeg", "application/pdf"];
 const TAMANO_MAXIMO = 5 * 1024 * 1024;
 
 const documentosSchema = z.object({
@@ -37,7 +37,7 @@ const documentosSchema = z.object({
         )
         .refine(
             (archivos) => TIPOS_ARCHIVO_PERMITIDOS.includes(archivos?.[0]?.type),
-            "Solo se permiten archivos JPG, PNG o PDF"
+            "Solo se permiten archivos JPG PDF"
         ),
     tarjetaCirculacion: z.custom<FileList>()
         .refine((archivos) => archivos?.length === 1, "La tarjeta de circulación es requerida")
