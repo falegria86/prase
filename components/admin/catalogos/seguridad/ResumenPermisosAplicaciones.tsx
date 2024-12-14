@@ -69,8 +69,6 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
     const handleDelete = async (grupoId: number, aplicacionesIds: iDeleteApplicationGroup) => {
         startTransition(async () => {
             try {
-                console.log('entra');
-
                 const res = await deleteApplicationGroup(grupoId, aplicacionesIds);
 
                 if (!res) {

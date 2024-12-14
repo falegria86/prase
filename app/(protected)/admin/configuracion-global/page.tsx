@@ -5,7 +5,6 @@ import { TableConfiguracionGlobal } from "@/components/admin/configuracionGlobal
 
 export default async function ConfiguracionGlobal() {
     const configuraciones = await getAllConfiguracionGlobal();
-    console.log(configuraciones)
 
     return (
         <>

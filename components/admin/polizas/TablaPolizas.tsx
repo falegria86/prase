@@ -53,6 +53,7 @@ import { EditarPolizaForm } from "./EditarPolizaForm";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { formatDateFullTz } from "@/lib/format-date";
+import { DocumentosPoliza } from "./DocumentosPoliza";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -137,7 +138,7 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
 
         try {
             const respuesta = await patchPoliza(polizaParaEditar.PolizaID, datos);
-            if (respuesta === 'OK') {
+            if (respuesta) {
                 toast({
                     title: "Póliza actualizada",
                     description: "Los cambios se guardaron correctamente.",
@@ -181,6 +182,7 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                         <TableHead>Número de Póliza</TableHead>
                         <TableHead>Vigencia</TableHead>
                         <TableHead>Prima Total</TableHead>
+                        <TableHead>Documentos</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead>Pagos</TableHead>
                         <TableHead>Acciones</TableHead>
@@ -212,6 +214,12 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                     {formatCurrency(Number(poliza.PrimaTotal))}
                                 </TableCell>
                                 <TableCell>
+                                    <DocumentosPoliza
+                                        polizaId={poliza.PolizaID}
+                                        tieneDocumentos={poliza.tieneDocumentos || false}
+                                    />
+                                </TableCell>
+                                <TableCell>
                                     <Badge variant={obtenerColorEstado(poliza.EstadoPoliza)}>
                                         {poliza.EstadoPoliza}
                                     </Badge>
@@ -219,7 +227,7 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                 <TableCell>
                                     <div className="text-sm">
                                         <p>Total: {poliza.TotalPagos}</p>
-                                        <p>Realizados: {poliza.NumeroPagos}</p>
+                                        <p>Número de pagos: {poliza.NumeroPagos}</p>
                                     </div>
                                 </TableCell>
                                 <TableCell>

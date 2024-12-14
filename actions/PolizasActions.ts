@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetPolizas, iPatchPoliza, iPostPoliza } from "@/interfaces/CatPolizas";
+import { iGetDocumentos, iGetPolizas, iPatchPoliza, iPostDocumento, iPostPoliza } from "@/interfaces/CatPolizas";
 
 const url = process.env.API_URL;
 
@@ -29,7 +29,8 @@ export const postPoliza = async (poliza: iPostPoliza) => {
             body: JSON.stringify(poliza),
         });
 
-        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data;
     } catch (error) {
         console.log('Error al crear póliza: ', error);
     }
@@ -45,12 +46,8 @@ export const patchPoliza = async (id: number, body: iPatchPoliza) => {
             body: JSON.stringify(body),
         });
 
-        if (resp.ok) {
-            return 'OK';
-        } else {
-            console.error(`Error: ${resp.status} ${resp.statusText}`);
-            return null;
-        }
+        const data = await resp.json();
+        return data;
     } catch (error) {
         console.error('Error al eliminar póliza: ', error);
         return null;
@@ -67,14 +64,42 @@ export const deletePoliza = async (id: number, body: { motivo: string }) => {
             body: JSON.stringify(body),
         });
 
-        if (resp.ok) {
-            return 'OK';
-        } else {
-            console.error(`Error: ${resp.status} ${resp.statusText}`);
-            return null;
-        }
+        const data = await resp.json();
+        return data;
     } catch (error) {
         console.error('Error al eliminar póliza: ', error);
         return null;
     }
 };
+
+export const getDocumentos = async (idPoliza: number) => {
+    try {
+        const resp = await fetch(`${url}/documentos-digitalizados/poliza/${idPoliza}`, {
+            cache: "no-store",
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetDocumentos[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log("Error al obtener pólizas: ", error);
+    }
+};
+
+export const postDocumento = async (body: iPostDocumento) => {
+    try {
+        const resp = await fetch(`${url}/documentos-digitalizados/upload`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al insertar documento: ', error);
+    }
+}

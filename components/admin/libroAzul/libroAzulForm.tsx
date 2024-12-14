@@ -104,7 +104,6 @@ export default function LibroAzulForm() {
 
         try {
             const brandsData = await getMarcasPorAnio(apiKey, year)
-            console.log("🚀 ~ handleYearSelect ~ brandsData:", brandsData)
 
             if (brandsData) {
                 const validatedBrands = getMarcasPorAnioSchema.parse(brandsData)

@@ -472,6 +472,7 @@ const ModalesControl = ({
           <ActivarPolizaForm
             cotizacion={cotizacionSeleccionada}
             coberturas={coberturas}
+            tiposPago={tiposPago}
           />
         )}
       </DialogContent>

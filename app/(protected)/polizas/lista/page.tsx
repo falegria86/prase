@@ -1,11 +1,13 @@
+// page.tsx
 import { getCoberturas } from "@/actions/CatCoberturasActions";
-import { getTipoPagos } from "@/actions/CatTipoPagos";
-import { getPolizas } from "@/actions/PolizasActions"
+import { getPolizas, getDocumentos } from "@/actions/PolizasActions"
 import TablaPolizas from "@/components/admin/polizas/TablaPolizas";
 
 export default async function ListaPolizasPage() {
-    const polizas = await getPolizas();
-    const coberturas = await getCoberturas();
+    const [polizas, coberturas] = await Promise.all([
+        getPolizas(),
+        getCoberturas()
+    ]);
 
     if (!polizas || polizas.length === 0) {
         return (
@@ -19,10 +21,21 @@ export default async function ListaPolizasPage() {
         )
     }
 
+    const polizasConDocumentos = await Promise.all(
+        polizas.map(async (poliza) => {
+            const documentos = await getDocumentos(poliza.PolizaID);
+            return {
+                ...poliza,
+                tieneDocumentos: documentos ? documentos.length > 0 : false
+            };
+        })
+    );
+
     return (
         <>
+            <h2 className="text-3xl font-bold mb-6">Pólizas</h2>
             <TablaPolizas
-                polizas={polizas}
+                polizas={polizasConDocumentos}
                 coberturas={coberturas}
             />
         </>

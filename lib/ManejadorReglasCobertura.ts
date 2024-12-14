@@ -125,7 +125,6 @@ export const aplicarReglasPorCobertura = (
             0,
             valores.porcentajePrima * (1 + valorAjuste / 100)
           );
-          console.log(valores.porcentajePrima)
           break;
 
         case "RangoSeleccion":

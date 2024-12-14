@@ -1,14 +1,19 @@
 export interface iPostPoliza {
     CotizacionID: number;
-    TipoPagoID: number;
-    FechaInicio: string;
-    FechaFin: string;
+    FechaInicio: Date | string;
+    FechaFin: Date | string;
+    EstadoPoliza: string;
     PrimaTotal: number;
     TotalPagos: number;
     NumeroPagos: number;
     DescuentoProntoPago: number;
+    TipoPagoID: number;
+    VersionActual: number;
     TieneReclamos: boolean;
+    VehiculoID: number;
+    ClienteID: number;
 }
+
 
 export interface iPatchPoliza {
     TipoPagoID?: number;
@@ -37,6 +42,7 @@ export interface iGetPolizas {
     FechaEmision: Date;
     historial: Historial[];
     detalles: Detalle[];
+    tieneDocumentos?: boolean;
 }
 
 export interface Detalle {
@@ -64,4 +70,43 @@ export interface Historial {
     FechaCancelacion: Date | null;
     MotivoCancelacion: string | null;
     FechaVersion: Date | null;
+}
+
+export interface iGetDocumentos {
+    DocumentoDigitalizadoID: number;
+    RutaArchivo: string;
+    FechaCarga: Date;
+    EstadoDocumento: string;
+    Documento: Documento;
+    Poliza: Poliza;
+}
+
+export interface Documento {
+    DocumentoID: number;
+    NombreDocumento: string;
+    Descripcion: string;
+}
+
+export interface Poliza {
+    PolizaID: number;
+    NumeroPoliza: string;
+    FechaInicio: Date;
+    FechaFin: Date;
+    EstadoPoliza: string;
+    PrimaTotal: string;
+    TotalPagos: string;
+    NumeroPagos: number;
+    DescuentoProntoPago: string;
+    VersionActual: string;
+    TieneReclamos: boolean;
+    FechayHora: Date;
+    FechaEmision: Date;
+}
+
+
+export interface iPostDocumento {
+    Base64: string;
+    PolizaID: number;
+    DocumentoID: number;
+    EstadoDocumento: string;
 }
