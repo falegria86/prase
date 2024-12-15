@@ -71,6 +71,9 @@ const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any)
         Version: datosFormulario.Version,
         Correo: datosFormulario.Correo,
         Telefono: datosFormulario.Telefono,
+        Placa: null,
+        NoMotor: null,
+        UsuarioRegistro: null,
         detalles: datosFormulario.detalles.map(detalle => ({
             DetalleID: 0,
             PolizaID: null,

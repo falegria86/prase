@@ -25,6 +25,9 @@ export interface iGetCotizacion {
   Version: string;
   Correo: null | string;
   Telefono: null | string;
+  Placa: null | string;
+  NoMotor: null|string;
+  UsuarioRegistro: null | string;
   detalles: iDetallesGetCotizacion[];
 }
 

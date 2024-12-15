@@ -1,21 +1,20 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 import { StepIndicator } from "@/components/cotizador/StepIndicator";
 import { ClientePolizaStep } from "./ClientePolizaStep";
 import { VehiculoPolizaStep } from "./VehiculoPolizaStep";
 import { ResumenPolizaStep } from "./ResumenPolizaStep";
 import { DocumentosPolizaStep } from "./DocumentosPolizaStep";
-import { useToast } from "@/hooks/use-toast";
 import { postDocumento, postPoliza } from "@/actions/PolizasActions";
 import { patchCotizacion } from "@/actions/CotizadorActions";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iPostDocumento } from "@/interfaces/CatPolizas";
 import Loading from "@/app/(protected)/loading";
-import { DialogTitle } from "@radix-ui/react-dialog";
+import { generarPDFPoliza } from "./GenerarPDFPoliza";
 
 const pasos = [
     { title: "Cliente", icon: "User" },
@@ -152,13 +151,21 @@ export const ActivarPolizaForm = ({
                 };
 
                 const respuesta = await postPoliza(datosPoliza);
-
+                
                 if (respuesta) {
                     setPolizaId(respuesta.PolizaID);
 
                     await patchCotizacion(cotizacion.CotizacionID, {
                         EstadoCotizacion: "EMITIDA",
                     });
+
+                    const doc = await generarPDFPoliza({
+                        respuestaPoliza: respuesta,
+                        cotizacion,
+                        coberturas
+                    });
+
+                    doc.save(`poliza_${respuesta.NumeroPoliza}.pdf`);
 
                     toast({
                         title: "Póliza activada",

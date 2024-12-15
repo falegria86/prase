@@ -10,6 +10,9 @@ export interface iPostVehiculo {
     UsoVehiculo: string;
     ZonaResidencia: string;
     Salvamento: number;
+    Placas: string;
+    VIN: string;
+    NoMotor: string;
 }
 
 export interface iGetVehiculo {
@@ -25,6 +28,9 @@ export interface iGetVehiculo {
     UsoVehiculo: string;
     ZonaResidencia: string;
     Salvamento: number;
+    Placas: null | string;
+    VIN: null | string;
+    NoMotor: null | string;
 }
 
 export interface iPatchVehiculo {

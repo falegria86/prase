@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetDocumentos, iGetPolizas, iPatchPoliza, iPostDocumento, iPostPoliza } from "@/interfaces/CatPolizas";
+import { iGetDocumentos, iGetPolizas, iPatchPoliza, iPostDocumento, iPostPoliza, iPostPolizaResp } from "@/interfaces/CatPolizas";
 
 const url = process.env.API_URL;
 
@@ -29,7 +29,7 @@ export const postPoliza = async (poliza: iPostPoliza) => {
             body: JSON.stringify(poliza),
         });
 
-        const data = await resp.json();
+        const data: iPostPolizaResp = await resp.json();
         return data;
     } catch (error) {
         console.log('Error al crear póliza: ', error);

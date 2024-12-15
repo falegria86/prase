@@ -35,19 +35,33 @@ import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import Loading from "@/app/(protected)/loading";
 
-const vehiculoSchema = z.object({
-    vehiculoExistente: z.string().optional(),
-    marca: z.string().min(1, "La marca es requerida"),
-    modelo: z.string().min(1, "El modelo es requerido"),
-    anoFabricacion: z.coerce.number().min(1900, "Año inválido"),
-    tipoVehiculo: z.coerce.number().min(1, "El tipo de vehículo es requerido"),
-    valorVehiculo: z.coerce.number().min(1, "El valor del vehículo es requerido"),
-    valorFactura: z.coerce.number().min(1, "El valor de factura es requerido"),
-    usoVehiculo: z.coerce.number().min(1, "El uso del vehículo es requerido"),
-    zonaResidencia: z.string().min(1, "La zona de residencia es requerida"),
-});
-
 type VehiculoFormData = z.infer<typeof vehiculoSchema>;
+
+const vehiculoSchema = z.object({
+    vehiculoExistente: z.string(),
+    ClienteID: z.coerce.number(),
+    Marca: z.string().min(1, {
+        message: "Requerido"
+    }),
+    Modelo: z.string().min(1, {
+        message: "Requerido"
+    }),
+    AnoFabricacion: z.coerce.number(),
+    TipoVehiculo: z.string().min(1),
+    ValorVehiculo: z.coerce.number().min(0, { message: "Debe ser un número mayor o igual a 0" }),
+    ValorFactura: z.coerce.number().min(0, { message: "Debe ser un número mayor o igual a 0" }),
+    FechaRegistro: z.string(),
+    UsoVehiculo: z.string().min(1, {
+        message: "Requerido"
+    }),
+    ZonaResidencia: z.string().min(1, {
+        message: "Requerido"
+    }),
+    Salvamento: z.coerce.number().min(0, { message: "Debe ser un número mayor o igual a 0" }),
+    NoMotor: z.string().min(1, { message: "Requerido" }),
+    Placas: z.string().min(1, { message: "Requerido" }),
+    VIN: z.string().min(1, { message: "Requerido" }),
+});
 
 interface VehiculoPolizaStepProps {
     clienteId: number;
@@ -77,14 +91,21 @@ export const VehiculoPolizaStep = ({
     const form = useForm<VehiculoFormData>({
         resolver: zodResolver(vehiculoSchema),
         defaultValues: {
-            marca: cotizacion.Marca,
-            modelo: cotizacion.Submarca,
-            anoFabricacion: Number(cotizacion.Modelo),
-            tipoVehiculo: cotizacion.TipoVehiculo,
-            valorVehiculo: 0,
-            valorFactura: 0,
-            usoVehiculo: cotizacion.UsoVehiculo,
-            zonaResidencia: zona,
+            vehiculoExistente: "",
+            ClienteID: 0,
+            Marca: cotizacion.Marca,
+            Modelo: cotizacion.Submarca,
+            AnoFabricacion: Number(cotizacion.Modelo),
+            TipoVehiculo: cotizacion.TipoVehiculo.toString(),
+            ValorVehiculo: 0,
+            ValorFactura: 0,
+            FechaRegistro: new Date().toISOString(),
+            UsoVehiculo: cotizacion.UsoVehiculo.toString(),
+            ZonaResidencia: zona,
+            Salvamento: 0,
+            NoMotor: cotizacion.NoMotor ?? "",
+            Placas: cotizacion.Placa ?? "",
+            VIN: cotizacion.VIN ?? "",
         },
     });
 
@@ -113,43 +134,52 @@ export const VehiculoPolizaStep = ({
     const manejarSeleccionVehiculo = (valorSeleccionado: string) => {
         if (valorSeleccionado === "nuevo") {
             form.reset({
-                vehiculoExistente: undefined,
-                marca: cotizacion.Marca,
-                modelo: cotizacion.Modelo,
-                anoFabricacion: Number(cotizacion.Modelo),
-                tipoVehiculo: cotizacion.TipoVehiculo,
-                valorVehiculo: 0,
-                valorFactura: 0,
-                usoVehiculo: cotizacion.UsoVehiculo,
-                zonaResidencia: zona,
+                vehiculoExistente: "",
+                Marca: cotizacion.Marca,
+                Modelo: cotizacion.Modelo,
+                AnoFabricacion: Number(cotizacion.Modelo),
+                TipoVehiculo: cotizacion.TipoVehiculo.toString(),
+                ValorVehiculo: 0,
+                ValorFactura: 0,
+                UsoVehiculo: cotizacion.UsoVehiculo.toString(),
+                ZonaResidencia: zona,
+                NoMotor: cotizacion.NoMotor ?? "",
+                Placas: cotizacion.Placa ?? "",
+                VIN: cotizacion.VIN,
             });
         } else {
             const vehiculoSeleccionado = vehiculos.find(
                 vehiculo => vehiculo.VehiculoID.toString() === valorSeleccionado
             );
+            // console.log(vehiculoSeleccionado)
             if (vehiculoSeleccionado) {
                 form.reset({
                     vehiculoExistente: valorSeleccionado,
-                    marca: vehiculoSeleccionado.Marca,
-                    modelo: vehiculoSeleccionado.Modelo,
-                    anoFabricacion: vehiculoSeleccionado.AnoFabricacion,
-                    tipoVehiculo: Number(vehiculoSeleccionado.TipoVehiculo),
-                    valorVehiculo: Number(vehiculoSeleccionado.ValorVehiculo),
-                    valorFactura: Number(vehiculoSeleccionado.ValorFactura),
-                    usoVehiculo: Number(vehiculoSeleccionado.UsoVehiculo),
-                    zonaResidencia: vehiculoSeleccionado.ZonaResidencia,
+                    ClienteID: vehiculoSeleccionado.ClienteID,
+                    Marca: vehiculoSeleccionado.Marca,
+                    Modelo: vehiculoSeleccionado.Modelo,
+                    AnoFabricacion: vehiculoSeleccionado.AnoFabricacion,
+                    TipoVehiculo: vehiculoSeleccionado.TipoVehiculo,
+                    FechaRegistro: vehiculoSeleccionado.FechaRegistro,
+                    ValorVehiculo: vehiculoSeleccionado.ValorVehiculo,
+                    ValorFactura: Number(vehiculoSeleccionado.ValorFactura),
+                    UsoVehiculo: vehiculoSeleccionado.UsoVehiculo,
+                    ZonaResidencia: vehiculoSeleccionado.ZonaResidencia,
+                    NoMotor: vehiculoSeleccionado.NoMotor ?? "",
+                    Placas: vehiculoSeleccionado.Placas ?? "",
+                    VIN: vehiculoSeleccionado.VIN ?? "",
+                    Salvamento: 0,
                 });
             }
         }
     };
 
     const manejarCambioTipo = (valor: string) => {
-        const tipoId = Number(valor);
-        form.setValue("tipoVehiculo", tipoId);
+        form.setValue("TipoVehiculo", valor);
 
-        const usoAsociado = tiposVehiculo.find(tipo => tipo.TipoID === tipoId)?.uso;
+        const usoAsociado = tiposVehiculo.find(tipo => tipo.TipoID.toString() === valor)?.uso;
         if (usoAsociado) {
-            form.setValue("usoVehiculo", usoAsociado.UsoID);
+            form.setValue("UsoVehiculo", usoAsociado.UsoID.toString());
         }
     };
 
@@ -161,16 +191,19 @@ export const VehiculoPolizaStep = ({
 
         const datosVehiculo: iPostVehiculo = {
             ClienteID: clienteId,
-            Marca: datos.marca,
-            Modelo: datos.modelo,
-            AnoFabricacion: datos.anoFabricacion,
-            TipoVehiculo: datos.tipoVehiculo.toString(),
-            ValorVehiculo: datos.valorVehiculo,
-            ValorFactura: datos.valorFactura,
+            Marca: datos.Marca,
+            Modelo: datos.Modelo,
+            AnoFabricacion: datos.AnoFabricacion,
+            TipoVehiculo: datos.TipoVehiculo,
+            ValorVehiculo: datos.ValorVehiculo,
+            ValorFactura: datos.ValorFactura,
             FechaRegistro: new Date().toISOString(),
-            UsoVehiculo: datos.usoVehiculo.toString(),
-            ZonaResidencia: datos.zonaResidencia,
+            UsoVehiculo: datos.UsoVehiculo,
+            ZonaResidencia: datos.ZonaResidencia,
             Salvamento: 0,
+            NoMotor: datos.NoMotor,
+            VIN: datos.VIN,
+            Placas: datos.Placas,
         };
 
         try {
@@ -238,7 +271,7 @@ export const VehiculoPolizaStep = ({
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name="marca"
+                                name="Marca"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Marca</FormLabel>
@@ -252,7 +285,7 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="modelo"
+                                name="Modelo"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Modelo</FormLabel>
@@ -266,7 +299,7 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="anoFabricacion"
+                                name="AnoFabricacion"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Año de Fabricación</FormLabel>
@@ -284,7 +317,7 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="tipoVehiculo"
+                                name="TipoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Tipo de Vehículo</FormLabel>
@@ -316,12 +349,12 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="usoVehiculo"
+                                name="UsoVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Uso del Vehículo</FormLabel>
                                         <Select
-                                            onValueChange={(valor) => form.setValue("usoVehiculo", Number(valor))}
+                                            onValueChange={(valor) => form.setValue("UsoVehiculo", valor)}
                                             value={field.value?.toString()}
                                             disabled={deshabilitarCampos}
                                         >
@@ -348,7 +381,7 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="valorVehiculo"
+                                name="ValorVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Valor del Vehículo</FormLabel>
@@ -366,7 +399,7 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="valorFactura"
+                                name="ValorFactura"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Valor Factura</FormLabel>
@@ -384,7 +417,49 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="zonaResidencia"
+                                name="Placas"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Placas</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} disabled={deshabilitarCampos} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="NoMotor"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Número de motor</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} disabled={deshabilitarCampos} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="VIN"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>VIN</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} disabled={deshabilitarCampos} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="ZonaResidencia"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Zona de Residencia</FormLabel>

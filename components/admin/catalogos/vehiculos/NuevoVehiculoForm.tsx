@@ -49,10 +49,13 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
             FechaRegistro: "",
             UsoVehiculo: "",
             ZonaResidencia: "",
-            Salvamento: 0
+            Salvamento: 0,
+            NoMotor: "",
+            Placas: "",
+            VIN: "",
         },
     })
-
+    //TODO: Falta agregar los nuevos parámetros de vehículo
     const onSubmit = (values: z.infer<typeof postVehiculoSchema>) => {
         startTransition(async () => {
 
@@ -214,6 +217,54 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                         <FormControl>
                                             <Input
                                                 placeholder="Nombre completo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="Placas"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Placas</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Placas del vehículo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="NoMotor"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Número de motor</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Número de motor del vehículo..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="VIN"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Número de serie</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Número de serie del vehículo..."
                                                 {...field}
                                             />
                                         </FormControl>

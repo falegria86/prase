@@ -103,10 +103,99 @@ export interface Poliza {
     FechaEmision: Date;
 }
 
-
 export interface iPostDocumento {
     Base64: string;
     PolizaID: number;
     DocumentoID: number;
     EstadoDocumento: string;
+}
+
+export interface iPostPolizaResp {
+    cotizacion: Cotizacion;
+    tipoPago: TipoPago;
+    vehiculo: Vehiculo;
+    cliente: Cliente;
+    FechaInicio: Date;
+    FechaFin: Date;
+    PrimaTotal: number;
+    TotalPagos: number;
+    NumeroPagos: number;
+    DescuentoProntoPago: number;
+    TieneReclamos: boolean;
+    EstadoPoliza: string;
+    VersionActual: number;
+    NumeroPoliza: string;
+    PolizaID: number;
+    FechayHora: Date;
+    FechaEmision: Date;
+}
+
+export interface Cliente {
+    ClienteID: number;
+    NombreCompleto: string;
+    FechaNacimiento: Date;
+    Genero: string;
+    Direccion: string;
+    Telefono: string;
+    Email: string;
+    HistorialSiniestros: number;
+    HistorialReclamos: number;
+    ZonaResidencia: string;
+    FechaRegistro: Date;
+}
+
+export interface Cotizacion {
+    CotizacionID: number;
+    UsuarioID: number;
+    FechaCotizacion: Date;
+    PrimaTotal: string;
+    EstadoCotizacion: string;
+    TipoPagoID: number;
+    PorcentajeDescuento: string;
+    DerechoPoliza: string;
+    TipoSumaAseguradaID: number;
+    SumaAsegurada: string;
+    PeriodoGracia: number;
+    PaqueteCoberturaID: number;
+    FechaUltimaActualizacion: null;
+    UsoVehiculo: number;
+    TipoVehiculo: number;
+    NombrePersona: string;
+    UnidadSalvamento: number;
+    VIN: string;
+    CP: string;
+    Marca: string;
+    Submarca: string;
+    Modelo: string;
+    Version: string;
+    Correo: string;
+    Telefono: string;
+    NoMotor: null | string;
+    Placa: null | string;
+    UsuarioRegistro: null | string;
+}
+
+export interface TipoPago {
+    TipoPagoID: number;
+    Descripcion: string;
+    PorcentajeAjuste: string;
+    Divisor: number;
+}
+
+export interface Vehiculo {
+    VehiculoID: number;
+    ClienteID: number;
+    Marca: string;
+    Modelo: string;
+    AnoFabricacion: number;
+    TipoVehiculo: string;
+    ValorVehiculo: string;
+    ValorFactura: string;
+    FechaRegistro: Date;
+    UsoVehiculo: string;
+    ZonaResidencia: string;
+    NoMotor: null | string;
+    VIN: null | string;
+    Placas: null | string;
+    Salvamento: number;
 }

@@ -47,14 +47,12 @@ interface ResumenPolizaStepProps {
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
-const fechaUTCString = hoy.toISOString().split('T')[0];
 
 export const ResumenPolizaStep = ({
     cotizacion,
     coberturas,
     alConfirmar
 }: ResumenPolizaStepProps) => {
-    const totalAnual = Number(cotizacion.PrimaTotal) + Number(cotizacion.DerechoPoliza);
 
     const form = useForm<z.infer<typeof resumenSchema>>({
         resolver: zodResolver(resumenSchema),
@@ -242,20 +240,12 @@ export const ResumenPolizaStep = ({
                     <CardHeader>
                         <CardTitle>Resumen de Pagos</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Prima Total:</span>
-                            <span>{formatCurrency(Number(cotizacion.PrimaTotal))}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Derecho de Póliza:</span>
-                            <span>{formatCurrency(Number(cotizacion.DerechoPoliza))}</span>
-                        </div>
+                    <CardContent className="space-y-2">                        
                         <div className="border-t pt-2 mt-2">
                             <div className="flex justify-between font-semibold">
                                 <span>Total Anual:</span>
                                 <span className="text-primary">
-                                    {formatCurrency(totalAnual)}
+                                    {formatCurrency(Number(cotizacion.PrimaTotal))}
                                 </span>
                             </div>
                         </div>
