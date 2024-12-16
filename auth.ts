@@ -23,6 +23,9 @@ export const {
                     ...session.user,
                     jwt: token.access_token as string,
                     aplicaciones: token.aplicaciones || [],
+                    usuario: token.usuario,
+                    empleado: token.empleado,
+
                 };
             }
             return session;
@@ -32,6 +35,8 @@ export const {
             if (user) {
                 token.access_token = user.jwt;
                 token.aplicaciones = user.aplicaciones;
+                token.usuario = user.usuario;
+                token.empleado = user.empleado;
             }
 
             return token;

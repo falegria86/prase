@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 import {
   iGetTiposVehiculo,
   iGetUsosVehiculo,
@@ -7,11 +8,13 @@ import {
 import { generarColumnasPDF } from "@/lib/pdf.utils";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { getCoberturas } from "@/actions/CatCoberturasActions";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
 interface GenerarPDFProps {
   datos: iGetCotizacion;
   tiposVehiculo: iGetTiposVehiculo[];
   usosVehiculo: iGetUsosVehiculo[];
+  tiposPago: iGetTipoPagos[];
   isSave: boolean;
 }
 
@@ -19,6 +22,7 @@ export const generarPDFCotizacion = async ({
   datos,
   tiposVehiculo,
   usosVehiculo,
+  tiposPago,
   isSave,
 }: GenerarPDFProps) => {
   const doc = new jsPDF();
@@ -52,73 +56,28 @@ export const generarPDFCotizacion = async ({
     tiposVehiculo.find((tipo) => tipo.TipoID === datos.TipoVehiculo)?.Nombre ||
     "No especificado";
 
-  doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 35, 25);
+  const tipoPago = tiposPago.find((tipo) => tipo.TipoPagoID === datos.TipoPagoID);
+
+  doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 30, 25);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
+  doc.setTextColor(47, 84, 149);
   doc.text("COTIZACIÓN PRASE SEGUROS", MARGEN_X + 45, MARGEN_Y + 10);
 
   let posicionY = MARGEN_Y + 35;
 
-  const costoNeto =
-    ((Number(datos.PrimaTotal) - Number(datos.DerechoPoliza)) * 100) / 116;
-  const gastosExpedicion = Number(datos.DerechoPoliza);
-  const subtotal = costoNeto + gastosExpedicion;
-  const iva = costoNeto * 0.16;
-  const total = subtotal + iva;
-
-  const planesPago = [
-    {
-      plazo: "Semestral",
-      primerPago: total * 1.1 * 0.55,
-      pagosSiguientes: total * 1.1 * 0.45,
-      totalPlazo: total * 1.1,
-    },
-    {
-      plazo: "Trimestral",
-      primerPago: total * 1.15 * 0.35,
-      pagosSiguientes: (total * 1.15 * 0.65) / 3,
-      totalPlazo: total * 1.15,
-    },
-  ];
-
-  const datosCotizacion = [
-    [`Total Anual: ${formatearMoneda(total)}`],
-    [
-      `Semestral 1er pago ${formatearMoneda(planesPago[0].primerPago)}`,
-      `2do pago ${formatearMoneda(planesPago[0].pagosSiguientes)}`,
-      `Total Semestral ${formatearMoneda(planesPago[0].totalPlazo)}`,
-    ],
-    [
-      `Trimestral 1er pago ${formatearMoneda(planesPago[1].primerPago)}`,
-      `3 pagos ${formatearMoneda(planesPago[1].pagosSiguientes)}`,
-      `Total Trimestral ${formatearMoneda(planesPago[1].totalPlazo)}`,
-    ],
-    ["Conducto de cobro: DEPOSITO", "", "Agente: PA001/2024 AMPARO"],
-  ];
-
-  autoTable(doc, {
-    startY: posicionY,
-    body: datosCotizacion,
-    theme: "grid",
-    styles: { fontSize: 8, cellPadding: 2 },
-    columnStyles: {
-      0: { cellWidth: ANCHO_PAGINA / 2 },
-      1: { cellWidth: ANCHO_PAGINA / 2 },
-      2: { cellWidth: ANCHO_PAGINA / 2 },
-    },
-  });
-
-  posicionY = (doc as any).lastAutoTable.finalY + 10;
-
   const mitadAncho = ANCHO_PAGINA * 0.48;
 
+  doc.setTextColor(0);
+  
   autoTable(doc, {
     startY: posicionY,
     head: [["DATOS DE LA UNIDAD"]],
     body: [
       [`Marca: ${datos.Marca}`],
-      [`Modelo: ${datos.Modelo}`],
-      [`VIN: ${datos.VIN}`],
+      [`Modelo: ${datos.Submarca}`],
+      [`Año de fabricación: ${datos.Modelo}`],
+      [`VIN: ${datos.VIN || '---'}`],
     ],
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2 },
@@ -175,11 +134,24 @@ export const generarPDFCotizacion = async ({
 
   posicionY = (doc as any).lastAutoTable.finalY + 10;
 
+  const costoBase = ((Number(datos.PrimaTotal) - Number(datos.DerechoPoliza)) * 100) / 116;
+  const ajusteTipoPago = tipoPago ? costoBase * (parseFloat(tipoPago.PorcentajeAjuste) / 100) : 0;
+  const subtotalAjuste = costoBase + ajusteTipoPago;
+  const bonificacion = subtotalAjuste * (Number(datos.PorcentajeDescuento) / 100);
+  const costoNeto = subtotalAjuste - bonificacion;
+  const iva = costoNeto * 0.16;
+  const total = costoNeto + iva + Number(datos.DerechoPoliza);
+
   const costos = [
+    ["Costo Base:", formatearMoneda(costoBase)],
+    ["Tipo de pago:", tipoPago?.Descripcion || "No especificado"],
+    [`Ajuste por tipo de pago (${tipoPago?.PorcentajeAjuste || 0}%):`, formatearMoneda(ajusteTipoPago)],
+    ["Subtotal con ajuste:", formatearMoneda(subtotalAjuste)],
+    [`Bonificación (${datos.PorcentajeDescuento}%):`, formatearMoneda(bonificacion)],
     ["Costo Neto:", formatearMoneda(costoNeto)],
-    ["Gast. Exp. Contrato:", formatearMoneda(gastosExpedicion)],
-    ["Impuesto (IVA) 16%:", formatearMoneda(iva)],
-    ["COSTO TOTAL ANUAL:", formatearMoneda(total)],
+    ["IVA (16%):", formatearMoneda(iva)],
+    ["Derecho de Póliza:", formatearMoneda(Number(datos.DerechoPoliza))],
+    ["TOTAL:", formatearMoneda(total)],
   ];
 
   autoTable(doc, {
@@ -193,7 +165,6 @@ export const generarPDFCotizacion = async ({
     },
   });
 
-  doc.setFontSize(7);
   const textoLegal = [
     "Atención a siniestros en México 800-772-73-10",
     "Atención a clientes y cotizaciones al 800 908-90-08 consultas, modificaciones y otros trámites 311-909-10-00.",
@@ -202,11 +173,22 @@ export const generarPDFCotizacion = async ({
   ];
 
   textoLegal.forEach((texto, index) => {
+    doc.setFontSize(7);
     doc.text(texto, MARGEN_X, doc.internal.pageSize.height - 25 + index * 4);
   });
 
+  const qrCode = await QRCode.toDataURL('https://prase.mx/terminos-y-condiciones/');
+  doc.addImage(
+    qrCode,
+    'PNG',
+    doc.internal.pageSize.width - 35,
+    doc.internal.pageSize.height - 35,
+    20,
+    20
+  );
+
   if (isSave) {
-    const nombreArchivo = `cotizacion_${datos.Marca}_${datos.Modelo}_${formatearFecha(new Date())}.pdf`;
+    const nombreArchivo = `cotizacion_${datos.Marca}_${datos.Submarca}_${datos.Modelo}_${formatearFecha(new Date())}.pdf`;
     doc.save(nombreArchivo);
   }
 

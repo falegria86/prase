@@ -272,6 +272,7 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
                                         type="number"
                                         {...field}
                                         onChange={e => field.onChange(Number(e.target.value))}
+                                        disabled
                                     />
                                 </FormControl>
                                 <FormMessage />

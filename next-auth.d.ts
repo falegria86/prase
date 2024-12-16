@@ -14,9 +14,28 @@ export interface Aplicaciones {
   actualizar: boolean;
 }
 
+export interface UsuarioLogin {
+  UsuarioID: number;
+  NombreUsuario: string;
+  EmpleadoID: null | number;
+}
+
+export interface EmpleadoLogin {
+  EmpleadoID: number;
+  Nombre: string;
+  Paterno: string;
+  Materno: string;
+  FechaNacimiento: Date;
+  SueldoQuincenal: string;
+  PorcentajeComisiones: string;
+  TipoEmpleado: null | number;
+}
+
 interface CustomUser extends DefaultUser {
   jwt: string;
   aplicaciones: Aplicaciones[];
+  usuario: UsuarioLogin;
+  empleado: EmpleadoLogin;
 }
 
 declare module "next-auth" {
@@ -24,12 +43,14 @@ declare module "next-auth" {
     user: CustomUser & DefaultSession["user"];
   }
 
-  interface User extends CustomUser {}
+  interface User extends CustomUser { }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     access_token?: string;
     aplicaciones: Aplicaciones[];
+    usuario: UsuarioLogin,
+    empleado: EmpleadoLogin,
   }
 }

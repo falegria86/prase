@@ -195,7 +195,8 @@ export const TableCotizaciones = ({
         datos: cotizacion,
         tiposVehiculo,
         usosVehiculo,
-        isSave: true
+        isSave: true,
+        tiposPago: tiposPago ?? [],
       });
 
       toast({
@@ -478,13 +479,14 @@ const ModalesControl = ({
       </DialogContent>
     </Dialog>
 
-    {cotizacionParaReenvio && (
+    {cotizacionParaReenvio && tiposPago && (
       <ReenviarPDFModal
         cotizacion={cotizacionParaReenvio}
         tiposVehiculo={tiposVehiculo}
         usosVehiculo={usosVehiculo}
         abierto={modalReenvioAbierto}
         alCerrar={onCerrarReenvio}
+        tiposPago={tiposPago}
       />
     )}
   </>

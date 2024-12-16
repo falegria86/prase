@@ -8,6 +8,7 @@ import {
 import { iSendMail, iPostCotizacion, iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { postCotizacion, sendMail } from "@/actions/CotizadorActions";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 
@@ -16,6 +17,7 @@ interface OpcionesCotizacion {
     tiposVehiculo: iGetTiposVehiculo[];
     usosVehiculo: iGetUsosVehiculo[];
     guardarCotizacion?: boolean;
+    tiposPago: iGetTipoPagos[];
 }
 
 const obtenerPDFBase64 = (doc: jsPDF): string => {
@@ -92,6 +94,7 @@ export const manejarCotizacion = async ({
     datosFormulario,
     tiposVehiculo,
     usosVehiculo,
+    tiposPago,
     guardarCotizacion = false,
 }: OpcionesCotizacion) => {
     try {
@@ -146,6 +149,7 @@ export const manejarCotizacion = async ({
             datos: datosPDF,
             tiposVehiculo,
             usosVehiculo,
+            tiposPago,
             isSave: guardarCotizacion,
         });
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
 import { LazyMotion, domAnimation } from "framer-motion"
 import "./globals.css";
@@ -6,6 +7,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
+import { auth } from "@/auth";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,24 +25,28 @@ export const metadata: Metadata = {
   description: "Sistema administrador de seguros",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <LazyMotion features={domAnimation}>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-          <Toaster />
-        </LazyMotion>
-        <div id="portal-root"></div>
-      </body>
-    </html>
+    <SessionProvider session={session}>
+      <html lang="es" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <LazyMotion features={domAnimation}>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+            <Toaster />
+          </LazyMotion>
+          <div id="portal-root"></div>
+        </body>
+      </html>
+    </SessionProvider>
   );
 }

@@ -23,7 +23,7 @@ import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iAjustesCP } from "@/interfaces/AjustesCPInterace";
 import { getAjustesCP } from "@/actions/AjustesCP";
 
-interface PlanPagoProps {
+interface PropiedadesPlanPago {
   form: UseFormReturn<FormData>;
   tiposPagos: iGetTipoPagos[];
   costoBase: number;
@@ -35,15 +35,15 @@ export const PlanPago = ({
   tiposPagos,
   costoBase,
   derechoPoliza,
-}: PlanPagoProps) => {
-  const [ajustes, setAjustes] = useState<iAjustesCP | undefined>(undefined);
-  const cp = form.getValues("CP");
+}: PropiedadesPlanPago) => {
+  const [ajustes, setAjustes] = useState<iAjustesCP>();
+  const codigoPostal = form.watch("CP");
 
   useEffect(() => {
     const obtenerAjustes = async () => {
-      if (!cp) return;
+      if (!codigoPostal) return;
       try {
-        const respuesta = await getAjustesCP(cp);
+        const respuesta = await getAjustesCP(codigoPostal);
         if (respuesta?.ajuste) setAjustes(respuesta);
       } catch (error) {
         console.error("Error al obtener ajustes:", error);
@@ -51,40 +51,51 @@ export const PlanPago = ({
     };
 
     obtenerAjustes();
-  }, [cp]);
+  }, [codigoPostal]);
 
-  const aplicarPorcentajeAjuste = (
+  const calcularAjusteSiniestralidad = (montoBase: number): number => {
+    if (!ajustes) return 0;
+    return montoBase * (parseFloat(ajustes.ajuste.AjustePrima) / 100);
+  };
+
+  const calcularAjusteTipoPago = (
     monto: number,
     tipoPago: iGetTipoPagos
   ): number => {
     const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
-    return monto * (1 + porcentajeAjuste);
+    return monto * porcentajeAjuste;
   };
 
-  const aplicarBonificacion = (monto: number, bonificacion: number): number => {
-    return monto * (1 - bonificacion / 100);
+  const calcularBonificacion = (monto: number, bonificacion: number): number => {
+    return monto * (bonificacion / 100);
   };
 
   const calcularCostoTotal = (tipoPagoId: number, bonificacion = 0): number => {
     const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoId);
     if (!tipoPago) return costoBase;
 
-    // Aplicar ajuste por siniestralidad
-    const ajusteSiniestralidad = ajustes
-      ? costoBase * (parseFloat(ajustes.ajuste.AjustePrima) / 100)
-      : 0;
+    const ajusteSiniestralidad = calcularAjusteSiniestralidad(costoBase);
+    const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
 
-    const costoConAjuste = costoBase + ajusteSiniestralidad;
+    const ajusteTipoPago = calcularAjusteTipoPago(subtotalSiniestralidad, tipoPago);
+    const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
 
-    const costoAjustado = aplicarPorcentajeAjuste(costoConAjuste, tipoPago);
-    const costoNeto = aplicarBonificacion(costoAjustado, bonificacion);
+    const descuentoBonificacion = calcularBonificacion(subtotalTipoPago, bonificacion);
+    const costoNeto = subtotalTipoPago - descuentoBonificacion;
 
-    form.setValue("PrimaTotal", costoNeto * 1.16 + derechoPoliza);
+    const iva = costoNeto * 0.16;
+    const costoTotal = costoNeto + iva + derechoPoliza;
+
+    form.setValue("PrimaTotal", costoTotal);
 
     return costoNeto;
   };
 
-  const calcularPagos = (tipoPagoId: number) => {
+  const calcularPagos = (tipoPagoId: number): {
+    primerPago: number;
+    pagoSubsecuente: number;
+    numeroPagosSubsecuentes: number;
+  } | null => {
     const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoId);
     if (!tipoPago || tipoPago.Divisor === 1) return null;
 
@@ -92,7 +103,7 @@ export const PlanPago = ({
       tipoPagoId,
       form.getValues("PorcentajeDescuento") || 0
     );
-    const pagoSubsecuente = costoTotal / tipoPago.Divisor;
+    const pagoSubsecuente = (costoTotal * 1.16) / tipoPago.Divisor;
     const primerPago = pagoSubsecuente + derechoPoliza;
 
     return {
@@ -110,11 +121,22 @@ export const PlanPago = ({
 
   const tipoPagoSeleccionado = form.watch("TipoPagoID");
   const bonificacion = form.watch("PorcentajeDescuento") || 0;
-  const detallesPago = tipoPagoSeleccionado
-    ? calcularPagos(tipoPagoSeleccionado)
-    : null;
-  const costoNeto = calcularCostoTotal(tipoPagoSeleccionado, bonificacion);
-  const costoTotal = costoNeto * 1.16 + derechoPoliza;
+  const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
+  const detallesPago = tipoPagoSeleccionado ? calcularPagos(tipoPagoSeleccionado) : null;
+
+  const ajusteSiniestralidad = calcularAjusteSiniestralidad(costoBase);
+  const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
+
+  const ajusteTipoPago = tipoPago
+    ? calcularAjusteTipoPago(subtotalSiniestralidad, tipoPago)
+    : 0;
+  const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
+
+  const descuentoBonificacion = calcularBonificacion(subtotalTipoPago, bonificacion);
+  const costoNeto = subtotalTipoPago - descuentoBonificacion;
+
+  const iva = costoNeto * 0.16;
+  const costoTotal = costoNeto + iva + derechoPoliza;
 
   return (
     <Card className="mt-6">
@@ -133,8 +155,8 @@ export const PlanPago = ({
               <FormItem>
                 <FormLabel>Tipo de Pago</FormLabel>
                 <Select
-                  onValueChange={(value) => {
-                    const tipoPagoId = Number(value);
+                  onValueChange={(valor) => {
+                    const tipoPagoId = Number(valor);
                     field.onChange(tipoPagoId);
                     calcularCostoTotal(
                       tipoPagoId,
@@ -197,37 +219,72 @@ export const PlanPago = ({
           />
         </div>
 
-        {tipoPagoSeleccionado != 0 && (
+        {tipoPagoSeleccionado !== 0 && (
           <div className="mt-4 space-y-2">
             <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Costo Neto:</span>
-              <span>{formatCurrency(costoNeto)}</span>
+              <span className="font-medium">Costo Base:</span>
+              <span>{formatCurrency(costoBase)}</span>
             </div>
 
-            {ajustes && parseFloat(ajustes.ajuste.AjustePrima) > 0 && (
+            {ajusteSiniestralidad > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
-                  Ajuste por siniestralidad ({ajustes.ajuste.AjustePrima}%):
+                  Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
                 </span>
-                <span>
-                  {formatCurrency(
-                    costoBase * (parseFloat(ajustes.ajuste.AjustePrima) / 100)
-                  )}
-                </span>
+                <span>+{formatCurrency(ajusteSiniestralidad)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">IVA:</span>
-              <span>{formatCurrency(costoNeto * 0.16)}</span>
+              <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
+              <span>{formatCurrency(subtotalSiniestralidad)}</span>
             </div>
 
-            {detallesPago ? (
+            {ajusteTipoPago > 0 && (
+              <div className="flex justify-end gap-4 items-center text-amber-600">
+                <span className="font-medium">
+                  Ajuste por tipo de pago ({tipoPago?.PorcentajeAjuste}%):
+                </span>
+                <span>+{formatCurrency(ajusteTipoPago)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4 items-center">
+              <span className="font-medium">Subtotal con ajuste tipo pago:</span>
+              <span>{formatCurrency(subtotalTipoPago)}</span>
+            </div>
+
+            {descuentoBonificacion > 0 && (
+              <div className="flex justify-end gap-4 items-center text-green-600">
+                <span className="font-medium">
+                  Bonificación técnica ({bonificacion}%):
+                </span>
+                <span>-{formatCurrency(descuentoBonificacion)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4 items-center font-medium">
+              <span>Costo Neto:</span>
+              <span>{formatCurrency(costoNeto)}</span>
+            </div>
+
+            <div className="flex justify-end gap-4 items-center">
+              <span className="font-medium">IVA (16%):</span>
+              <span>+{formatCurrency(iva)}</span>
+            </div>
+
+            <div className="flex justify-end gap-4 items-center">
+              <span className="font-medium">Derecho de póliza:</span>
+              <span>+{formatCurrency(derechoPoliza)}</span>
+            </div>
+
+            {detallesPago && (
               <>
-                <div className="flex justify-end gap-4 items-center">
+                <div className="flex justify-end gap-4 items-center pt-2 border-t">
                   <span className="font-medium">Primer pago:</span>
                   <span>{formatCurrency(detallesPago.primerPago)}</span>
                 </div>
+
                 <div className="flex justify-end gap-4 items-center">
                   <span className="font-medium">
                     {detallesPago.numeroPagosSubsecuentes}{" "}
@@ -239,11 +296,6 @@ export const PlanPago = ({
                   <span>{formatCurrency(detallesPago.pagoSubsecuente)}</span>
                 </div>
               </>
-            ) : (
-              <div className="flex justify-end gap-4 items-center">
-                <span className="font-medium">Derecho de póliza:</span>
-                <span>{formatCurrency(derechoPoliza)}</span>
-              </div>
             )}
 
             <div className="flex justify-end gap-4 items-center pt-2 border-t">

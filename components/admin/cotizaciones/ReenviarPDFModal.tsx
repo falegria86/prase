@@ -23,6 +23,7 @@ import { sendMail } from "@/actions/CotizadorActions";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import { generarPDFCotizacion } from "@/components/cotizador/GenerarPDFCotizacion";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 
 const emailSchema = z.object({
     email: z.string().email("Correo electrónico inválido"),
@@ -33,6 +34,7 @@ interface ReenviarPDFModalProps {
     tiposVehiculo: iGetTiposVehiculo[];
     usosVehiculo: iGetUsosVehiculo[];
     abierto: boolean;
+    tiposPago: iGetTipoPagos[];
     alCerrar: () => void;
 }
 
@@ -42,6 +44,7 @@ export const ReenviarPDFModal = ({
     usosVehiculo,
     abierto,
     alCerrar,
+    tiposPago,
 }: ReenviarPDFModalProps) => {
     const [enviando, setEnviando] = useState(false);
     const { toast } = useToast();
@@ -60,7 +63,8 @@ export const ReenviarPDFModal = ({
                 datos: cotizacion,
                 tiposVehiculo,
                 usosVehiculo,
-                isSave: false
+                isSave: false,
+                tiposPago,
             });
 
             const pdfBase64 = doc.output("datauristring").split(",")[1];
