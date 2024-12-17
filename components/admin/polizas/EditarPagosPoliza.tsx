@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import {
@@ -14,6 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SyncLoader } from 'react-spinners';
+import { cn } from "@/lib/utils";
 import {
     Select,
     SelectContent,
@@ -30,9 +31,8 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Save, Trash2, X } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { formatDateFullTz } from "@/lib/format-date";
 import {
@@ -43,8 +43,11 @@ import {
 import type {
     iGetPagosPoliza,
     iGetStatusPago,
-    iGetMetodosPago
+    iGetMetodosPago,
+    iPatchPagoPoliza
 } from "@/interfaces/CatPolizas";
+import { getUsuarios } from '@/actions/SeguridadActions';
+import { iGetUsers } from '@/interfaces/SeguridadInterface';
 
 interface PropiedadesEditarPagos {
     polizaId: number;
@@ -53,54 +56,130 @@ interface PropiedadesEditarPagos {
     usuarioId: number;
 }
 
+interface CambiosPendientes {
+    [key: number]: {
+        MontoPagado?: number;
+        IDMetodoPago?: number;
+        IDEstatusPago?: number;
+    };
+}
+
 export const EditarPagosPoliza = ({
     polizaId,
     statusPago,
     metodosPago,
-    usuarioId
 }: PropiedadesEditarPagos) => {
     const [pagos, setPagos] = useState<iGetPagosPoliza[]>([]);
+    const [usuarios, setUsuarios] = useState<iGetUsers[]>([]);
+    const [cargando, setCargando] = useState(true);
     const [pagoEditando, setPagoEditando] = useState<number | null>(null);
+    const [cambiosPendientes, setCambiosPendientes] = useState<CambiosPendientes>({});
+    const [dialogoEliminar, setDialogoEliminar] = useState<number | null>(null);
+    const [motivoCancelacion, setMotivoCancelacion] = useState("");
+    const [usuarioAutorizador, setUsuarioAutorizador] = useState<string>("");
+    const [errorMotivo, setErrorMotivo] = useState(false);
+    const [errorUsuario, setErrorUsuario] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
     useEffect(() => {
-        const cargarPagos = async () => {
-            const data = await getPagosByIdPoliza(polizaId);
-            if (data) setPagos(data);
-        };
-        cargarPagos();
-    }, [polizaId]);
+        const cargarDatos = async () => {
+            try {
+                const [datosUsuarios, datosPagos] = await Promise.all([
+                    getUsuarios(),
+                    getPagosByIdPoliza(polizaId)
+                ]);
 
-    const actualizarPago = async (pagoId: number, nuevosDatos: any) => {
+                if (datosUsuarios) setUsuarios(datosUsuarios);
+                if (datosPagos) setPagos(datosPagos);
+            } catch (error) {
+                console.error("Error al cargar datos:", error);
+                toast({
+                    title: "Error",
+                    description: "No se pudieron cargar los datos",
+                    variant: "destructive",
+                });
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarDatos();
+    }, [polizaId, toast]);
+
+    const guardarCambios = async (pagoId: number) => {
+        const cambios = cambiosPendientes[pagoId];
+        if (!cambios) return;
+
+        const datosPatch: iPatchPagoPoliza = {
+            MontoPagado: cambios.MontoPagado,
+            IDMetodoPago: cambios.IDMetodoPago,
+            IDEstatusPago: cambios.IDEstatusPago
+        };
+
         try {
-            await patchPagoPoliza(pagoId, nuevosDatos);
+            await patchPagoPoliza(pagoId, datosPatch);
             toast({
-                title: "Pago actualizado",
-                description: "El pago se actualizó correctamente.",
+                title: "Cambios guardados",
+                description: "Los cambios se guardaron correctamente",
             });
+
+            const nuevosPagos = await getPagosByIdPoliza(polizaId);
+            if (nuevosPagos) setPagos(nuevosPagos);
+
             setPagoEditando(null);
-            router.refresh();
+            setCambiosPendientes(prev => {
+                const nuevoCambios = { ...prev };
+                delete nuevoCambios[pagoId];
+                return nuevoCambios;
+            });
         } catch (error) {
             toast({
                 title: "Error",
-                description: "Error al actualizar el pago",
+                description: "Error al guardar los cambios",
                 variant: "destructive",
             });
         }
     };
 
-    const eliminarPago = async (pagoId: number) => {
+    const validarEliminar = () => {
+        let esValido = true;
+
+        if (!motivoCancelacion.trim()) {
+            setErrorMotivo(true);
+            esValido = false;
+        }
+
+        if (!usuarioAutorizador) {
+            setErrorUsuario(true);
+            esValido = false;
+        }
+
+        return esValido;
+    };
+
+    const eliminarPago = async () => {
+        if (!dialogoEliminar) return;
+        if (!validarEliminar()) return;
+
         try {
-            await deletePagoPoliza(pagoId, {
-                usuarioidPoliza: usuarioId,
-                motivoCancelacion: "Cancelación de pago"
+            await deletePagoPoliza(dialogoEliminar, {
+                usuarioidPoliza: parseInt(usuarioAutorizador),
+                motivoCancelacion: motivoCancelacion.trim()
             });
             toast({
                 title: "Pago eliminado",
-                description: "El pago se eliminó correctamente.",
+                description: "El pago se eliminó correctamente",
             });
-            router.refresh();
+
+            const nuevosPagos = await getPagosByIdPoliza(polizaId);
+            if (nuevosPagos) setPagos(nuevosPagos);
+
+            setDialogoEliminar(null);
+            setMotivoCancelacion("");
+            setUsuarioAutorizador("");
+            setErrorMotivo(false);
+            setErrorUsuario(false);
         } catch (error) {
             toast({
                 title: "Error",
@@ -109,6 +188,14 @@ export const EditarPagosPoliza = ({
             });
         }
     };
+
+    if (cargando) {
+        return (
+            <div className="w-full h-[300px] flex justify-center items-center">
+                <SyncLoader size={8} color="#9ca3af" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -131,12 +218,17 @@ export const EditarPagosPoliza = ({
                             <TableCell>
                                 {pagoEditando === pago.PagoID ? (
                                     <Input
-                                        type="number"
-                                        defaultValue={pago.MontoPagado}
+                                        type="text"
+                                        value={formatCurrency(cambiosPendientes[pago.PagoID]?.MontoPagado ?? Number(pago.MontoPagado))}
                                         onChange={(e) => {
-                                            actualizarPago(pago.PagoID, {
-                                                MontoPagado: Number(e.target.value)
-                                            });
+                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                            setCambiosPendientes(prev => ({
+                                                ...prev,
+                                                [pago.PagoID]: {
+                                                    ...prev[pago.PagoID],
+                                                    MontoPagado: valor === "" ? 0 : Number(valor) / 100
+                                                }
+                                            }));
                                         }}
                                     />
                                 ) : (
@@ -146,11 +238,15 @@ export const EditarPagosPoliza = ({
                             <TableCell>
                                 {pagoEditando === pago.PagoID ? (
                                     <Select
-                                        defaultValue={pago.MetodoPago.IDMetodoPago.toString()}
+                                        value={String(cambiosPendientes[pago.PagoID]?.IDMetodoPago || pago.MetodoPago.IDMetodoPago)}
                                         onValueChange={(valor) => {
-                                            actualizarPago(pago.PagoID, {
-                                                IDMetodoPago: Number(valor)
-                                            });
+                                            setCambiosPendientes(prev => ({
+                                                ...prev,
+                                                [pago.PagoID]: {
+                                                    ...prev[pago.PagoID],
+                                                    IDMetodoPago: Number(valor)
+                                                }
+                                            }));
                                         }}
                                     >
                                         <SelectTrigger>
@@ -160,7 +256,7 @@ export const EditarPagosPoliza = ({
                                             {metodosPago.map((metodo) => (
                                                 <SelectItem
                                                     key={metodo.IDMetodoPago}
-                                                    value={metodo.IDMetodoPago.toString()}
+                                                    value={String(metodo.IDMetodoPago)}
                                                 >
                                                     {metodo.NombreMetodo}
                                                 </SelectItem>
@@ -174,11 +270,15 @@ export const EditarPagosPoliza = ({
                             <TableCell>
                                 {pagoEditando === pago.PagoID ? (
                                     <Select
-                                        defaultValue={pago.EstatusPago.IDEstatusPago.toString()}
+                                        value={String(cambiosPendientes[pago.PagoID]?.IDEstatusPago || pago.EstatusPago.IDEstatusPago)}
                                         onValueChange={(valor) => {
-                                            actualizarPago(pago.PagoID, {
-                                                IDEstatusPago: Number(valor)
-                                            });
+                                            setCambiosPendientes(prev => ({
+                                                ...prev,
+                                                [pago.PagoID]: {
+                                                    ...prev[pago.PagoID],
+                                                    IDEstatusPago: Number(valor)
+                                                }
+                                            }));
                                         }}
                                     >
                                         <SelectTrigger>
@@ -188,7 +288,7 @@ export const EditarPagosPoliza = ({
                                             {statusPago.map((status) => (
                                                 <SelectItem
                                                     key={status.IDEstatusPago}
-                                                    value={status.IDEstatusPago.toString()}
+                                                    value={String(status.IDEstatusPago)}
                                                 >
                                                     {status.NombreEstatus}
                                                 </SelectItem>
@@ -203,48 +303,136 @@ export const EditarPagosPoliza = ({
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setPagoEditando(
-                                            pagoEditando === pago.PagoID ? null : pago.PagoID
-                                        )}
-                                    >
-                                        <Edit2 className="h-4 w-4" />
-                                    </Button>
-
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
+                                    {pagoEditando === pago.PagoID ? (
+                                        <>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                onClick={() => guardarCambios(pago.PagoID)}
                                             >
-                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                <Save className="h-4 w-4" />
                                             </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Eliminar pago?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    onClick={() => eliminarPago(pago.PagoID)}
-                                                >
-                                                    Eliminar
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setPagoEditando(null);
+                                                    setCambiosPendientes(prev => {
+                                                        const nuevoCambios = { ...prev };
+                                                        delete nuevoCambios[pago.PagoID];
+                                                        return nuevoCambios;
+                                                    });
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setPagoEditando(pago.PagoID)}
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setDialogoEliminar(pago.PagoID)}
+                                    >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
                                 </div>
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
+
+            <AlertDialog
+                open={!!dialogoEliminar}
+                onOpenChange={(isOpen) => {
+                    setDialogoEliminar(isOpen ? dialogoEliminar : null);
+                    if (!isOpen) {
+                        setMotivoCancelacion("");
+                        setUsuarioAutorizador("");
+                        setErrorMotivo(false);
+                        setErrorUsuario(false);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar pago?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción no se puede deshacer
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="motivo">
+                                Motivo de cancelación <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id="motivo"
+                                value={motivoCancelacion}
+                                onChange={(e) => {
+                                    setMotivoCancelacion(e.target.value);
+                                    setErrorMotivo(false);
+                                }}
+                                placeholder="Ingresa el motivo de la cancelación"
+                                className={cn(
+                                    errorMotivo && "border-destructive focus-visible:ring-destructive"
+                                )}
+                            />
+                            {errorMotivo && (
+                                <span className="text-sm text-destructive">
+                                    El motivo de cancelación es requerido
+                                </span>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="usuario">
+                                Usuario autorizador <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                                value={usuarioAutorizador}
+                                onValueChange={(valor) => {
+                                    setUsuarioAutorizador(valor);
+                                    setErrorUsuario(false);
+                                }}
+                            >
+                                <SelectTrigger className={cn(
+                                    errorUsuario && "border-destructive focus-visible:ring-destructive"
+                                )}>
+                                    <SelectValue placeholder="Selecciona un usuario" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {usuarios.map((usuario) => (
+                                        <SelectItem
+                                            key={usuario.UsuarioID}
+                                            value={usuario.UsuarioID.toString()}
+                                        >
+                                            {usuario.NombreUsuario}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errorUsuario && (
+                                <span className="text-sm text-destructive">
+                                    Debes seleccionar un usuario autorizador
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction variant='destructive' onClick={eliminarPago} disabled={usuarioAutorizador === ""}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
-    );
-};
+    )
+}

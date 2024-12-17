@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+"use client";
+
+import { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -9,49 +11,63 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CalendarRange, CreditCard, Info } from "lucide-react";
+import { AlertCircle, CalendarRange, CreditCard } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
-import { formatDateFullTz } from "@/lib/format-date";
-import { getTotalPagarPoliza, getPagosByIdPoliza } from "@/actions/PolizasActions";
-import type { iGetPagosPoliza } from "@/interfaces/CatPolizas";
+import { getEsquemaPago } from "@/actions/PolizasActions";
+import { iGetEsquemaPago } from "@/interfaces/CatPolizas";
+import { SyncLoader } from 'react-spinners';
 
 interface PropiedadesHistorialPagos {
-    polizaId: number;
+    numeroPoliza: string;
 }
 
-export const HistorialPagosPoliza = ({ polizaId }: PropiedadesHistorialPagos) => {
-    const [pagos, setPagos] = useState<iGetPagosPoliza[]>([]);
-    const [totalPagar, setTotalPagar] = useState<string>("");
+export const HistorialPagosPoliza = ({ numeroPoliza }: PropiedadesHistorialPagos) => {
+    const [esquemaPago, setEsquemaPago] = useState<iGetEsquemaPago | null>(null);
+    const [cargando, setCargando] = useState(true);
 
     useEffect(() => {
-        const cargarDatos = async () => {
-            const [pagosData, totalData] = await Promise.all([
-                getPagosByIdPoliza(polizaId),
-                getTotalPagarPoliza(polizaId)
-            ]);
-
-            if (pagosData) setPagos(pagosData);
-            if (totalData) setTotalPagar(totalData);
+        const obtenerDatos = async () => {
+            try {
+                const datos = await getEsquemaPago(numeroPoliza);
+                if (datos) setEsquemaPago(datos);
+            } catch (error) {
+                console.error("Error al obtener datos: ", error);
+            } finally {
+                setCargando(false);
+            }
         };
 
-        cargarDatos();
-    }, [polizaId]);
+        obtenerDatos();
+    }, [numeroPoliza]);
 
-    const totalPagado = pagos.reduce((total, pago) =>
-        total + Number(pago.MontoPagado), 0
-    );
-
-    const obtenerColorEstado = (estado: string): "default" | "destructive" | "secondary" | "outline" | null | undefined => {
+    const obtenerColorEstado = (estado: string): "default" | "destructive" | "secondary" => {
         const estados = {
-            "PENDIENTE": "secondary",
-            "PAGADO": "default",
-            "CANCELADO": "destructive",
+            "Pendiente": "secondary",
+            "Pagado": "default",
+            "Parcial": "destructive",
         } as const;
 
         return estados[estado as keyof typeof estados] || "default";
     };
 
-    if (pagos.length === 0) {
+    const calcularTotalPorPago = (pagosRealizados: { montoPagado: number }[]): number => {
+        return pagosRealizados.reduce((total, pago) => total + pago.montoPagado, 0);
+    };
+
+    const formatearFecha = (fechaUTC: string | Date): string => {
+        const fecha = new Date(fechaUTC);
+        return new Intl.DateTimeFormat('es-MX', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'America/Mexico_City'
+        }).format(fecha);
+    };
+
+    if (!esquemaPago && !cargando) {
         return (
             <Alert>
                 <AlertCircle className="h-4 w-4" />
@@ -63,124 +79,154 @@ export const HistorialPagosPoliza = ({ polizaId }: PropiedadesHistorialPagos) =>
     }
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <CreditCard className="h-4 w-4" />
-                            Resumen de Pagos
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Total a pagar:</span>
-                                <span className="font-medium">{formatCurrency(Number(totalPagar))}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Total pagado:</span>
-                                <span className="font-medium">{formatCurrency(totalPagado)}</span>
-                            </div>
-                            <Separator className="my-2" />
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Saldo restante:</span>
-                                <span className="font-medium text-primary">
-                                    {formatCurrency(Number(totalPagar) - totalPagado)}
-                                </span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Info className="h-4 w-4" />
-                            Estadísticas
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Total de pagos:</span>
-                                <span className="font-medium">{pagos.length}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Promedio por pago:</span>
-                                <span className="font-medium">
-                                    {formatCurrency(totalPagado / pagos.length)}
-                                </span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <CalendarRange className="h-4 w-4" />
-                        Historial Detallado
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ScrollArea className="h-[300px]">
-                        <div className="space-y-4">
-                            {pagos.map((pago, index) => (
-                                <div key={pago.PagoID} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium">
-                                                    Pago #{index + 1}
-                                                </span>
-                                                <Badge variant={obtenerColorEstado(pago.EstatusPago.NombreEstatus)}>
-                                                    {pago.EstatusPago.NombreEstatus}
-                                                </Badge>
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {formatDateFullTz(pago.FechaPago)}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-medium">
-                                                {formatCurrency(Number(pago.MontoPagado))}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {pago.MetodoPago.NombreMetodo}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {pago.NombreTitular && (
-                                        <div className="text-sm">
-                                            <span className="text-muted-foreground">Titular: </span>
-                                            {pago.NombreTitular}
-                                        </div>
-                                    )}
-
-                                    {pago.ReferenciaPago && (
-                                        <div className="text-sm">
-                                            <span className="text-muted-foreground">Referencia: </span>
-                                            {pago.ReferenciaPago}
-                                        </div>
-                                    )}
-
-                                    {pago.MotivoCancelacion && (
-                                        <div className="text-sm text-destructive">
-                                            <span className="font-medium">Motivo de cancelación: </span>
-                                            {pago.MotivoCancelacion}
-                                        </div>
-                                    )}
-
-                                    {index < pagos.length - 1 && <Separator className="mt-4" />}
+        <>
+            {cargando ? (
+                <div className="w-full h-full flex justify-center items-center fixed inset-0 bg-gray-200/50 dark:bg-slate-900/50 z-50">
+                    <SyncLoader size={8} color="#9ca3af" />
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <CreditCard className="h-4 w-4" />
+                                Resumen de Pagos
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Total a pagar:</span>
+                                    <span className="font-medium">
+                                        {formatCurrency(esquemaPago?.totalPrima || 0)}
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </CardContent>
-            </Card>
-        </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Total pagado:</span>
+                                    <span className="font-medium">
+                                        {formatCurrency(esquemaPago?.totalPagado || 0)}
+                                    </span>
+                                </div>
+                                {/* {esquemaPago && esquemaPago?.descuentoProntoPago > 0 && (
+                                    <div className="flex justify-between items-center text-green-600">
+                                        <span className="text-sm">Descuento por pronto pago:</span>
+                                        <span className="font-medium">
+                                            {formatCurrency(esquemaPago.descuentoProntoPago)}
+                                        </span>
+                                    </div>
+                                )} */}
+                                <Separator className="my-2" />
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Saldo restante:</span>
+                                    <span className="font-medium text-primary">
+                                        {formatCurrency((esquemaPago?.totalPrima || 0) - (esquemaPago?.totalPagado || 0))}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <CalendarRange className="h-4 w-4" />
+                                Historial de Pagos
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ScrollArea className="h-[300px]">
+                                <div className="space-y-4">
+                                    {esquemaPago?.esquemaPagos.map((pago, index) => {
+                                        const totalPagado = calcularTotalPorPago(pago.pagosRealizados);
+                                        const porcentajePagado = (totalPagado / pago.montoPorPagar) * 100;
+
+                                        return (
+                                            <div key={index} className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium">
+                                                                Pago #{pago.numeroPago}
+                                                            </span>
+                                                            <Badge variant={obtenerColorEstado(pago.estado)}>
+                                                                {pago.estado}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            Fecha límite: {formatearFecha(pago.fechaPago)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-medium">
+                                                            {formatCurrency(pago.montoPorPagar)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {pago.pagosRealizados.length > 0 && (
+                                                    <>
+                                                        <div className="pl-4 space-y-2">
+                                                            {pago.pagosRealizados.map((pagoRealizado, idx) => (
+                                                                <div key={idx} className="text-sm flex justify-between">
+                                                                    <span className="text-muted-foreground">
+                                                                        {formatearFecha(pagoRealizado.fechaReal)}
+                                                                    </span>
+                                                                    <span>
+                                                                        {formatCurrency(pagoRealizado.montoPagado)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                            <div className="flex justify-between text-sm font-medium pt-2 border-t">
+                                                                <span>Total acumulado:</span>
+                                                                <div className="text-right">
+                                                                    <div>{formatCurrency(totalPagado)}</div>
+                                                                    <div className={porcentajePagado >= 100 ? "text-green-600" : "text-amber-600"}>
+                                                                        ({porcentajePagado.toFixed(1)}%)
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {index < (esquemaPago?.esquemaPagos.length || 0) - 1 && (
+                                                    <Separator className="mt-4" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+
+                                    {esquemaPago && esquemaPago?.pagosFueraDeRango.length > 0 && (
+                                        <>
+                                            <Separator className="my-4" />
+                                            <div className="space-y-2">
+                                                <span className="font-medium">Pagos fuera de rango</span>
+                                                {esquemaPago.pagosFueraDeRango.map((pago, idx) => (
+                                                    <div key={idx} className="text-sm flex justify-between">
+                                                        <span className="text-muted-foreground">
+                                                            {formatearFecha(pago.fechaReal)}
+                                                        </span>
+                                                        <span>{formatCurrency(pago.montoPagado)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+
+                    {esquemaPago?.mensajeAtraso && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                                {esquemaPago.mensajeAtraso}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </div>
+            )}
+        </>
     );
 };

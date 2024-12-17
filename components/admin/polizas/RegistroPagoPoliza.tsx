@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle2, InfoIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import type {

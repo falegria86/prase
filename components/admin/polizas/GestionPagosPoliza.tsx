@@ -40,7 +40,7 @@ export const GestionPagosPoliza = ({
 }: PropiedadesGestionPagos) => {
     return (
         <Dialog open={abierto} onOpenChange={alCerrar}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl min-h-[600px] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex flex-col">
                         Gestión de Pagos
@@ -50,7 +50,7 @@ export const GestionPagosPoliza = ({
                     </DialogTitle>
                 </DialogHeader>
 
-                <Tabs defaultValue="registrar" className="w-full">
+                <Tabs defaultValue="registrar" className="w-full min-h-[600px]">
                     <TabsList className="w-full">
                         <TabsTrigger value="registrar">Registrar Pago</TabsTrigger>
                         <TabsTrigger value="historial">Historial</TabsTrigger>
@@ -70,7 +70,7 @@ export const GestionPagosPoliza = ({
 
                     <TabsContent value="historial">
                         <HistorialPagosPoliza
-                            polizaId={poliza.PolizaID}
+                            numeroPoliza={poliza.NumeroPoliza}
                         />
                     </TabsContent>
 
