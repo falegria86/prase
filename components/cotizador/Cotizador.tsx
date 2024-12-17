@@ -74,9 +74,9 @@ export const Cotizador = ({
     const [isStepValid, setIsStepValid] = useState(false);
     const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
     const [isPending, startTransition] = useTransition();
+    
     const { toast } = useToast();
-const user = useCurrentUser();
-console.log(user)
+    const user = useCurrentUser();    
     const router = useRouter();
 
     const form = useForm<FormData>({

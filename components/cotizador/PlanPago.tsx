@@ -77,18 +77,23 @@ export const PlanPago = ({
     const ajusteSiniestralidad = calcularAjusteSiniestralidad(costoBase);
     const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
 
-    const ajusteTipoPago = calcularAjusteTipoPago(subtotalSiniestralidad, tipoPago);
-    const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
+    if (tipoPago.Divisor === 1) {
+      // Pago anual
+      const descuentoBonificacion = calcularBonificacion(subtotalSiniestralidad, bonificacion);
+      const subtotalConDescuento = subtotalSiniestralidad - descuentoBonificacion;
+      const montoAntesIVA = subtotalConDescuento + derechoPoliza;
+      const costoTotal = montoAntesIVA * 1.16;
 
-    const descuentoBonificacion = calcularBonificacion(subtotalTipoPago, bonificacion);
-    const costoNeto = subtotalTipoPago - descuentoBonificacion;
+      form.setValue("PrimaTotal", costoTotal);
+      return subtotalConDescuento;
+    } else {
+      // Pagos fraccionados
+      const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
+      const montoTotal = ((subtotalSiniestralidad + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
 
-    const iva = costoNeto * 0.16;
-    const costoTotal = costoNeto + iva + derechoPoliza;
-
-    form.setValue("PrimaTotal", costoTotal);
-
-    return costoNeto;
+      form.setValue("PrimaTotal", montoTotal);
+      return subtotalSiniestralidad;
+    }
   };
 
   const calcularPagos = (tipoPagoId: number): {
@@ -99,17 +104,22 @@ export const PlanPago = ({
     const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoId);
     if (!tipoPago || tipoPago.Divisor === 1) return null;
 
-    const costoTotal = calcularCostoTotal(
-      tipoPagoId,
-      form.getValues("PorcentajeDescuento") || 0
-    );
-    const pagoSubsecuente = (costoTotal * 1.16) / tipoPago.Divisor;
-    const primerPago = pagoSubsecuente + derechoPoliza;
+    const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
+    const numeroPagos = tipoPago.Divisor;
+
+    // Primer pago: agregar derecho de póliza antes de IVA
+    const montoPrimerPagoBase = (costoBase / numeroPagos) + derechoPoliza;
+    const montoPrimerPagoAjustado = montoPrimerPagoBase * (1 + porcentajeAjuste);
+    const primerPago = montoPrimerPagoAjustado * 1.16;
+
+    // Pagos subsecuentes
+    const montoTotalAjustado = ((costoBase + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
+    const pagoSubsecuente = (montoTotalAjustado - primerPago) / (numeroPagos - 1);
 
     return {
       primerPago,
       pagoSubsecuente,
-      numeroPagosSubsecuentes: tipoPago.Divisor - 1,
+      numeroPagosSubsecuentes: numeroPagos - 1,
     };
   };
 
@@ -135,8 +145,23 @@ export const PlanPago = ({
   const descuentoBonificacion = calcularBonificacion(subtotalTipoPago, bonificacion);
   const costoNeto = subtotalTipoPago - descuentoBonificacion;
 
-  const iva = costoNeto * 0.16;
-  const costoTotal = costoNeto + iva + derechoPoliza;
+  let iva = 0;
+  let costoTotal = 0;
+
+  if (!tipoPago || tipoPago.Divisor === 1) {
+    iva = (costoNeto + derechoPoliza) * 0.16;
+    costoTotal = (costoNeto + derechoPoliza) * 1.16;
+  } else {
+    const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
+    const montoAntesIVA = (subtotalSiniestralidad + derechoPoliza) * (1 + porcentajeAjuste);
+    iva = montoAntesIVA * 0.16;
+    costoTotal = montoAntesIVA * 1.16;
+
+    if (detallesPago) {
+      costoTotal = detallesPago.primerPago +
+        (detallesPago.pagoSubsecuente * detallesPago.numeroPagosSubsecuentes);
+    }
+  }
 
   return (
     <Card className="mt-6">
@@ -269,13 +294,13 @@ export const PlanPago = ({
             </div>
 
             <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">IVA (16%):</span>
-              <span>+{formatCurrency(iva)}</span>
+              <span className="font-medium">Derecho de póliza:</span>
+              <span>+{formatCurrency(derechoPoliza)}</span>
             </div>
 
             <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Derecho de póliza:</span>
-              <span>+{formatCurrency(derechoPoliza)}</span>
+              <span className="font-medium">IVA (16%):</span>
+              <span>+{formatCurrency(iva)}</span>
             </div>
 
             {detallesPago && (

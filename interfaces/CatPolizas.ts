@@ -199,3 +199,90 @@ export interface Vehiculo {
     Placas: null | string;
     Salvamento: number;
 }
+
+export interface iPostPagoPoliza {
+    PolizaID: number;
+    FechaPago: Date;
+    MontoPagado: number;
+    ReferenciaPago: string;
+    NombreTitular: string;
+    FechaMovimiento: Date;
+    IDMetodoPago: number;
+    IDEstatusPago: number;
+    UsuarioID: number;
+}
+
+export interface iGetEsquemaPago {
+    fechaInicio: Date;
+    fechaFin: Date;
+    esquemaPagos: EsquemaPago[];
+    pagosFueraDeRango: any[];
+    totalPrima: number;
+    totalPagado: number;
+    descuentoProntoPago: number;
+    mensajeAtraso: string;
+}
+
+export interface EsquemaPago {
+    numeroPago: number;
+    fechaPago: Date;
+    montoPorPagar: number;
+    estado: string;
+    pagosRealizados: any[];
+}
+
+export interface iGetStatusPago {
+    IDEstatusPago: number;
+    NombreEstatus: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface iGetMetodosPago {
+    IDMetodoPago: number;
+    NombreMetodo: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface iGetPagosPoliza {
+    PagoID: number;
+    PolizaID: number;
+    FechaPago: Date;
+    MontoPagado: string;
+    ReferenciaPago: string;
+    NombreTitular: string;
+    FechaMovimiento: Date;
+    MotivoCancelacion: null;
+    MetodoPago: MetodoPago;
+    EstatusPago: EstatusPago;
+    Usuario: Usuario;
+}
+
+export interface EstatusPago {
+    IDEstatusPago: number;
+    NombreEstatus: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface MetodoPago {
+    IDMetodoPago: number;
+    NombreMetodo: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface Usuario {
+    UsuarioID: number;
+    NombreUsuario: string;
+    Contrasena: string;
+    EmpleadoID: null;
+}
+
+export interface iPatchPagoPoliza {
+    MontoPagado?: number;
+    ReferenciaPago?: string;
+    IDMetodoPago?: number;
+    IDEstatusPago?: number;
+}

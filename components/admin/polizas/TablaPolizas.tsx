@@ -38,29 +38,33 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, DollarSign } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { iGetPolizas, iPatchPoliza } from "@/interfaces/CatPolizas";
+import { iGetEsquemaPago, iGetMetodosPago, iGetStatusPago, type iGetPolizas, type iPatchPoliza } from "@/interfaces/CatPolizas";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { useToast } from "@/hooks/use-toast";
-import { deletePoliza, patchPoliza } from "@/actions/PolizasActions";
+import { deletePoliza, getEsquemaPago, patchPoliza, postPagoPoliza } from "@/actions/PolizasActions";
 import { EditarPolizaForm } from "./EditarPolizaForm";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { formatDateFullTz } from "@/lib/format-date";
 import { DocumentosPoliza } from "./DocumentosPoliza";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { GestionPagosPoliza } from "./GestionPagosPoliza";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
     coberturas: iGetCoberturas[];
+    statusPago: iGetStatusPago[];
+    metodosPago: iGetMetodosPago[];
 }
 
-export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
+export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: TablaPolizasProps) => {
     const [polizaExpandida, setPolizaExpandida] = useState<number | null>(null);
     const [detalleVisible, setDetalleVisible] = useState<"historial" | "coberturas" | null>(null);
     const [polizaParaEditar, setPolizaParaEditar] = useState<iGetPolizas | null>(null);
@@ -70,9 +74,13 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
     const [motivoCancelacion, setMotivoCancelacion] = useState("");
     const [errorMotivo, setErrorMotivo] = useState(false);
     const [terminoBusqueda, setTerminoBusqueda] = useState("");
+    const [modalPagosAbierto, setModalPagosAbierto] = useState(false);
+    const [polizaSeleccionada, setPolizaSeleccionada] = useState<iGetPolizas | null>(null);
+    const [esquemaPago, setEsquemaPago] = useState<iGetEsquemaPago | null>(null);
 
     const { toast } = useToast();
     const router = useRouter();
+    const user = useCurrentUser();
 
     const polizasFiltradas = useMemo(() => {
         if (!terminoBusqueda) return polizas;
@@ -166,6 +174,50 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
         </Alert>
     );
 
+    const abrirModalPagos = async (poliza: iGetPolizas) => {
+        try {
+            const esquema = await getEsquemaPago(poliza.NumeroPoliza);
+            if (esquema) {
+                setEsquemaPago(esquema);
+                setPolizaSeleccionada(poliza);
+                setModalPagosAbierto(true);
+            } else {
+                throw new Error("No se pudo obtener el esquema de pagos");
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "No se pudo obtener el esquema de pagos",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const registrarPago = async (datos: any) => {
+        try {
+            const resp = await postPagoPoliza(datos);
+            if (resp.statusCode !== 400) {
+                toast({
+                    title: "Éxito",
+                    description: "Pago registrado correctamente",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: resp.message,
+                    variant: "destructive",
+                });
+            }
+            router.refresh();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Error al registrar el pago",
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
@@ -189,10 +241,10 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {polizasFiltradas.map((poliza) => (
+                    {polizasFiltradas.map((poliza, index) => (
                         <>
                             <TableRow
-                                key={poliza.PolizaID}
+                                key={index}
                                 className={cn(
                                     "cursor-pointer transition-colors",
                                     polizaExpandida === poliza.PolizaID && "bg-muted"
@@ -232,6 +284,24 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        abrirModalPagos(poliza);
+                                                    }}
+                                                >
+                                                    <DollarSign className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Gestionar Pagos</TooltipContent>
+                                        </Tooltip>
+
+
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
@@ -338,8 +408,8 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                                                     </TableRow>
                                                                 </TableHeader>
                                                                 <TableBody>
-                                                                    {poliza.historial.map((version) => (
-                                                                        <TableRow key={version.HistorialID}>
+                                                                    {poliza.historial.map((version, index) => (
+                                                                        <TableRow key={index}>
                                                                             <TableCell>{version.Version}</TableCell>
                                                                             <TableCell>
                                                                                 <Badge variant={obtenerColorEstado(version.EstadoPoliza)}>
@@ -384,8 +454,8 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                                                                     </TableRow>
                                                                 </TableHeader>
                                                                 <TableBody>
-                                                                    {poliza.detalles.map((detalle) => (
-                                                                        <TableRow key={detalle.DetalleID}>
+                                                                    {poliza.detalles.map((detalle, index) => (
+                                                                        <TableRow key={index}>
                                                                             <TableCell>
                                                                                 {obtenerNombreCobertura(detalle.CoberturaID)}
                                                                             </TableCell>
@@ -487,6 +557,23 @@ export const TablaPolizas = ({ polizas, coberturas }: TablaPolizasProps) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {polizaSeleccionada && esquemaPago && (
+                <GestionPagosPoliza
+                    abierto={modalPagosAbierto}
+                    alCerrar={() => {
+                        setModalPagosAbierto(false);
+                        setPolizaSeleccionada(null);
+                        setEsquemaPago(null);
+                    }}
+                    esquemaPago={esquemaPago}
+                    poliza={polizaSeleccionada}
+                    usuarioId={user?.usuario.UsuarioID ?? 0}
+                    onRegistrarPago={registrarPago}
+                    statusPago={statusPago}
+                    metodosPago={metodosPago}
+                />
+            )}
         </div>
     );
 };
