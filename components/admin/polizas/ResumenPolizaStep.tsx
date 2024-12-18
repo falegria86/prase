@@ -240,7 +240,7 @@ export const ResumenPolizaStep = ({
                     <CardHeader>
                         <CardTitle>Resumen de Pagos</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">                        
+                    <CardContent className="space-y-2">
                         <div className="border-t pt-2 mt-2">
                             <div className="flex justify-between font-semibold">
                                 <span>Total Anual:</span>

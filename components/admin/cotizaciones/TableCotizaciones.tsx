@@ -260,35 +260,37 @@ export const TableCotizaciones = ({
             {cotizacionesFiltradas.map((cotizacion) => (
               <TableRow key={cotizacion.CotizacionID}>
                 <TableCell>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          "inline-flex h-8 items-center justify-center rounded-full px-3 text-sm",
-                          "cursor-pointer transition-colors",
-                          "border border-input hover:bg-accent hover:text-accent-foreground",
-                          cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
-                            ? "bg-green-600 text-primary-foreground border-none"
-                            : "bg-background"
-                        )}
-                        onClick={() => {
-                          if (cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA') {
-                            return;
+                  {cotizacion.EstadoCotizacion !== "RECHAZADA" && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            "inline-flex h-8 items-center justify-center rounded-full px-3 text-sm",
+                            "cursor-pointer transition-colors",
+                            "border border-input hover:bg-accent hover:text-accent-foreground",
+                            cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
+                              ? "bg-green-600 text-primary-foreground border-none"
+                              : "bg-background"
+                          )}
+                          onClick={() => {
+                            if (cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA') {
+                              return;
+                            }
+                            setCotizacionSeleccionada(cotizacion);
+                            setModalActivarAbierto(true);
+                          }}
+                        >
+                          {cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
+                            ? 'ACTIVA'
+                            : 'ACTIVAR'
                           }
-                          setCotizacionSeleccionada(cotizacion);
-                          setModalActivarAbierto(true);
-                        }}
-                      >
-                        {cotizacion.EstadoCotizacion === 'ACTIVA' || cotizacion.EstadoCotizacion === 'EMITIDA'
-                          ? 'ACTIVA'
-                          : 'ACTIVAR'
-                        }
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Activar
-                    </TooltipContent>
-                  </Tooltip>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Activar
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </TableCell>
                 <TableCell>{formatearFecha(cotizacion.FechaCotizacion)}</TableCell>
                 <TableCell>
@@ -319,19 +321,22 @@ export const TableCotizaciones = ({
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-3 mt-3">
-                  <AccionesMenu
-                    cotizacion={cotizacion}
-                    onDescargar={manejarDescargaPDF}
-                    onEditar={() => {
-                      setCotizacionSeleccionada(cotizacion);
-                      setModalEdicionAbierto(true);
-                    }}
-                    onEliminar={() => setCotizacionSeleccionada(cotizacion)}
-                    onReenviar={() => {
-                      setCotizacionParaReenvio(cotizacion);
-                      setModalReenvioAbierto(true);
-                    }}
-                  />
+                  {cotizacion.EstadoCotizacion !== "RECHAZADA" && (
+                    <AccionesMenu
+                      cotizacion={cotizacion}
+                      onDescargar={manejarDescargaPDF}
+                      onEditar={() => {
+                        setCotizacionSeleccionada(cotizacion);
+                        setModalEdicionAbierto(true);
+                      }}
+                      onEliminar={() => setCotizacionSeleccionada(cotizacion)}
+                      onReenviar={() => {
+                        setCotizacionParaReenvio(cotizacion);
+                        setModalReenvioAbierto(true);
+                      }}
+                    />
+                  )}
+
                 </TableCell>
               </TableRow>
             ))}

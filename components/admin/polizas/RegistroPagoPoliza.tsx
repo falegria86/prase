@@ -76,7 +76,7 @@ export const RegistroPagoPoliza = ({
     });
 
     const montoPorPagar = esquemaPago.totalPrima - esquemaPago.totalPagado;
-    const pagoSugerido = montoPorPagar / esquemaPago.esquemaPagos.length;
+    // const pagoSugerido = montoPorPagar / esquemaPago.esquemaPagos.length;
     const metodoPagoSeleccionado = metodosPago.find(m => m.IDMetodoPago === form.watch("IDMetodoPago"));
     const nombreMetodo = metodoPagoSeleccionado?.NombreMetodo.toLowerCase() || "";
     const esEfectivo = nombreMetodo.includes("efectivo");
@@ -148,13 +148,13 @@ export const RegistroPagoPoliza = ({
                         </div>
                     </div>
 
-                    <div>
+                    {/* <div>
                         <FormLabel>Pago sugerido</FormLabel>
                         <Input
                             value={formatCurrency(pagoSugerido)}
                             disabled
                         />
-                    </div>
+                    </div> */}
 
                     <FormField
                         control={form.control}

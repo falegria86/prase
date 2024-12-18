@@ -212,6 +212,42 @@ export interface iPostPagoPoliza {
     UsuarioID: number;
 }
 
+export interface iPostPagoPolizaResp {
+    PolizaID: number;
+    FechaPago: Date;
+    MontoPagado: number;
+    ReferenciaPago: string;
+    NombreTitular: string;
+    FechaMovimiento: Date;
+    MetodoPago: MetodoPago;
+    EstatusPago: EstatusPago;
+    Usuario: Usuario;
+    MotivoCancelacion: null;
+    PagoID: number;
+}
+
+export interface EstatusPago {
+    IDEstatusPago: number;
+    NombreEstatus: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface MetodoPago {
+    IDMetodoPago: number;
+    NombreMetodo: string;
+    FechaCreacion: Date;
+    FechaActualizacion: Date;
+}
+
+export interface Usuario {
+    UsuarioID: number;
+    NombreUsuario: string;
+    Contrasena: string;
+    EmpleadoID: null;
+}
+
+
 export interface iGetEsquemaPago {
     fechaInicio: Date;
     fechaFin: Date;

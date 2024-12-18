@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Files, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DocumentosPolizaStep } from "./DocumentosPolizaStep";
-import { Files, Upload } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { postDocumento } from "@/actions/PolizasActions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Loading from "@/app/(protected)/loading";
+import { ModalDocumentosPoliza } from "./ModalDocumentosPoliza";
 
-interface DocumentosPolizaProps {
+interface PropiedadesDocumentosPoliza {
     polizaId: number;
     tieneDocumentos: boolean;
 }
@@ -26,14 +27,18 @@ interface ArchivosBase64 {
     fotoVIN?: string;
 }
 
-export const DocumentosPoliza = ({ polizaId, tieneDocumentos }: DocumentosPolizaProps) => {
-    const [modalAbierto, setModalAbierto] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+export const DocumentosPoliza = ({
+    polizaId,
+    tieneDocumentos
+}: PropiedadesDocumentosPoliza) => {
+    const [modalCargaAbierto, setModalCargaAbierto] = useState(false);
+    const [modalVisualizacionAbierto, setModalVisualizacionAbierto] = useState(false);
+    const [cargando, setCargando] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
     const manejarDocumentos = async (documentos: ArchivosBase64) => {
-        setIsLoading(true);
+        setCargando(true);
         let hayErrores = false;
 
         try {
@@ -48,10 +53,8 @@ export const DocumentosPoliza = ({ polizaId, tieneDocumentos }: DocumentosPoliza
                         EstadoDocumento: "Activo"
                     };
 
-                    console.log(documento)
-
                     const respuesta = await postDocumento(documento);
-                    console.log(respuesta)
+
                     if (!respuesta || respuesta.statusCode === 413) {
                         hayErrores = true;
                         toast({
@@ -78,7 +81,7 @@ export const DocumentosPoliza = ({ polizaId, tieneDocumentos }: DocumentosPoliza
                     title: "Documentos guardados",
                     description: "Los documentos se han guardado exitosamente"
                 });
-                setModalAbierto(false);
+                setModalCargaAbierto(false);
                 router.refresh();
             }
         } catch (error) {
@@ -88,28 +91,44 @@ export const DocumentosPoliza = ({ polizaId, tieneDocumentos }: DocumentosPoliza
                 variant: "destructive"
             });
         } finally {
-            setIsLoading(false);
+            setCargando(false);
         }
     };
 
     if (tieneDocumentos) {
         return (
-            <Badge variant="secondary">
-                <Files className="h-4 w-4 mr-2" />
-                Documentos cargados
-            </Badge>
+            <>
+                <Badge
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => setModalVisualizacionAbierto(true)}
+                >
+                    <Files className="h-4 w-4 mr-2" />
+                    Documentos cargados
+                </Badge>
+
+                <ModalDocumentosPoliza
+                    abierto={modalVisualizacionAbierto}
+                    alCerrar={() => setModalVisualizacionAbierto(false)}
+                    polizaId={polizaId}
+                />
+            </>
         );
     }
 
     return (
         <>
-            {isLoading && <Loading />}
-            <Button onClick={() => setModalAbierto(true)} variant="outline" size="sm">
+            {cargando && <Loading />}
+            <Button
+                onClick={() => setModalCargaAbierto(true)}
+                variant="outline"
+                size="sm"
+            >
                 <Upload className="h-4 w-4 mr-2" />
                 Cargar documentos
             </Button>
 
-            <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
+            <Dialog open={modalCargaAbierto} onOpenChange={setModalCargaAbierto}>
                 <DialogContent className="max-w-4xl max-h-[600px] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Cargar documentos de la póliza</DialogTitle>

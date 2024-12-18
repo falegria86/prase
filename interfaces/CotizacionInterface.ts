@@ -26,9 +26,19 @@ export interface iGetCotizacion {
   Correo: null | string;
   Telefono: null | string;
   Placa: null | string;
-  NoMotor: null|string;
+  NoMotor: null | string;
   UsuarioRegistro: null | string;
   detalles: iDetallesGetCotizacion[];
+
+  // Campos de cálculos
+  costoBase: number;
+  ajusteSiniestralidad: number;
+  ajusteCP: number;
+  ajusteTipoPago: number;
+  subtotalSiniestralidad: number;
+  subtotalTipoPago: number;
+  costoNeto: number;
+  iva: number;
 }
 
 export interface iPostCotizacion {

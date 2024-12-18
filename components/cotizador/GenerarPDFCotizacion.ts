@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import {
@@ -26,7 +26,7 @@ export const generarPDFCotizacion = async ({
   isSave,
 }: GenerarPDFProps) => {
   const doc = new jsPDF();
-
+console.log(datos)
   const MARGEN_X = 15;
   const MARGEN_Y = 15;
   const ANCHO_PAGINA = doc.internal.pageSize.width - MARGEN_X * 2;
@@ -40,8 +40,7 @@ export const generarPDFCotizacion = async ({
   };
 
   const formatearMoneda = (cantidad: string | number): string => {
-    const valor =
-      typeof cantidad === "string" ? parseFloat(cantidad) : cantidad;
+    const valor = typeof cantidad === "string" ? parseFloat(cantidad) : cantidad;
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN",
@@ -49,13 +48,8 @@ export const generarPDFCotizacion = async ({
     }).format(valor);
   };
 
-  const nombreUso =
-    usosVehiculo.find((uso) => uso.UsoID === datos.UsoVehiculo)?.Nombre ||
-    "No especificado";
-  const nombreTipo =
-    tiposVehiculo.find((tipo) => tipo.TipoID === datos.TipoVehiculo)?.Nombre ||
-    "No especificado";
-
+  const nombreUso = usosVehiculo.find((uso) => uso.UsoID === datos.UsoVehiculo)?.Nombre || "No especificado";
+  const nombreTipo = tiposVehiculo.find((tipo) => tipo.TipoID === datos.TipoVehiculo)?.Nombre || "No especificado";
   const tipoPago = tiposPago.find((tipo) => tipo.TipoPagoID === datos.TipoPagoID);
 
   doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 30, 25);
@@ -65,11 +59,9 @@ export const generarPDFCotizacion = async ({
   doc.text("COTIZACIÓN PRASE SEGUROS", MARGEN_X + 45, MARGEN_Y + 10);
 
   let posicionY = MARGEN_Y + 35;
-
   const mitadAncho = ANCHO_PAGINA * 0.48;
-
   doc.setTextColor(0);
-  
+
   autoTable(doc, {
     startY: posicionY,
     head: [["DATOS DE LA UNIDAD"]],
@@ -134,24 +126,18 @@ export const generarPDFCotizacion = async ({
 
   posicionY = (doc as any).lastAutoTable.finalY + 10;
 
-  const costoBase = ((Number(datos.PrimaTotal) - Number(datos.DerechoPoliza)) * 100) / 116;
-  const ajusteTipoPago = tipoPago ? costoBase * (parseFloat(tipoPago.PorcentajeAjuste) / 100) : 0;
-  const subtotalAjuste = costoBase + ajusteTipoPago;
-  const bonificacion = subtotalAjuste * (Number(datos.PorcentajeDescuento) / 100);
-  const costoNeto = subtotalAjuste - bonificacion;
-  const iva = costoNeto * 0.16;
-  const total = costoNeto + iva + Number(datos.DerechoPoliza);
-
   const costos = [
-    ["Costo Base:", formatearMoneda(costoBase)],
+    ["Costo Base:", formatearMoneda(datos.costoBase)],
     ["Tipo de pago:", tipoPago?.Descripcion || "No especificado"],
-    [`Ajuste por tipo de pago (${tipoPago?.PorcentajeAjuste || 0}%):`, formatearMoneda(ajusteTipoPago)],
-    ["Subtotal con ajuste:", formatearMoneda(subtotalAjuste)],
-    [`Bonificación (${datos.PorcentajeDescuento}%):`, formatearMoneda(bonificacion)],
-    ["Costo Neto:", formatearMoneda(costoNeto)],
-    ["IVA (16%):", formatearMoneda(iva)],
+    ["Ajuste por siniestralidad:", formatearMoneda(datos.ajusteSiniestralidad)],
+    ["Subtotal con ajuste siniestralidad:", formatearMoneda(datos.subtotalSiniestralidad)],
+    ["Ajuste por tipo de pago:", formatearMoneda(datos.ajusteTipoPago)],
+    ["Subtotal con ajuste tipo pago:", formatearMoneda(datos.subtotalTipoPago)],
+    [`Bonificación técnica (${datos.PorcentajeDescuento}%):`, formatearMoneda(Number(datos.PorcentajeDescuento) * datos.subtotalTipoPago / 100)],
+    ["Costo Neto:", formatearMoneda(datos.costoNeto)],
     ["Derecho de Póliza:", formatearMoneda(Number(datos.DerechoPoliza))],
-    ["TOTAL:", formatearMoneda(total)],
+    ["IVA (16%):", formatearMoneda(datos.iva)],
+    ["TOTAL:", formatearMoneda(datos.PrimaTotal)]
   ];
 
   autoTable(doc, {

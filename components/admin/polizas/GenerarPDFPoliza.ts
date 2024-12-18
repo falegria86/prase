@@ -3,19 +3,21 @@ import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
-import { iPostPolizaResp } from "@/interfaces/CatPolizas";
+import { iGetEsquemaPago, iPostPolizaResp } from "@/interfaces/CatPolizas";
 import { formatCurrency } from "@/lib/format";
 
 interface GenerarPDFPolizaProps {
     respuestaPoliza: iPostPolizaResp;
     cotizacion: iGetCotizacion;
     coberturas: iGetCoberturas[];
+    esquemaPago?: iGetEsquemaPago | undefined | null;
 }
 
 export const generarPDFPoliza = async ({
     respuestaPoliza,
     cotizacion,
-    coberturas
+    coberturas,
+    esquemaPago,
 }: GenerarPDFPolizaProps) => {
     const doc = new jsPDF();
     const MARGEN_X = 15;
@@ -53,7 +55,7 @@ export const generarPDFPoliza = async ({
     doc.setFontSize(10);
     doc.text(`POLIZA NO. ${respuestaPoliza.NumeroPoliza}`, MARGEN_X + 180, MARGEN_Y + 20, { align: "right" });
 
-    let posicionY = MARGEN_Y + 35;
+    let posicionY = MARGEN_Y + 26;
 
     autoTable(doc, {
         startY: posicionY,
@@ -86,7 +88,7 @@ export const generarPDFPoliza = async ({
         align: "justify"
     });
 
-    posicionY += 12;
+    posicionY += 8;
     const mitadAncho = ANCHO_PAGINA * 0.48;
 
     autoTable(doc, {
@@ -96,6 +98,8 @@ export const generarPDFPoliza = async ({
             [`Marca: ${respuestaPoliza.vehiculo.Marca}`],
             [`Submarca: ${respuestaPoliza.vehiculo.Modelo}`],
             [`Modelo: ${respuestaPoliza.vehiculo.AnoFabricacion}`],
+            [`Placas: ${respuestaPoliza.vehiculo.Placas}`],
+            [`Número de motor: ${respuestaPoliza.vehiculo.NoMotor}`],
             [`VIN: ${respuestaPoliza.vehiculo.VIN || "---"}`]
         ],
         theme: "grid",
@@ -123,7 +127,7 @@ export const generarPDFPoliza = async ({
     posicionY = Math.max(
         (doc as any).lastAutoTable.finalY,
         (doc as any).previousAutoTable.finalY
-    ) + 10;
+    ) + 20;
 
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
@@ -134,7 +138,7 @@ export const generarPDFPoliza = async ({
         align: "justify"
     });
 
-    posicionY += 12;
+    posicionY += 7;
 
     autoTable(doc, {
         startY: posicionY,
@@ -142,8 +146,6 @@ export const generarPDFPoliza = async ({
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 1 },
     });
-
-    posicionY += 8;
 
     const coberturasTabla = cotizacion.detalles.map(detalle => [
         obtenerNombreCobertura(detalle.CoberturaID),
@@ -167,7 +169,7 @@ export const generarPDFPoliza = async ({
         }
     });
 
-    posicionY = (doc as any).lastAutoTable.finalY + 8;
+    posicionY = (doc as any).lastAutoTable.finalY + 5;
 
     doc.setFontSize(7);
     const textoPrivacidad = "Aviso de privacidad: para conocer sus términos y condiciones favor de leer las condiciones generales del contrato.";
@@ -178,7 +180,7 @@ export const generarPDFPoliza = async ({
         align: "justify"
     });
 
-    posicionY += 12;
+    posicionY += 10;
 
     const costos = [
         ["Costo Neto:", formatCurrency(respuestaPoliza.PrimaTotal / 1.16)],
@@ -198,6 +200,34 @@ export const generarPDFPoliza = async ({
         }
     });
 
+    if (esquemaPago) {
+        posicionY = (doc as any).lastAutoTable.finalY + 4;
+
+        const datosPagos = esquemaPago.esquemaPagos.map(pago => [
+            `Pago ${pago.numeroPago}:`,
+            formatCurrency(pago.montoPorPagar),
+            formatearFecha(pago.fechaPago)
+        ]);
+
+        autoTable(doc, {
+            startY: posicionY,
+            head: [["ESQUEMA DE PAGOS", "MONTO", "FECHA LÍMITE"]],
+            body: [
+                ...datosPagos,
+                [`Descuento por pronto pago:`, formatCurrency(esquemaPago.descuentoProntoPago), ""],
+                ["Total a pagar:", formatCurrency(esquemaPago.totalPrima), ""]
+            ],
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 1 },
+            headStyles: { fillColor: [0, 51, 102] },
+            columnStyles: {
+                0: { cellWidth: ANCHO_PAGINA * 0.5 },
+                1: { cellWidth: ANCHO_PAGINA * 0.25, halign: "right" },
+                2: { cellWidth: ANCHO_PAGINA * 0.25, halign: "center" }
+            }
+        });
+    }
+
     const textoLegalPie = [
         "Atención a siniestros en México 800-772-73-10",
         "Atención a clientes y cotizaciones al 800 908-90-08 consultas, modificaciones y otros trámites 311-909-10-00.",
@@ -210,7 +240,7 @@ export const generarPDFPoliza = async ({
         doc.text(texto, MARGEN_X, doc.internal.pageSize.height - 25 + index * 4);
     });
 
-    const qrDataUrl = await QRCode.toDataURL(respuestaPoliza.NumeroPoliza);
+    const qrDataUrl = await QRCode.toDataURL(`https://prase.vercel.app/consulta/${respuestaPoliza.NumeroPoliza}`);
     doc.addImage(qrDataUrl, "PNG", doc.internal.pageSize.width - 35, doc.internal.pageSize.height - 35, 25, 25);
 
     return doc;

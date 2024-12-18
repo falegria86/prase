@@ -114,7 +114,7 @@ export const CoverageStep = ({
       return parseFloat(cobertura.SumaAseguradaMax);
     },
     [form]
-);
+  );
 
   const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
     // if (cobertura.CoberturaAmparada) return 0; 
@@ -134,24 +134,24 @@ export const CoverageStep = ({
   const calcularPrima = useCallback(
     (cobertura: CoberturaExtendida, tipo: TipoCalculo): number => {
       if (tipo === "fijo" || cobertura.SinValor) return 0;
-  
+
       const sumaAsegurada = obtenerSumaAsegurada(cobertura);
       const deducible = obtenerDeducible(cobertura);
-  
+
       if (Number(cobertura.PrimaBase) > 1) {
         return parseFloat(cobertura.PrimaBase);
       }
-  
+
       const primaPorcentaje = parseFloat(cobertura.PorcentajePrima) / 100;
       const primaBase = sumaAsegurada * primaPorcentaje;
-  
+
       if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
         return primaBase;
       }
-  
+
       if (cobertura.tipoDeducible.Nombre === "UMA") {
         const deduciblePesos = deducible * 108.57;
-        
+
         return Math.max(0, primaBase - deduciblePesos);
       }
 
@@ -165,8 +165,8 @@ export const CoverageStep = ({
       const detalles = coberturas.map((cobertura) => {
         const deducible = obtenerDeducible(cobertura);
         const displayDeducible = cobertura.tipoDeducible.Nombre === "UMA"
-            ? `${deducible} UMAS`
-            : `${deducible}%`;
+          ? `${deducible} UMAS`
+          : `${deducible}%`;
 
         return {
           CoberturaID: cobertura.CoberturaID,
@@ -338,14 +338,14 @@ export const CoverageStep = ({
           ? { ...cobertura, deducibleSeleccionado: parseInt(valor) }
           : cobertura
       );
-  
+
       setCoberturasSeleccionadas(nuevasCoberturas);
-  
+
       const nuevosDetalles = nuevasCoberturas.map((cobertura) => {
         const montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
         const deducible = obtenerDeducible(cobertura);
         const prima = calcularPrima(cobertura, "cobertura");
-  
+
         return {
           CoberturaID: cobertura.CoberturaID,
           NombreCobertura: cobertura.NombreCobertura,
@@ -359,9 +359,9 @@ export const CoverageStep = ({
           Obligatoria: cobertura.Obligatoria || false,
         };
       });
-  
+
       form.setValue("detalles", nuevosDetalles);
-  
+
       const nuevaPrimaTotal = nuevosDetalles.reduce(
         (total, detalle) => total + detalle.PrimaCalculada,
         0
@@ -411,14 +411,14 @@ export const CoverageStep = ({
         }
         return cobertura;
       });
-  
+
       setCoberturasSeleccionadas(nuevasCoberturas);
-  
+
       const nuevosDetalles = nuevasCoberturas.map((cobertura) => {
         const montoSumaAsegurada = obtenerSumaAsegurada(cobertura);
         const deducible = obtenerDeducible(cobertura);
         const prima = calcularPrima(cobertura, "cobertura");
-  
+
         return {
           CoberturaID: cobertura.CoberturaID,
           NombreCobertura: cobertura.NombreCobertura,
@@ -432,9 +432,9 @@ export const CoverageStep = ({
           Obligatoria: cobertura.Obligatoria || false,
         };
       });
-  
+
       form.setValue("detalles", nuevosDetalles);
-      
+
       const nuevaPrimaTotal = nuevosDetalles.reduce(
         (total, detalle) => total + detalle.PrimaCalculada,
         0

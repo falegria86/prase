@@ -22,6 +22,7 @@ import { FormData } from "@/types/cotizador";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iAjustesCP } from "@/interfaces/AjustesCPInterace";
 import { getAjustesCP } from "@/actions/AjustesCP";
+import { useCalculosPrima } from "@/hooks/useCalculoPrima";
 
 interface PropiedadesPlanPago {
   form: UseFormReturn<FormData>;
@@ -37,6 +38,7 @@ export const PlanPago = ({
   derechoPoliza,
 }: PropiedadesPlanPago) => {
   const [ajustes, setAjustes] = useState<iAjustesCP>();
+  const { calcularAjustes, obtenerPagos } = useCalculosPrima();
   const codigoPostal = form.watch("CP");
 
   useEffect(() => {
@@ -53,115 +55,28 @@ export const PlanPago = ({
     obtenerAjustes();
   }, [codigoPostal]);
 
-  const calcularAjusteSiniestralidad = (montoBase: number): number => {
-    if (!ajustes) return 0;
-    return montoBase * (parseFloat(ajustes.ajuste.AjustePrima) / 100);
-  };
+  const tipoPagoSeleccionado = form.watch("TipoPagoID");
+  const bonificacion = form.watch("PorcentajeDescuento") || 0;
+  const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
 
-  const calcularAjusteTipoPago = (
-    monto: number,
-    tipoPago: iGetTipoPagos
-  ): number => {
-    const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
-    return monto * porcentajeAjuste;
-  };
+  const resultados = calcularAjustes({
+    form,
+    costoBase,
+    ajustesCP: ajustes,
+    tipoPago
+  });
 
-  const calcularBonificacion = (monto: number, bonificacion: number): number => {
-    return monto * (bonificacion / 100);
-  };
-
-  const calcularCostoTotal = (tipoPagoId: number, bonificacion = 0): number => {
-    const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoId);
-    if (!tipoPago) return costoBase;
-
-    const ajusteSiniestralidad = calcularAjusteSiniestralidad(costoBase);
-    const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
-
-    if (tipoPago.Divisor === 1) {
-      // Pago anual
-      const descuentoBonificacion = calcularBonificacion(subtotalSiniestralidad, bonificacion);
-      const subtotalConDescuento = subtotalSiniestralidad - descuentoBonificacion;
-      const montoAntesIVA = subtotalConDescuento + derechoPoliza;
-      const costoTotal = montoAntesIVA * 1.16;
-
-      form.setValue("PrimaTotal", costoTotal);
-      return subtotalConDescuento;
-    } else {
-      // Pagos fraccionados
-      const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
-      const montoTotal = ((subtotalSiniestralidad + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
-
-      form.setValue("PrimaTotal", montoTotal);
-      return subtotalSiniestralidad;
-    }
-  };
-
-  const calcularPagos = (tipoPagoId: number): {
-    primerPago: number;
-    pagoSubsecuente: number;
-    numeroPagosSubsecuentes: number;
-  } | null => {
-    const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoId);
-    if (!tipoPago || tipoPago.Divisor === 1) return null;
-
-    const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
-    const numeroPagos = tipoPago.Divisor;
-
-    // Primer pago: agregar derecho de póliza antes de IVA
-    const montoPrimerPagoBase = (costoBase / numeroPagos) + derechoPoliza;
-    const montoPrimerPagoAjustado = montoPrimerPagoBase * (1 + porcentajeAjuste);
-    const primerPago = montoPrimerPagoAjustado * 1.16;
-
-    // Pagos subsecuentes
-    const montoTotalAjustado = ((costoBase + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
-    const pagoSubsecuente = (montoTotalAjustado - primerPago) / (numeroPagos - 1);
-
-    return {
-      primerPago,
-      pagoSubsecuente,
-      numeroPagosSubsecuentes: numeroPagos - 1,
-    };
-  };
+  const detallesPago = tipoPago ? obtenerPagos(
+    costoBase,
+    tipoPago,
+    derechoPoliza
+  ) : null;
 
   const validarBonificacion = (valor: string): number => {
     if (valor === "") return 0;
     const numero = Math.min(Math.max(Number(valor), 0), 35);
     return isNaN(numero) ? 0 : numero;
   };
-
-  const tipoPagoSeleccionado = form.watch("TipoPagoID");
-  const bonificacion = form.watch("PorcentajeDescuento") || 0;
-  const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
-  const detallesPago = tipoPagoSeleccionado ? calcularPagos(tipoPagoSeleccionado) : null;
-
-  const ajusteSiniestralidad = calcularAjusteSiniestralidad(costoBase);
-  const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
-
-  const ajusteTipoPago = tipoPago
-    ? calcularAjusteTipoPago(subtotalSiniestralidad, tipoPago)
-    : 0;
-  const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
-
-  const descuentoBonificacion = calcularBonificacion(subtotalTipoPago, bonificacion);
-  const costoNeto = subtotalTipoPago - descuentoBonificacion;
-
-  let iva = 0;
-  let costoTotal = 0;
-
-  if (!tipoPago || tipoPago.Divisor === 1) {
-    iva = (costoNeto + derechoPoliza) * 0.16;
-    costoTotal = (costoNeto + derechoPoliza) * 1.16;
-  } else {
-    const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
-    const montoAntesIVA = (subtotalSiniestralidad + derechoPoliza) * (1 + porcentajeAjuste);
-    iva = montoAntesIVA * 0.16;
-    costoTotal = montoAntesIVA * 1.16;
-
-    if (detallesPago) {
-      costoTotal = detallesPago.primerPago +
-        (detallesPago.pagoSubsecuente * detallesPago.numeroPagosSubsecuentes);
-    }
-  }
 
   return (
     <Card className="mt-6">
@@ -183,10 +98,13 @@ export const PlanPago = ({
                   onValueChange={(valor) => {
                     const tipoPagoId = Number(valor);
                     field.onChange(tipoPagoId);
-                    calcularCostoTotal(
-                      tipoPagoId,
-                      form.getValues("PorcentajeDescuento")
-                    );
+                    const tipoPago = tiposPagos.find(t => t.TipoPagoID === tipoPagoId);
+                    calcularAjustes({
+                      form,
+                      costoBase,
+                      ajustesCP: ajustes,
+                      tipoPago
+                    });
                   }}
                   value={field.value?.toString()}
                 >
@@ -231,10 +149,12 @@ export const PlanPago = ({
                     onChange={(e) => {
                       const valorValidado = validarBonificacion(e.target.value);
                       field.onChange(valorValidado);
-
-                      if (tipoPagoSeleccionado) {
-                        calcularCostoTotal(tipoPagoSeleccionado, valorValidado);
-                      }
+                      calcularAjustes({
+                        form,
+                        costoBase,
+                        ajustesCP: ajustes,
+                        tipoPago
+                      });
                     }}
                   />
                 </FormControl>
@@ -251,46 +171,46 @@ export const PlanPago = ({
               <span>{formatCurrency(costoBase)}</span>
             </div>
 
-            {ajusteSiniestralidad > 0 && (
+            {resultados.ajusteSiniestralidad > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
                   Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
                 </span>
-                <span>+{formatCurrency(ajusteSiniestralidad)}</span>
+                <span>+{formatCurrency(resultados.ajusteSiniestralidad)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
-              <span>{formatCurrency(subtotalSiniestralidad)}</span>
+              <span>{formatCurrency(resultados.subtotalSiniestralidad)}</span>
             </div>
 
-            {ajusteTipoPago > 0 && (
+            {resultados.ajusteTipoPago > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
                   Ajuste por tipo de pago ({tipoPago?.PorcentajeAjuste}%):
                 </span>
-                <span>+{formatCurrency(ajusteTipoPago)}</span>
+                <span>+{formatCurrency(resultados.ajusteTipoPago)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">Subtotal con ajuste tipo pago:</span>
-              <span>{formatCurrency(subtotalTipoPago)}</span>
+              <span>{formatCurrency(resultados.subtotalTipoPago)}</span>
             </div>
 
-            {descuentoBonificacion > 0 && (
+            {resultados.bonificacion > 0 && (
               <div className="flex justify-end gap-4 items-center text-green-600">
                 <span className="font-medium">
                   Bonificación técnica ({bonificacion}%):
                 </span>
-                <span>-{formatCurrency(descuentoBonificacion)}</span>
+                <span>-{formatCurrency(resultados.bonificacion)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center font-medium">
               <span>Costo Neto:</span>
-              <span>{formatCurrency(costoNeto)}</span>
+              <span>{formatCurrency(resultados.costoNeto)}</span>
             </div>
 
             <div className="flex justify-end gap-4 items-center">
@@ -300,7 +220,7 @@ export const PlanPago = ({
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">IVA (16%):</span>
-              <span>+{formatCurrency(iva)}</span>
+              <span>+{formatCurrency(resultados.iva)}</span>
             </div>
 
             {detallesPago && (
@@ -313,9 +233,7 @@ export const PlanPago = ({
                 <div className="flex justify-end gap-4 items-center">
                   <span className="font-medium">
                     {detallesPago.numeroPagosSubsecuentes}{" "}
-                    {detallesPago.numeroPagosSubsecuentes === 1
-                      ? "pago"
-                      : "pagos"}{" "}
+                    {detallesPago.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
                     subsecuentes:
                   </span>
                   <span>{formatCurrency(detallesPago.pagoSubsecuente)}</span>
@@ -326,7 +244,7 @@ export const PlanPago = ({
             <div className="flex justify-end gap-4 items-center pt-2 border-t">
               <span className="text-lg font-semibold">Costo Total Anual:</span>
               <span className="text-lg font-bold text-primary">
-                {formatCurrency(costoTotal)}
+                {formatCurrency(resultados.total)}
               </span>
             </div>
           </div>

@@ -135,17 +135,20 @@ export const VehiculoPolizaStep = ({
         if (valorSeleccionado === "nuevo") {
             form.reset({
                 vehiculoExistente: "",
+                ClienteID: 0,
                 Marca: cotizacion.Marca,
-                Modelo: cotizacion.Modelo,
+                Modelo: cotizacion.Submarca,
                 AnoFabricacion: Number(cotizacion.Modelo),
                 TipoVehiculo: cotizacion.TipoVehiculo.toString(),
                 ValorVehiculo: 0,
                 ValorFactura: 0,
+                FechaRegistro: new Date().toISOString(),
                 UsoVehiculo: cotizacion.UsoVehiculo.toString(),
                 ZonaResidencia: zona,
+                Salvamento: 0,
                 NoMotor: cotizacion.NoMotor ?? "",
                 Placas: cotizacion.Placa ?? "",
-                VIN: cotizacion.VIN,
+                VIN: cotizacion.VIN ?? "",
             });
         } else {
             const vehiculoSeleccionado = vehiculos.find(

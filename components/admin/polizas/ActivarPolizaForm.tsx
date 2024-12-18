@@ -6,7 +6,7 @@ import { ClientePolizaStep } from "./ClientePolizaStep";
 import { VehiculoPolizaStep } from "./VehiculoPolizaStep";
 import { ResumenPolizaStep } from "./ResumenPolizaStep";
 import { DocumentosPolizaStep } from "./DocumentosPolizaStep";
-import { postDocumento, postPoliza } from "@/actions/PolizasActions";
+import { getEsquemaPago, postDocumento, postPoliza } from "@/actions/PolizasActions";
 import { patchCotizacion } from "@/actions/CotizadorActions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { iGetCotizacion } from "@/interfaces/CotizacionInterface";
@@ -151,7 +151,7 @@ export const ActivarPolizaForm = ({
                 };
 
                 const respuesta = await postPoliza(datosPoliza);
-                
+
                 if (respuesta) {
                     setPolizaId(respuesta.PolizaID);
 
@@ -159,10 +159,13 @@ export const ActivarPolizaForm = ({
                         EstadoCotizacion: "EMITIDA",
                     });
 
+                    const esquemaPago = await getEsquemaPago(respuesta.NumeroPoliza);
+
                     const doc = await generarPDFPoliza({
                         respuestaPoliza: respuesta,
                         cotizacion,
-                        coberturas
+                        coberturas,
+                        esquemaPago
                     });
 
                     doc.save(`poliza_${respuesta.NumeroPoliza}.pdf`);

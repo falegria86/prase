@@ -20,6 +20,23 @@ export const formatDateFullTz = (dateString: Date) => {
     return `${day} de ${month} de ${year}`;
 }
 
+export const formatDateTimeFull = (dateString: Date) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNames = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = date.getHours() >= 12 ? 'p.m.' : 'a.m.';
+    const formattedHour = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+
+    return `${day} de ${month} de ${year} a las ${formattedHour}:${minutes} ${ampm}`;
+}
+
 export const fixDate = (date: Date) => {
     const fechaParsed = new Date(date);
     const offset = fechaParsed.getTimezoneOffset() * 60000;

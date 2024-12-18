@@ -45,7 +45,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { iGetEsquemaPago, iGetMetodosPago, iGetStatusPago, type iGetPolizas, type iPatchPoliza } from "@/interfaces/CatPolizas";
+import { iGetEsquemaPago, iGetMetodosPago, iGetStatusPago, iPostPagoPoliza, type iGetPolizas, type iPatchPoliza } from "@/interfaces/CatPolizas";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { useToast } from "@/hooks/use-toast";
 import { deletePoliza, getEsquemaPago, patchPoliza, postPagoPoliza } from "@/actions/PolizasActions";
@@ -56,6 +56,7 @@ import { formatDateFullTz } from "@/lib/format-date";
 import { DocumentosPoliza } from "./DocumentosPoliza";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GestionPagosPoliza } from "./GestionPagosPoliza";
+import { generarTicketPDF } from "./GenerarTicketPDF";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -193,10 +194,13 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
         }
     };
 
-    const registrarPago = async (datos: any) => {
+    const registrarPago = async (datos: iPostPagoPoliza) => {
         try {
             const resp = await postPagoPoliza(datos);
+
             if (resp.statusCode !== 400) {
+                await generarTicketPDF(resp, polizaSeleccionada?.NumeroPoliza || '');
+
                 toast({
                     title: "Éxito",
                     description: "Pago registrado correctamente",

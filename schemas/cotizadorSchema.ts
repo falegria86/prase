@@ -72,6 +72,14 @@ export const nuevaCotizacionSchema = z.object({
     detalles: z.array(detalleSchema).min(1, "Debe seleccionar al menos una cobertura"),
 
     // Campos auxiliares
+    costoBase: z.number().default(0),
+    ajusteSiniestralidad: z.number().default(0),
+    ajusteCP: z.number().default(0),
+    ajusteTipoPago: z.number().default(0),
+    subtotalSiniestralidad: z.number().default(0),
+    subtotalTipoPago: z.number().default(0),
+    costoNeto: z.number().default(0),
+    iva: z.number().default(0),
     versionNombre: z.string(),
     marcaNombre: z.string(),
     modeloNombre: z.string(),

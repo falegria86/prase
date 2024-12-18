@@ -34,10 +34,9 @@ const mapearDetallesParaAPI = (detalles: FormData['detalles']): any => {
         PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado,
         ValorAseguradoUsado: detalle.ValorAseguradoUsado,
         DeducibleID: 4,
-        NombreCobertura: "",
-        Descripcion: "",
+        NombreCobertura: detalle.NombreCobertura,
+        Descripcion: detalle.Descripcion,
         Obligatoria: false,
-        DisplayDeducible: "",
         TipoMoneda: "MXN",
         EsAmparada: false,
         SumaAseguradaPorPasajero: false,
@@ -86,7 +85,19 @@ const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any)
             EsPoliza: null,
             PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado.toString(),
             ValorAseguradoUsado: detalle.ValorAseguradoUsado.toString(),
-        }))
+            NombreCobertura: detalle.NombreCobertura,
+            Descripcion: detalle.Descripcion
+        })),
+
+        // Campos de cálculos
+        costoBase: datosFormulario.costoBase,
+        ajusteSiniestralidad: datosFormulario.ajusteSiniestralidad,
+        ajusteCP: datosFormulario.ajusteCP,
+        ajusteTipoPago: datosFormulario.ajusteTipoPago,
+        subtotalSiniestralidad: datosFormulario.subtotalSiniestralidad,
+        subtotalTipoPago: datosFormulario.subtotalTipoPago,
+        costoNeto: datosFormulario.costoNeto,
+        iva: datosFormulario.iva
     };
 };
 
@@ -94,8 +105,8 @@ export const manejarCotizacion = async ({
     datosFormulario,
     tiposVehiculo,
     usosVehiculo,
-    tiposPago,
     guardarCotizacion = false,
+    tiposPago,
 }: OpcionesCotizacion) => {
     try {
         let respuestaCotizacion;
