@@ -45,6 +45,7 @@ export interface iGetPolizas {
     historial: Historial[];
     detalles: Detalle[];
     tieneDocumentos?: boolean;
+    DerechoPolizaAplicado: string;
 }
 
 export interface Detalle {

@@ -68,13 +68,14 @@ export const ReenviarPDFModal = ({
             });
 
             const pdfBase64 = doc.output("datauristring").split(",")[1];
-
-            await sendMail({
+            const body = {
                 to: valores.email,
                 subject: "Cotización PRASE Seguros",
                 attachmentBase64: pdfBase64,
                 filename: `cotizacion_${cotizacion.Marca}_${cotizacion.Submarca}.pdf`,
-            });
+            }
+
+            await sendMail(body);
 
             toast({
                 title: "PDF enviado",

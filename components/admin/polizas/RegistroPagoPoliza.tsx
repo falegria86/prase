@@ -62,6 +62,7 @@ export const RegistroPagoPoliza = ({
     statusPago,
     metodosPago,
 }: PropiedadesRegistroPago) => {
+    //TODO: Implementar el modal de visualizar ticket de pago
     const form = useForm<TipoPagoForm>({
         resolver: zodResolver(esquemaPagoPoliza),
         defaultValues: {

@@ -13,3 +13,23 @@ export interface TipoEmpleado {
     TipoEmpleadoID: number;
     Descripcion: string;
 }
+
+export interface iPostEmpleado {
+    Nombre: string;
+    Paterno: string;
+    Materno: string;
+    FechaNacimiento: Date | string;
+    SueldoQuincenal: number;
+    PorcentajeComisiones: number;
+    TipoEmpleadoID: number;
+}
+
+export interface iPatchEmpleado {
+    Nombre?: string;
+    Paterno?: string;
+    Materno?: string;
+    FechaNacimiento?: Date | string;
+    SueldoQuincenal?: number;
+    PorcentajeComisiones?: number;
+    TipoEmpleadoID?: number;
+}

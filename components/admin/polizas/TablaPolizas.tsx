@@ -57,8 +57,7 @@ import { DocumentosPoliza } from "./DocumentosPoliza";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GestionPagosPoliza } from "./GestionPagosPoliza";
 import { generarTicketPDF } from "./GenerarTicketPDF";
-import { getCotizacionById } from "@/actions/CotizadorActions";
-import { generarPDFPoliza } from "./GenerarPDFPoliza";
+import { FiltrosPolizas, FiltrosPolizasState } from "./FiltrosPolizas";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -76,22 +75,29 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
     const [dialogoEliminarAbierto, setDialogoEliminarAbierto] = useState(false);
     const [motivoCancelacion, setMotivoCancelacion] = useState("");
     const [errorMotivo, setErrorMotivo] = useState(false);
-    const [terminoBusqueda, setTerminoBusqueda] = useState("");
     const [modalPagosAbierto, setModalPagosAbierto] = useState(false);
     const [polizaSeleccionada, setPolizaSeleccionada] = useState<iGetPolizas | null>(null);
     const [esquemaPago, setEsquemaPago] = useState<iGetEsquemaPago | null>(null);
+    const [filtros, setFiltros] = useState<FiltrosPolizasState>({
+        textoBusqueda: "",
+        estado: null
+    });
 
     const { toast } = useToast();
     const router = useRouter();
     const user = useCurrentUser();
 
     const polizasFiltradas = useMemo(() => {
-        if (!terminoBusqueda) return polizas;
+        return polizas.filter(poliza => {
+            const cumpleBusqueda = !filtros.textoBusqueda ||
+                poliza.NumeroPoliza.toLowerCase().includes(filtros.textoBusqueda.toLowerCase());
 
-        return polizas.filter(poliza =>
-            poliza.NumeroPoliza.toLowerCase().includes(terminoBusqueda.toLowerCase())
-        );
-    }, [polizas, terminoBusqueda]);
+            const cumpleEstado = !filtros.estado || poliza.EstadoPoliza === filtros.estado;
+
+            return cumpleBusqueda && cumpleEstado;
+        });
+    }, [polizas, filtros]);
+
 
 
     const obtenerColorEstado = (estado: string): "default" | "destructive" | "secondary" | "outline" | null | undefined => {
@@ -230,14 +236,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center space-x-2 mb-4">
-                <Input
-                    placeholder="Buscar por número de póliza..."
-                    value={terminoBusqueda}
-                    onChange={(e) => setTerminoBusqueda(e.target.value)}
-                    className="max-w-sm bg-white"
-                />
-            </div>
+            <FiltrosPolizas onFiltrar={setFiltros} />
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -310,71 +309,75 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                                             </TooltipTrigger>
                                             <TooltipContent>Ver detalles</TooltipContent>
                                         </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        abrirModalPagos(poliza);
-                                                    }}
-                                                >
-                                                    <DollarSign className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Gestionar Pagos</TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setPolizaParaEditar(poliza);
-                                                        setModalEdicionAbierto(true);
-                                                    }}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Editar</TooltipContent>
-                                        </Tooltip>
+                                        {poliza.EstadoPoliza !== 'CANCELADA' && (
+                                            <>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                abrirModalPagos(poliza);
+                                                            }}
+                                                        >
+                                                            <DollarSign className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Gestionar Pagos</TooltipContent>
+                                                </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setPolizaParaEditar(poliza);
+                                                                setModalEdicionAbierto(true);
+                                                            }}
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Editar</TooltipContent>
+                                                </Tooltip>
 
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <FileText
-                                                    size={16}
-                                                    className="text-gray-600 cursor-pointer"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        manejarDescargaPolizaPDF(poliza)
-                                                    }}
-                                                />
-                                            </TooltipTrigger>
-                                            <TooltipContent>Descargar Póliza PDF</TooltipContent>
-                                        </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <FileText
+                                                            size={16}
+                                                            className="text-gray-600 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                manejarDescargaPolizaPDF(poliza)
+                                                            }}
+                                                        />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Descargar Póliza PDF</TooltipContent>
+                                                </Tooltip>
 
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setPolizaParaEliminar(poliza);
-                                                        setDialogoEliminarAbierto(true);
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Eliminar</TooltipContent>
-                                        </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setPolizaParaEliminar(poliza);
+                                                                setDialogoEliminarAbierto(true);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Eliminar</TooltipContent>
+                                                </Tooltip>
+                                            </>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
