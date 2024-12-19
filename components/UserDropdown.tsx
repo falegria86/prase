@@ -18,15 +18,17 @@ export default function UserDropdown({ user }: { user: CustomUser | null }) {
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start p-0">
                     <div className="flex items-center space-x-2">
-                        {/* <Avatar className="w-10 h-10">
-                            <AvatarImage src="https://xsgames.co/randomusers/assets/avatars/male/47.jpg" alt="Usuario" />
-                            <AvatarFallback>JP</AvatarFallback>
-                        </Avatar> */}
                         {user && (
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm font-medium">{user.empleado.Nombre} {user.empleado.Paterno} {user.empleado.Materno}</span>
-                                {/* <span className="text-xs text-muted-foreground">juan@ejemplo.com</span> */}
-                            </div>
+                            <>
+                                <Avatar className="w-10 h-10">
+                                    {/* <AvatarImage src="https://xsgames.co/randomusers/assets/avatars/male/47.jpg" alt="Usuario" /> */}
+                                    <AvatarFallback>{user.empleado.Nombre.toUpperCase().slice(0,1)}{user.empleado.Paterno.toUpperCase().slice(0,1)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-sm font-medium">{user.empleado.Nombre} {user.empleado.Paterno} {user.empleado.Materno}</span>
+                                    {/* <span className="text-xs text-muted-foreground">juan@ejemplo.com</span> */}
+                                </div>
+                            </>
                         )}
                     </div>
                 </Button>
