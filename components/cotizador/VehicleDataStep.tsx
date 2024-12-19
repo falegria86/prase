@@ -219,7 +219,7 @@ export const VehicleDataStep = ({
 
   const handleLocationSelect = (location: Feature) => {
     const postcode = location.properties.postcode;
-    
+
     if (postcode) {
       form.setValue("CP", postcode, {
         shouldValidate: true,
@@ -372,6 +372,52 @@ export const VehicleDataStep = ({
                   validateFields();
                 }}
                 onBlur={() => form.trigger("VIN")}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Campo Placa */}
+      <FormField
+        control={form.control}
+        name="Placa"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Placa (opcional)</FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                placeholder="Ingresa la placa del vehículo..."
+                onChange={(e) => {
+                  field.onChange(e);
+                  validateFields();
+                }}
+                onBlur={() => form.trigger("Placa")}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Campo Número Motor */}
+      <FormField
+        control={form.control}
+        name="NoMotor"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Número de motor (opcional)</FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                placeholder="Ingresa el número de motor del vehículo..."
+                onChange={(e) => {
+                  field.onChange(e);
+                  validateFields();
+                }}
+                onBlur={() => form.trigger("NoMotor")}
               />
             </FormControl>
             <FormMessage />

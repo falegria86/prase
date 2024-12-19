@@ -90,14 +90,14 @@ const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any)
         })),
 
         // Campos de cálculos
-        costoBase: datosFormulario.costoBase,
-        ajusteSiniestralidad: datosFormulario.ajusteSiniestralidad,
-        ajusteCP: datosFormulario.ajusteCP,
-        ajusteTipoPago: datosFormulario.ajusteTipoPago,
-        subtotalSiniestralidad: datosFormulario.subtotalSiniestralidad,
-        subtotalTipoPago: datosFormulario.subtotalTipoPago,
-        costoNeto: datosFormulario.costoNeto,
-        iva: datosFormulario.iva
+        CostoBase: datosFormulario.CostoBase,
+        AjusteSiniestralidad: datosFormulario.AjusteSiniestralidad,
+        AjusteCP: datosFormulario.AjusteCP,
+        AjusteTipoPago: datosFormulario.AjusteTipoPago,
+        SubtotalSiniestralidad: datosFormulario.SubtotalSiniestralidad,
+        SubtotalTipoPago: datosFormulario.SubtotalTipoPago,
+        CostoNeto: datosFormulario.CostoNeto,
+        IVA: datosFormulario.IVA
     };
 };
 
@@ -114,6 +114,7 @@ export const manejarCotizacion = async ({
         if (guardarCotizacion) {
             const cotizacionParaAPI: iPostCotizacion = {
                 UsuarioID: datosFormulario.UsuarioID,
+                UsuarioRegistro: datosFormulario.UsuarioID,
                 EstadoCotizacion: datosFormulario.EstadoCotizacion,
                 PrimaTotal: datosFormulario.PrimaTotal,
                 TipoPagoID: datosFormulario.TipoPagoID,
@@ -146,6 +147,16 @@ export const manejarCotizacion = async ({
                 minSumaAsegurada: datosFormulario.minSumaAsegurada.toString(),
                 maxSumaAsegurada: datosFormulario.maxSumaAsegurada.toString(),
                 PaqueteCoberturaID: datosFormulario.PaqueteCoberturaID,
+                Placa: datosFormulario.Placa,
+                NoMotor: datosFormulario.NoMotor,
+                CostoBase: datosFormulario.CostoBase,
+                AjusteSiniestralidad: datosFormulario.AjusteSiniestralidad,
+                AjusteCP: datosFormulario.AjusteCP,
+                AjusteTipoPago: datosFormulario.AjusteTipoPago,
+                SubtotalSiniestralidad: datosFormulario.SubtotalSiniestralidad,
+                SubtotalTipoPago: datosFormulario.SubtotalTipoPago,
+                CostoNeto: datosFormulario.CostoNeto,
+                IVA: datosFormulario.IVA,
             };
 
             respuestaCotizacion = await postCotizacion(cotizacionParaAPI);

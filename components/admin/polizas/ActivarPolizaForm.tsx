@@ -53,7 +53,7 @@ export const ActivarPolizaForm = ({
     const [modalDocumentosAbierto, setModalDocumentosAbierto] = useState(false);
     const [polizaId, setPolizaId] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
-
+    
     const router = useRouter();
     const { toast } = useToast();
 
@@ -148,6 +148,8 @@ export const ActivarPolizaForm = ({
                     ClienteID: clienteId,
                     EstadoPoliza: "ACTIVA",
                     VersionActual: 1,
+                    DerechoPolizaAplicado: Number(cotizacion.DerechoPoliza),
+                    TotalSinIVA: cotizacion.CostoBase,
                 };
 
                 const respuesta = await postPoliza(datosPoliza);

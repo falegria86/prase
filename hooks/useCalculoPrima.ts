@@ -39,14 +39,14 @@ export const useCalculosPrima = () => {
         const total = montoAntesIVA + iva;
 
         // Guardar todos los valores calculados en el formulario
-        form.setValue("costoBase", costoBase);
-        form.setValue("ajusteSiniestralidad", ajusteSiniestralidad);
-        form.setValue("ajusteCP", Number(ajustesCP?.ajuste?.AjustePrima) || 0);
-        form.setValue("ajusteTipoPago", ajusteTipoPago);
-        form.setValue("subtotalSiniestralidad", subtotalSiniestralidad);
-        form.setValue("subtotalTipoPago", subtotalTipoPago);
-        form.setValue("costoNeto", costoNeto);
-        form.setValue("iva", iva);
+        form.setValue("CostoBase", costoBase);
+        form.setValue("AjusteSiniestralidad", ajusteSiniestralidad);
+        form.setValue("AjusteCP", Number(ajustesCP?.ajuste?.AjustePrima) || 0);
+        form.setValue("AjusteTipoPago", ajusteTipoPago);
+        form.setValue("SubtotalSiniestralidad", subtotalSiniestralidad);
+        form.setValue("SubtotalTipoPago", subtotalTipoPago);
+        form.setValue("CostoNeto", costoNeto);
+        form.setValue("IVA", iva);
         form.setValue("PrimaTotal", total);
 
         return {

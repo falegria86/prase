@@ -9,6 +9,7 @@ export interface iPostCliente {
     HistorialReclamos: number;
     ZonaResidencia: string;
     FechaRegistro: string;
+    RFC: string;
 }
 
 export interface iGetCliente {
@@ -23,6 +24,7 @@ export interface iGetCliente {
     HistorialReclamos: number;
     ZonaResidencia: string;
     FechaRegistro: string;
+    RFC: string | null;
 }
 
 export interface iPatchCliente {

@@ -40,7 +40,7 @@ export const GestionPagosPoliza = ({
 }: PropiedadesGestionPagos) => {
     return (
         <Dialog open={abierto} onOpenChange={alCerrar}>
-            <DialogContent className="max-w-4xl min-h-[600px] overflow-y-auto">
+            <DialogContent className="max-w-4xl h-[600px] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex flex-col">
                         Gestión de Pagos

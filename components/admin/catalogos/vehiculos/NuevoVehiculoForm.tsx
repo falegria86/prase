@@ -26,12 +26,15 @@ import { postVehiculoSchema } from "@/schemas/admin/vehiculos/vehiculosSchema"
 import { postVehiculo } from "@/actions/vehiculoActions"
 //interfaces
 import { iGetCliente } from "@/interfaces/ClientesInterface"
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface"
 
 interface Props {
     clientes: iGetCliente[];
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
 }
 
-export const NuevoVehiculoForm = ({ clientes }: Props) => {
+export const NuevoVehiculoForm = ({ clientes, tiposVehiculo, usosVehiculo }: Props) => {
     const [isPending, startTransition] = useTransition()
     const { toast } = useToast();
     const router = useRouter();
@@ -46,7 +49,7 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
             TipoVehiculo: "",
             ValorVehiculo: 0,
             ValorFactura: 0,
-            FechaRegistro: "",
+            FechaRegistro: new Date().toISOString(),
             UsoVehiculo: "",
             ZonaResidencia: "",
             Salvamento: 0,
@@ -103,7 +106,7 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                         <FormLabel>Marca</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Nombre completo..."
+                                                placeholder="Nombre completo de la marca del vehículo..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -119,7 +122,7 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                         <FormLabel>Modelo</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Nombre completo..."
+                                                placeholder="Nombre del modelo del vehículo..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -150,12 +153,56 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Tipo de Vehículo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Nombre completo..."
-                                                {...field}
-                                            />
-                                        </FormControl>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value?.toString()}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccionar tipo" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {tiposVehiculo.map((tipo) => (
+                                                    <SelectItem
+                                                        key={tipo.TipoID}
+                                                        value={tipo.TipoID.toString()}
+                                                    >
+                                                        {tipo.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="UsoVehiculo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Uso del Vehículo</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value?.toString()}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccionar uso" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {usosVehiculo.map((uso, index) => (
+                                                    <SelectItem
+                                                        key={index}
+                                                        value={uso?.UsoID.toString() ?? ""}
+                                                    >
+                                                        {uso?.Nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -185,38 +232,6 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="FechaRegistro"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Fecha de Registro</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="date"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="UsoVehiculo"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Uso de Vehículo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Nombre completo..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -280,23 +295,7 @@ export const NuevoVehiculoForm = ({ clientes }: Props) => {
                                         <FormLabel>Zona de Residencia</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Nombre completo..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Salvamento"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Salvamento</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
+                                                placeholder="Zona de residencia..."
                                                 {...field}
                                             />
                                         </FormControl>

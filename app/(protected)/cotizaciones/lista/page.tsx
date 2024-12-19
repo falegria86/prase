@@ -1,6 +1,7 @@
 import { getCoberturas } from "@/actions/CatCoberturasActions";
 import { getTipoPagos } from "@/actions/CatTipoPagos";
 import { getTiposVehiculo, getUsoVehiculo } from "@/actions/CatVehiculosActions";
+import { getConfiguracionGlobalByName } from "@/actions/ConfiguracionGlobal";
 import { getCotizaciones } from "@/actions/CotizadorActions";
 import { TableCotizaciones } from "@/components/admin/cotizaciones/TableCotizaciones";
 

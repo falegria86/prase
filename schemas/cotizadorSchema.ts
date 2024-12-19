@@ -39,6 +39,8 @@ export const nuevaCotizacionSchema = z.object({
     // Datos del vehículo
     UsoVehiculo: z.number().min(1, "El uso del vehículo es requerido"),
     TipoVehiculo: z.number().min(1, "El tipo de vehículo es requerido"),
+    Placa: z.string(),
+    NoMotor: z.string(),
 
     // Datos opcionales
     NombrePersona: z.string(),
@@ -72,14 +74,14 @@ export const nuevaCotizacionSchema = z.object({
     detalles: z.array(detalleSchema).min(1, "Debe seleccionar al menos una cobertura"),
 
     // Campos auxiliares
-    costoBase: z.number().default(0),
-    ajusteSiniestralidad: z.number().default(0),
-    ajusteCP: z.number().default(0),
-    ajusteTipoPago: z.number().default(0),
-    subtotalSiniestralidad: z.number().default(0),
-    subtotalTipoPago: z.number().default(0),
-    costoNeto: z.number().default(0),
-    iva: z.number().default(0),
+    CostoBase: z.number().default(0),
+    AjusteSiniestralidad: z.number().default(0),
+    AjusteCP: z.number().default(0),
+    AjusteTipoPago: z.number().default(0),
+    SubtotalSiniestralidad: z.number().default(0),
+    SubtotalTipoPago: z.number().default(0),
+    CostoNeto: z.number().default(0),
+    IVA: z.number().default(0),
     versionNombre: z.string(),
     marcaNombre: z.string(),
     modeloNombre: z.string(),

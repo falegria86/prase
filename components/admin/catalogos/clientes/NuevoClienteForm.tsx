@@ -44,7 +44,8 @@ export const NuevoClienteForm = () => {
             HistorialSiniestros: 0,
             HistorialReclamos: 0,
             ZonaResidencia: "",
-            FechaRegistro: ""
+            FechaRegistro: "",
+            RFC: "",
         },
     })
 
@@ -187,6 +188,22 @@ export const NuevoClienteForm = () => {
                                         <FormControl>
                                             <Input
                                                 placeholder="Email..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="RFC"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>RFC</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="RFC..."
                                                 {...field}
                                             />
                                         </FormControl>

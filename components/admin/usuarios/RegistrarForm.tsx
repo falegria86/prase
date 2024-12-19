@@ -22,8 +22,9 @@ import { registrarUsuarioSchema } from '@/schemas/admin/usuariosSchemas';
 import Loading from '@/app/(protected)/loading';
 import { iGetGroups } from '@/interfaces/SeguridadInterface';
 import { postUsuario } from '@/actions/SeguridadActions';
+import { iGetEmpleados } from '@/interfaces/EmpleadosInterface';
 
-export const RegistrarForm = ({ groups }: { groups: iGetGroups[] }) => {
+export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], empleados: iGetEmpleados[] }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [fuerzaPassword, setFuerzaPassword] = useState(0);
     const [isPending, startTransition] = useTransition();
@@ -37,6 +38,7 @@ export const RegistrarForm = ({ groups }: { groups: iGetGroups[] }) => {
             password: "",
             confirmPassword: "",
             idGroup: 0,
+            EmpleadoID: 0,
         },
     })
 
@@ -94,6 +96,30 @@ export const RegistrarForm = ({ groups }: { groups: iGetGroups[] }) => {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <div className="grid grid-cols-2 gap-5">
+                            <FormField
+                                control={form.control}
+                                name="EmpleadoID"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Empleado</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={field.onChange}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione empleado relacionado al usuario..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {empleados.map(empleado => (
+                                                        <SelectItem key={empleado.EmpleadoID} value={empleado.EmpleadoID.toString()}>
+                                                            {empleado.Nombre} {empleado.Paterno} {empleado.Materno}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name="username"

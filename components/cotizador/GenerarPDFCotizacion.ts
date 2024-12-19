@@ -26,7 +26,6 @@ export const generarPDFCotizacion = async ({
   isSave,
 }: GenerarPDFProps) => {
   const doc = new jsPDF();
-console.log(datos)
   const MARGEN_X = 15;
   const MARGEN_Y = 15;
   const ANCHO_PAGINA = doc.internal.pageSize.width - MARGEN_X * 2;
@@ -127,16 +126,16 @@ console.log(datos)
   posicionY = (doc as any).lastAutoTable.finalY + 10;
 
   const costos = [
-    ["Costo Base:", formatearMoneda(datos.costoBase)],
+    ["Costo Base:", formatearMoneda(datos.CostoBase)],
     ["Tipo de pago:", tipoPago?.Descripcion || "No especificado"],
-    ["Ajuste por siniestralidad:", formatearMoneda(datos.ajusteSiniestralidad)],
-    ["Subtotal con ajuste siniestralidad:", formatearMoneda(datos.subtotalSiniestralidad)],
-    ["Ajuste por tipo de pago:", formatearMoneda(datos.ajusteTipoPago)],
-    ["Subtotal con ajuste tipo pago:", formatearMoneda(datos.subtotalTipoPago)],
-    [`Bonificación técnica (${datos.PorcentajeDescuento}%):`, formatearMoneda(Number(datos.PorcentajeDescuento) * datos.subtotalTipoPago / 100)],
-    ["Costo Neto:", formatearMoneda(datos.costoNeto)],
+    ["Ajuste por siniestralidad:", formatearMoneda(datos.AjusteSiniestralidad)],
+    ["Subtotal con ajuste siniestralidad:", formatearMoneda(datos.SubtotalSiniestralidad)],
+    ["Ajuste por tipo de pago:", formatearMoneda(datos.AjusteTipoPago)],
+    ["Subtotal con ajuste tipo pago:", formatearMoneda(datos.SubtotalTipoPago)],
+    [`Bonificación técnica (${datos.PorcentajeDescuento}%):`, formatearMoneda(Number(datos.PorcentajeDescuento) * datos.SubtotalTipoPago / 100)],
+    ["Costo Neto:", formatearMoneda(datos.CostoNeto)],
     ["Derecho de Póliza:", formatearMoneda(Number(datos.DerechoPoliza))],
-    ["IVA (16%):", formatearMoneda(datos.iva)],
+    ["IVA (16%):", formatearMoneda(datos.IVA)],
     ["TOTAL:", formatearMoneda(datos.PrimaTotal)]
   ];
 

@@ -19,6 +19,21 @@ export const getCotizaciones = async () => {
     }
 }
 
+export const getCotizacionById = async (id: number) => {
+    try {
+        const resp = await fetch(`${url}/cotizaciones/${id}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetCotizacion = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener cotizaciones: ', error);
+    }
+}
+
 export const postCotizacion = async (body: iPostCotizacion) => {
     try {
         const resp = await fetch(`${url}/cotizaciones`, {

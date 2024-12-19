@@ -21,6 +21,7 @@ import { iGetAnios } from "@/interfaces/LibroAzul";
 import { getAllReglasNegocio } from "@/actions/ReglasNegocio";
 import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import { getTiposMoneda } from "@/actions/CatMonedasActions";
+import { currentUser } from "@/lib/auth";
 
 interface ApiResponse<T> {
     data: T | null;
@@ -59,6 +60,8 @@ const validateApiResponse = <T,>(
 };
 
 export default async function CotizadorPage() {
+    const user = await currentUser();
+
     // Función para cargar datos con manejo de errores
     const loadData = async () => {
         const responses = await Promise.allSettled([
@@ -232,7 +235,7 @@ export default async function CotizadorPage() {
                     coberturas={data.coberturas}
                     asociaciones={data.asociaciones}
                     reglasNegocio={data.reglasNegocio}
-                    usuarioID={1}
+                    usuarioID={user?.usuario.UsuarioID || 0}
                     tiposMoneda={data.tiposMoneda ?? []}
                 />
             </main>

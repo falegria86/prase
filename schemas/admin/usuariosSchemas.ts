@@ -10,6 +10,9 @@ export const registrarUsuarioSchema = z.object({
     idGroup: z.coerce.number().min(1, {
         message: "El grupo es requerido"
     }),
+    EmpleadoID: z.coerce.number().min(1, {
+        message: "El empleado es requerido"
+    }),
     confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",

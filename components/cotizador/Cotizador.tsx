@@ -76,7 +76,6 @@ export const Cotizador = ({
     const [isPending, startTransition] = useTransition();
 
     const { toast } = useToast();
-    const user = useCurrentUser();
     const router = useRouter();
 
     const form = useForm<FormData>({
@@ -105,6 +104,8 @@ export const Cotizador = ({
             Submarca: "",
             Modelo: "",
             Version: "",
+            Placa: "",
+            NoMotor: "",
             inicioVigencia: new Date(),
             finVigencia: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
                 .toISOString()
@@ -161,6 +162,8 @@ export const Cotizador = ({
             Submarca: datosFormulario.modeloNombre,
             Version: datosFormulario.versionNombre,
         }
+
+        // console.log(datosFixed)
 
         startTransition(async () => {
             try {

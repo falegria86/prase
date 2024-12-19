@@ -38,7 +38,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, DollarSign } from "lucide-react";
+import { Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, DollarSign, FileText } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -57,6 +57,8 @@ import { DocumentosPoliza } from "./DocumentosPoliza";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GestionPagosPoliza } from "./GestionPagosPoliza";
 import { generarTicketPDF } from "./GenerarTicketPDF";
+import { getCotizacionById } from "@/actions/CotizadorActions";
+import { generarPDFPoliza } from "./GenerarPDFPoliza";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -118,20 +120,20 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
             const respuesta = await deletePoliza(polizaParaEliminar.PolizaID, {
                 motivo: motivoCancelacion.trim()
             });
-
-            if (respuesta === 'OK') {
+            console.log(respuesta)
+            if (respuesta) {
                 toast({
                     title: "Póliza eliminada",
-                    description: "La póliza se eliminó correctamente.",
+                    description: "La póliza se canceló correctamente.",
                 });
                 router.refresh();
             } else {
-                throw new Error("Error al eliminar la póliza");
+                throw new Error("Error al cancelar la póliza");
             }
         } catch (error) {
             toast({
                 title: "Error",
-                description: "No se pudo eliminar la póliza.",
+                description: "No se pudo cancelar la póliza.",
                 variant: "destructive",
             });
         } finally {
@@ -222,6 +224,10 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
         }
     };
 
+    const manejarDescargaPolizaPDF = async (poliza: iGetPolizas) => {
+        console.log(poliza)
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
@@ -241,7 +247,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                         <TableHead>Documentos</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead>Pagos</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,24 +300,6 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        abrirModalPagos(poliza);
-                                                    }}
-                                                >
-                                                    <DollarSign className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Gestionar Pagos</TooltipContent>
-                                        </Tooltip>
-
-
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
                                                 >
                                                     {polizaExpandida === poliza.PolizaID ? (
                                                         <ChevronUp className="h-4 w-4" />
@@ -322,7 +310,22 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                                             </TooltipTrigger>
                                             <TooltipContent>Ver detalles</TooltipContent>
                                         </Tooltip>
-
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        abrirModalPagos(poliza);
+                                                    }}
+                                                >
+                                                    <DollarSign className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Gestionar Pagos</TooltipContent>
+                                        </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
@@ -339,6 +342,20 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>Editar</TooltipContent>
+                                        </Tooltip>
+
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <FileText
+                                                    size={16}
+                                                    className="text-gray-600 cursor-pointer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        manejarDescargaPolizaPDF(poliza)
+                                                    }}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent>Descargar Póliza PDF</TooltipContent>
                                         </Tooltip>
 
                                         <Tooltip>
@@ -545,14 +562,17 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
                         </div>
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => {
-                            setPolizaParaEliminar(null);
-                            setMotivoCancelacion("");
-                            setErrorMotivo(false);
-                        }}>
+                        <AlertDialogCancel
+                            onClick={() => {
+                                setPolizaParaEliminar(null);
+                                setMotivoCancelacion("");
+                                setErrorMotivo(false);
+                            }}
+                        >
                             Cancelar
                         </AlertDialogCancel>
                         <AlertDialogAction
+                            disabled={motivoCancelacion.length <= 3}
                             onClick={manejarEliminar}
                             className="bg-destructive hover:bg-destructive/90"
                         >

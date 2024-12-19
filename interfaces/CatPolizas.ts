@@ -12,6 +12,8 @@ export interface iPostPoliza {
     TieneReclamos: boolean;
     VehiculoID: number;
     ClienteID: number;
+    DerechoPolizaAplicado: number;
+    TotalSinIVA: number;
 }
 
 
@@ -142,6 +144,7 @@ export interface Cliente {
     HistorialReclamos: number;
     ZonaResidencia: string;
     FechaRegistro: Date;
+    RFC: string;
 }
 
 export interface Cotizacion {
@@ -321,4 +324,5 @@ export interface iPatchPagoPoliza {
     ReferenciaPago?: string;
     IDMetodoPago?: number;
     IDEstatusPago?: number;
+    NombreTitular?: string;
 }

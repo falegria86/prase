@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import Loading from "@/app/(protected)/loading";
+import { formatCurrency } from "@/lib/format";
 
 type VehiculoFormData = z.infer<typeof vehiculoSchema>;
 
@@ -390,8 +391,12 @@ export const VehiculoPolizaStep = ({
                                         <FormLabel>Valor del Vehículo</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
                                                 {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
                                                 disabled={deshabilitarCampos}
                                             />
                                         </FormControl>
@@ -408,8 +413,12 @@ export const VehiculoPolizaStep = ({
                                         <FormLabel>Valor Factura</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
                                                 {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
                                                 disabled={deshabilitarCampos}
                                             />
                                         </FormControl>

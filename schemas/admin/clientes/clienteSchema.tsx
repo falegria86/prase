@@ -12,6 +12,7 @@ const postClienteSchema = z.object({
     HistorialReclamos: z.coerce.number().min(0, "Debe ser un número mayor o igual a 0"),
     ZonaResidencia: z.string().min(1, "La zona no puede estar vacía"),
     FechaRegistro: z.string(),
+    RFC: z.string(),
 });
 
 // Esquema para iPatchContacto

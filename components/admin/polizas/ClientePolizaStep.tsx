@@ -52,6 +52,9 @@ const clienteSchema = z.object({
     zonaResidencia: z.string().min(1, {
         message: "La zona de residencia es requerida"
     }),
+    RFC: z.string().min(1, {
+        message: "El RFC es requerido"
+    })
 });
 
 type ClienteFormData = z.infer<typeof clienteSchema>;
@@ -81,6 +84,7 @@ export const ClientePolizaStep = ({
             fechaNacimiento: "",
             direccion: "",
             zonaResidencia: "",
+            RFC: "",
         },
     });
 
@@ -116,6 +120,7 @@ export const ClientePolizaStep = ({
             HistorialReclamos: 0,
             ZonaResidencia: datos.zonaResidencia,
             FechaRegistro: new Date().toISOString(),
+            RFC: datos.RFC || "",
         };
 
         const respuesta = await postCliente(datosCliente);
@@ -135,6 +140,7 @@ export const ClientePolizaStep = ({
                 telefono: "",
                 email: "",
                 zonaResidencia: "",
+                RFC: "",
             });
         } else {
             const clienteSeleccionado = clientes.find(
@@ -152,6 +158,7 @@ export const ClientePolizaStep = ({
                     telefono: clienteSeleccionado.Telefono,
                     email: clienteSeleccionado.Email,
                     zonaResidencia: clienteSeleccionado.ZonaResidencia,
+                    RFC: clienteSeleccionado.RFC || "",
                 });
             }
         }
@@ -209,7 +216,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Nombre Completo</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Juan Pérez"/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -264,7 +271,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Dirección</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Dirección del cliente..."/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -278,7 +285,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Teléfono</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="3111234567"/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -292,7 +299,21 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Correo Electrónico</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="correo@ejemplo.com"/>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="RFC"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>RFC</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="XXXX0000000XX"/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -306,7 +327,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Zona de Residencia</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Zona de residencia..."/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

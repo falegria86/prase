@@ -115,7 +115,8 @@ export const generarPDFPoliza = async ({
         body: [
             [`Nombre: ${respuestaPoliza.cliente.NombreCompleto}`],
             [`Teléfono: ${respuestaPoliza.cliente.Telefono}`],
-            [`Dirección: ${respuestaPoliza.cliente.Direccion}`]
+            [`Dirección: ${respuestaPoliza.cliente.Direccion}`],
+            [`RFC: ${respuestaPoliza.cliente.RFC}`],
         ],
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 1 },
@@ -151,21 +152,19 @@ export const generarPDFPoliza = async ({
         obtenerNombreCobertura(detalle.CoberturaID),
         formatCurrency(Number(detalle.MontoSumaAsegurada)),
         `${detalle.MontoDeducible}%`,
-        formatCurrency(Number(detalle.PrimaCalculada))
     ]);
 
     autoTable(doc, {
         startY: posicionY,
-        head: [["COBERTURA AMPLIA", "SUMA ASEGURADA", "DEDUCIBLE", "PRIMA"]],
+        head: [["COBERTURA AMPLIA", "SUMA ASEGURADA", "DEDUCIBLE"]],
         body: coberturasTabla,
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 1 },
         headStyles: { fillColor: [0, 51, 102] },
         columnStyles: {
-            0: { cellWidth: ANCHO_PAGINA * 0.3 },
+            0: { cellWidth: ANCHO_PAGINA * 0.5 },
             1: { cellWidth: ANCHO_PAGINA * 0.3 },
             2: { cellWidth: ANCHO_PAGINA * 0.2 },
-            3: { cellWidth: ANCHO_PAGINA * 0.2 }
         }
     });
 

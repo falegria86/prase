@@ -27,22 +27,23 @@ export interface iGetCotizacion {
   Telefono: null | string;
   Placa: null | string;
   NoMotor: null | string;
-  UsuarioRegistro: null | string;
+  UsuarioRegistro: null | string | number;
   detalles: iDetallesGetCotizacion[];
 
   // Campos de cálculos
-  costoBase: number;
-  ajusteSiniestralidad: number;
-  ajusteCP: number;
-  ajusteTipoPago: number;
-  subtotalSiniestralidad: number;
-  subtotalTipoPago: number;
-  costoNeto: number;
-  iva: number;
+  CostoBase: number;
+  AjusteSiniestralidad: number;
+  AjusteCP: number;
+  AjusteTipoPago: number;
+  SubtotalSiniestralidad: number;
+  SubtotalTipoPago: number;
+  CostoNeto: number;
+  IVA: number;
 }
 
 export interface iPostCotizacion {
   UsuarioID: number;
+  UsuarioRegistro: number;
   EstadoCotizacion: string;
   PrimaTotal: number;
   TipoPagoID: number;
@@ -75,6 +76,16 @@ export interface iPostCotizacion {
   minSumaAsegurada: string;
   maxSumaAsegurada: string;
   PaqueteCoberturaID: number;
+  Placa: string;
+  NoMotor: string;
+  CostoBase: number;
+  AjusteSiniestralidad: number;
+  AjusteCP: number;
+  AjusteTipoPago: number;
+  SubtotalSiniestralidad: number;
+  SubtotalTipoPago: number;
+  CostoNeto: number;
+  IVA: number;
 }
 
 export interface iDetallesGetCotizacion {
