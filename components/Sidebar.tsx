@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import UserDropdown from "./UserDropdown";
 import { Aplicaciones } from "@/next-auth";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface SidebarProps {
   aplicaciones: Aplicaciones[];
@@ -51,6 +52,7 @@ const iconosDisponibles: Record<string, LucideIcon> = {
 
 export default function Sidebar({ aplicaciones }: SidebarProps) {
   const pathname = usePathname();
+  const user = useCurrentUser();
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
@@ -178,7 +180,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
           </nav>
 
           <div className="mt-auto px-4 py-4 border-t">
-            <UserDropdown />
+            <UserDropdown user={user ?? null} />
           </div>
         </div>
       </aside>

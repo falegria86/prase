@@ -31,7 +31,7 @@ export interface EmpleadoLogin {
   TipoEmpleado: null | number;
 }
 
-interface CustomUser extends DefaultUser {
+export interface CustomUser extends DefaultUser {
   jwt: string;
   aplicaciones: Aplicaciones[];
   usuario: UsuarioLogin;
