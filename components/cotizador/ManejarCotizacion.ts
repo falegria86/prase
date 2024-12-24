@@ -97,7 +97,10 @@ const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any)
         SubtotalSiniestralidad: datosFormulario.SubtotalSiniestralidad,
         SubtotalTipoPago: datosFormulario.SubtotalTipoPago,
         CostoNeto: datosFormulario.CostoNeto,
-        IVA: datosFormulario.IVA
+        IVA: datosFormulario.IVA,
+        CostoTotalAnual: datosFormulario?.costoTotalAnual,
+        CostoTotalSemestral: datosFormulario?.costoTotalSemestral,
+        CostoTotalTrimestral: datosFormulario?.costoTotalTrimestral,
     };
 };
 
@@ -161,7 +164,7 @@ export const manejarCotizacion = async ({
 
             respuestaCotizacion = await postCotizacion(cotizacionParaAPI);
             if (!respuestaCotizacion) {
-                throw new Error("Error al crear la cotización");
+                console.log("Error al crear la cotización")
             }
         }
 

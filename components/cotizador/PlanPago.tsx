@@ -57,18 +57,41 @@ export const PlanPago = ({
 
   const tipoPagoSeleccionado = form.watch("TipoPagoID");
   const bonificacion = form.watch("PorcentajeDescuento") || 0;
-  const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
+  // const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
+  const tipoPagoAnual = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('anual'));
+  const tipoPagoSemestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
+  const tipoPagoTrimestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
 
-  const resultados = calcularAjustes({
+  const resultadosAnual = calcularAjustes({
     form,
     costoBase,
     ajustesCP: ajustes,
-    tipoPago
+    tipoPago: tipoPagoAnual
   });
 
-  const detallesPago = tipoPago ? obtenerPagos(
+  const resultadosSemestral = calcularAjustes({
+    form,
     costoBase,
-    tipoPago,
+    ajustesCP: ajustes,
+    tipoPago: tipoPagoSemestral
+  });
+
+  const resultadosTrimestral = calcularAjustes({
+    form,
+    costoBase,
+    ajustesCP: ajustes,
+    tipoPago: tipoPagoTrimestral
+  });
+
+  const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
+    costoBase,
+    tipoPagoSemestral,
+    derechoPoliza
+  ) : null;
+
+  const detallesPagoTrimestral = tipoPagoTrimestral ? obtenerPagos(
+    costoBase,
+    tipoPagoTrimestral,
     derechoPoliza
   ) : null;
 
@@ -77,6 +100,10 @@ export const PlanPago = ({
     const numero = Math.min(Math.max(Number(valor), 0), 35);
     return isNaN(numero) ? 0 : numero;
   };
+
+  form.setValue('costoTotalAnual', resultadosAnual.total);
+  form.setValue('costoTotalSemestral', resultadosSemestral.total);
+  form.setValue('costoTotalTrimestral', resultadosTrimestral.total);
 
   return (
     <Card className="mt-6">
@@ -88,7 +115,7 @@ export const PlanPago = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <FormField
+          {/* <FormField
             control={form.control}
             name="TipoPagoID"
             render={({ field }) => (
@@ -98,12 +125,12 @@ export const PlanPago = ({
                   onValueChange={(valor) => {
                     const tipoPagoId = Number(valor);
                     field.onChange(tipoPagoId);
-                    const tipoPago = tiposPagos.find(t => t.TipoPagoID === tipoPagoId);
+                    const tipoPagoAnual = tiposPagos.find(t => t.TipoPagoID === tipoPagoId);
                     calcularAjustes({
                       form,
                       costoBase,
                       ajustesCP: ajustes,
-                      tipoPago
+                      tipoPago: tipoPagoAnual
                     });
                   }}
                   value={field.value?.toString()}
@@ -129,7 +156,7 @@ export const PlanPago = ({
                 </FormDescription>
               </FormItem>
             )}
-          />
+          /> */}
 
           <FormField
             control={form.control}
@@ -153,7 +180,7 @@ export const PlanPago = ({
                         form,
                         costoBase,
                         ajustesCP: ajustes,
-                        tipoPago
+                        tipoPago: tipoPagoAnual
                       });
                     }}
                   />
@@ -171,46 +198,46 @@ export const PlanPago = ({
               <span>{formatCurrency(costoBase)}</span>
             </div>
 
-            {resultados.ajusteSiniestralidad > 0 && (
+            {resultadosSemestral.ajusteSiniestralidad > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
                   Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
                 </span>
-                <span>+{formatCurrency(resultados.ajusteSiniestralidad)}</span>
+                <span>+{formatCurrency(resultadosSemestral.ajusteSiniestralidad)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
-              <span>{formatCurrency(resultados.subtotalSiniestralidad)}</span>
+              <span>{formatCurrency(resultadosSemestral.subtotalSiniestralidad)}</span>
             </div>
 
-            {resultados.ajusteTipoPago > 0 && (
+            {/* {resultadosSemestral.ajusteTipoPago > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
-                  Ajuste por tipo de pago ({tipoPago?.PorcentajeAjuste}%):
+                  Ajuste por tipo de pago ({tipoPagoAnual?.PorcentajeAjuste}%):
                 </span>
-                <span>+{formatCurrency(resultados.ajusteTipoPago)}</span>
+                <span>+{formatCurrency(resultadosSemestral.ajusteTipoPago)}</span>
               </div>
-            )}
+            )} */}
 
-            <div className="flex justify-end gap-4 items-center">
+            {/* <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">Subtotal con ajuste tipo pago:</span>
-              <span>{formatCurrency(resultados.subtotalTipoPago)}</span>
-            </div>
+              <span>{formatCurrency(resultadosSemestral.subtotalTipoPago)}</span>
+            </div> */}
 
-            {resultados.bonificacion > 0 && (
+            {resultadosSemestral.bonificacion > 0 && (
               <div className="flex justify-end gap-4 items-center text-green-600">
                 <span className="font-medium">
                   Bonificación técnica ({bonificacion}%):
                 </span>
-                <span>-{formatCurrency(resultados.bonificacion)}</span>
+                <span>-{formatCurrency(resultadosSemestral.bonificacion)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center font-medium">
               <span>Costo Neto:</span>
-              <span>{formatCurrency(resultados.costoNeto)}</span>
+              <span>{formatCurrency(resultadosSemestral.costoNeto)}</span>
             </div>
 
             <div className="flex justify-end gap-4 items-center">
@@ -220,33 +247,82 @@ export const PlanPago = ({
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">IVA (16%):</span>
-              <span>+{formatCurrency(resultados.iva)}</span>
+              <span>+{formatCurrency(resultadosSemestral.iva)}</span>
             </div>
 
-            {detallesPago && (
+            <div className="flex justify-end gap-4 items-center pt-2 border-t">
+              <span className="text-lg font-semibold">Costo Total Pago Anual:</span>
+              <span className="text-lg font-bold text-primary">
+                {formatCurrency(resultadosAnual.total)}
+              </span>
+            </div>
+
+            {/* Costo Total Semestral */}
+            {/* {resultadosSemestral.ajusteTipoPago > 0 && (
+              <div className="flex justify-end gap-4 items-center text-amber-600">
+                <span className="font-medium">
+                  Ajuste por tipo de pago ({tipoPagoAnual?.PorcentajeAjuste}%):
+                </span>
+                <span>+{formatCurrency(resultadosSemestral.ajusteTipoPago)}</span>
+              </div>
+            )} */}
+
+            {/* <div className="flex justify-end gap-4 items-center">
+              <span className="font-medium">Subtotal con ajuste tipo pago:</span>
+              <span>{formatCurrency(resultadosSemestral.subtotalTipoPago)}</span>
+            </div> */}
+
+            <div className="flex justify-end gap-4 items-center pt-2 border-t">
+              <span className="text-lg font-semibold">Costo Total Pago Semestral:</span>
+              <span className="text-lg font-bold text-primary">
+                {formatCurrency(resultadosSemestral.total)}
+              </span>
+            </div>
+
+            {detallesPagoSemestral && (
               <>
                 <div className="flex justify-end gap-4 items-center pt-2 border-t">
                   <span className="font-medium">Primer pago:</span>
-                  <span>{formatCurrency(detallesPago.primerPago)}</span>
+                  <span>{formatCurrency(detallesPagoSemestral.primerPago)}</span>
                 </div>
 
                 <div className="flex justify-end gap-4 items-center">
                   <span className="font-medium">
-                    {detallesPago.numeroPagosSubsecuentes}{" "}
-                    {detallesPago.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
+                    {detallesPagoSemestral.numeroPagosSubsecuentes}{" "}
+                    {detallesPagoSemestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
                     subsecuentes:
                   </span>
-                  <span>{formatCurrency(detallesPago.pagoSubsecuente)}</span>
+                  <span>{formatCurrency(detallesPagoSemestral.pagoSubsecuente)}</span>
                 </div>
               </>
             )}
 
+
+            {/* Costo Trimestral */}
             <div className="flex justify-end gap-4 items-center pt-2 border-t">
-              <span className="text-lg font-semibold">Costo Total Anual:</span>
+              <span className="text-lg font-semibold">Costo Total Pago Trimestral:</span>
               <span className="text-lg font-bold text-primary">
-                {formatCurrency(resultados.total)}
+                {formatCurrency(resultadosTrimestral.total)}
               </span>
             </div>
+
+            {detallesPagoTrimestral && (
+              <>
+                <div className="flex justify-end gap-4 items-center pt-2 border-t">
+                  <span className="font-medium">Primer pago:</span>
+                  <span>{formatCurrency(detallesPagoTrimestral.primerPago)}</span>
+                </div>
+
+                <div className="flex justify-end gap-4 items-center">
+                  <span className="font-medium">
+                    {detallesPagoTrimestral.numeroPagosSubsecuentes}{" "}
+                    {detallesPagoTrimestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
+                    subsecuentes:
+                  </span>
+                  <span>{formatCurrency(detallesPagoTrimestral.pagoSubsecuente)}</span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </CardContent>

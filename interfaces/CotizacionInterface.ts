@@ -39,6 +39,9 @@ export interface iGetCotizacion {
   SubtotalTipoPago: number;
   CostoNeto: number;
   IVA: number;
+  CostoTotalAnual?: number;
+  CostoTotalSemestral?: number;
+  CostoTotalTrimestral?: number;
 }
 
 export interface iPostCotizacion {

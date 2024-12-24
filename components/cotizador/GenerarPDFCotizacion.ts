@@ -9,6 +9,9 @@ import { generarColumnasPDF } from "@/lib/pdf.utils";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { getCoberturas } from "@/actions/CatCoberturasActions";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { calcularPagos, calcularPrima } from "./CalculosPrima";
+import { getAjustesCP } from "@/actions/AjustesCP";
+import { useCalculosPrima } from "@/hooks/useCalculoPrima";
 
 interface GenerarPDFProps {
   datos: iGetCotizacion;
@@ -49,7 +52,49 @@ export const generarPDFCotizacion = async ({
 
   const nombreUso = usosVehiculo.find((uso) => uso.UsoID === datos.UsoVehiculo)?.Nombre || "No especificado";
   const nombreTipo = tiposVehiculo.find((tipo) => tipo.TipoID === datos.TipoVehiculo)?.Nombre || "No especificado";
-  const tipoPago = tiposPago.find((tipo) => tipo.TipoPagoID === datos.TipoPagoID);
+  // const tipoPago = tiposPago.find((tipo) => tipo.TipoPagoID === datos.TipoPagoID);
+  const tipoPagoAnual = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('anual'));
+  const tipoPagoSemestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
+  const tipoPagoTrimestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
+
+  const ajustesCP = await getAjustesCP(datos.CP);
+  const { obtenerPagos } = useCalculosPrima();
+
+  const resultadosAnual = calcularPrima({
+    costoBase: datos.CostoBase,
+    ajustes: ajustesCP,
+    tipoPago: tipoPagoAnual,
+    bonificacion: Number(datos.PorcentajeDescuento),
+    derechoPoliza: Number(datos.DerechoPoliza)
+  });
+
+  const resultadosSemestral = calcularPrima({
+    costoBase: datos.CostoBase,
+    ajustes: ajustesCP,
+    tipoPago: tipoPagoSemestral,
+    bonificacion: Number(datos.PorcentajeDescuento),
+    derechoPoliza: Number(datos.DerechoPoliza)
+  });
+
+  const resultadosTrimestral = calcularPrima({
+    costoBase: datos.CostoBase,
+    ajustes: ajustesCP,
+    tipoPago: tipoPagoTrimestral,
+    bonificacion: Number(datos.PorcentajeDescuento),
+    derechoPoliza: Number(datos.DerechoPoliza)
+  });
+
+  const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
+    datos.CostoBase,
+    tipoPagoSemestral,
+    Number(datos.DerechoPoliza)
+  ) : null;
+
+  const detallesPagoTrimestral = tipoPagoTrimestral ? obtenerPagos(
+    datos.CostoBase,
+    tipoPagoTrimestral,
+    Number(datos.DerechoPoliza)
+  ) : null;
 
   doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 30, 25);
   doc.setFontSize(16);
@@ -123,31 +168,54 @@ export const generarPDFCotizacion = async ({
     },
   });
 
-  posicionY = (doc as any).lastAutoTable.finalY + 10;
+  posicionY = (doc as any).lastAutoTable.finalY + 4;
 
-  const costos = [
+  const costosBase = [
     ["Costo Base:", formatearMoneda(datos.CostoBase)],
-    ["Tipo de pago:", tipoPago?.Descripcion || "No especificado"],
-    ["Ajuste por siniestralidad:", formatearMoneda(datos.AjusteSiniestralidad)],
-    ["Subtotal con ajuste siniestralidad:", formatearMoneda(datos.SubtotalSiniestralidad)],
-    ["Ajuste por tipo de pago:", formatearMoneda(datos.AjusteTipoPago)],
-    ["Subtotal con ajuste tipo pago:", formatearMoneda(datos.SubtotalTipoPago)],
-    [`Bonificación técnica (${datos.PorcentajeDescuento}%):`, formatearMoneda(Number(datos.PorcentajeDescuento) * datos.SubtotalTipoPago / 100)],
-    ["Costo Neto:", formatearMoneda(datos.CostoNeto)],
+    ["Tipo de pago:", "Anual"],
+    ["Ajuste por siniestralidad:", formatearMoneda(resultadosAnual.ajusteSiniestralidad)],
+    ["Subtotal con ajuste siniestralidad:", formatearMoneda(resultadosAnual.subtotalSiniestralidad)],
+    ["Bonificación técnica:", formatearMoneda(resultadosAnual.bonificacion)],
+    ["Costo Neto:", formatearMoneda(resultadosAnual.costoNeto)],
     ["Derecho de Póliza:", formatearMoneda(Number(datos.DerechoPoliza))],
-    ["IVA (16%):", formatearMoneda(datos.IVA)],
-    ["TOTAL:", formatearMoneda(datos.PrimaTotal)]
+    ["IVA (16%):", formatearMoneda(resultadosAnual.iva)],
+    ["TOTAL PAGO ANUAL:", formatearMoneda(resultadosAnual.total)]
   ];
 
   autoTable(doc, {
     startY: posicionY,
-    body: costos,
+    body: costosBase,
     theme: "grid",
     styles: { fontSize: 8, cellPadding: 2 },
     columnStyles: {
       0: { cellWidth: ANCHO_PAGINA * 0.7, fontStyle: "bold" },
-      1: { cellWidth: ANCHO_PAGINA * 0.3, halign: "right" },
-    },
+      1: { cellWidth: ANCHO_PAGINA * 0.3, halign: "right" }
+    }
+  });
+
+  const planesPago = [
+    [
+      `TOTAL PAGO SEMESTRAL: ${formatearMoneda(resultadosSemestral.total)}`,
+      detallesPagoSemestral ? `Primer pago: ${formatearMoneda(detallesPagoSemestral.primerPago)}` : "",
+      detallesPagoSemestral ? `Pagos subsecuentes: ${formatearMoneda(detallesPagoSemestral.pagoSubsecuente)}` : ""
+    ],
+    [
+      `TOTAL PAGO TRIMESTRAL: ${formatearMoneda(resultadosTrimestral.total)}`,
+      detallesPagoTrimestral ? `Primer pago: ${formatearMoneda(detallesPagoTrimestral.primerPago)}` : "",
+      detallesPagoTrimestral ? `Pagos subscuentes: ${formatearMoneda(detallesPagoTrimestral.pagoSubsecuente)}` : ""
+    ]
+  ];
+
+  autoTable(doc, {
+    startY: (doc as any).lastAutoTable.finalY + 4,
+    body: planesPago,
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: {
+      0: { cellWidth: ANCHO_PAGINA * 0.33, fontStyle: "bold" },
+      1: { cellWidth: ANCHO_PAGINA * 0.33, halign: "right" },
+      2: { cellWidth: ANCHO_PAGINA * 0.33, halign: "right" },
+    }
   });
 
   const textoLegal = [

@@ -27,7 +27,6 @@ import { iGetAllReglaNegocio } from "@/interfaces/ReglasNegocios";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "@/app/(protected)/loading";
 import { manejarCotizacion } from "./ManejarCotizacion";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
 

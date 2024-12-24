@@ -313,12 +313,30 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex justify-between items-center pt-2">
-                            <span className="font-medium">
-                                {tipoCalculo === "fijo" ? "Monto Total" : "Costo Total Anual"}
-                            </span>
+                        <div className="flex justify-end items-center pt-2">
+                            <div className="font-medium mr-5">
+                                Costo Total Pago Anual:
+                            </div>
                             <span className="text-2xl font-bold text-primary">
-                                {formatCurrency(formData.PrimaTotal)}
+                                {formatCurrency(formData.costoTotalAnual)}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-end items-center pt-2">
+                            <div className="font-medium mr-5">
+                                Costo Total Pago Semestral:
+                            </div>
+                            <span className="text-2xl font-bold text-primary">
+                                {formatCurrency(formData.costoTotalSemestral)}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-end items-center pt-2">
+                            <div className="font-medium mr-5">
+                                Costo Total Pago Trimestral:
+                            </div>
+                            <span className="text-2xl font-bold text-primary">
+                                {formatCurrency(formData.costoTotalTrimestral   )}
                             </span>
                         </div>
                     </CardContent>
