@@ -9,7 +9,7 @@ import { generarColumnasPDF } from "@/lib/pdf.utils";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { getCoberturas } from "@/actions/CatCoberturasActions";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
-import { calcularPagos, calcularPrima } from "./CalculosPrima";
+import { calcularPrima } from "./CalculosPrima";
 import { getAjustesCP } from "@/actions/AjustesCP";
 import { useCalculosPrima } from "@/hooks/useCalculoPrima";
 
@@ -172,7 +172,6 @@ export const generarPDFCotizacion = async ({
 
   const costosBase = [
     ["Costo Base:", formatearMoneda(datos.CostoBase)],
-    ["Tipo de pago:", "Anual"],
     ["Ajuste por siniestralidad:", formatearMoneda(resultadosAnual.ajusteSiniestralidad)],
     ["Subtotal con ajuste siniestralidad:", formatearMoneda(resultadosAnual.subtotalSiniestralidad)],
     ["Bonificación técnica:", formatearMoneda(resultadosAnual.bonificacion)],

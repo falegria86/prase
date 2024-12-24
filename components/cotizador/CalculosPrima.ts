@@ -41,7 +41,7 @@ export const calcularPrima = ({
         ? costoBase * (Number(ajustes.ajuste.AjustePrima) / 100)
         : 0;
 
-    const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
+    const subtotalSiniestralidad = Number(costoBase + ajusteSiniestralidad);
 
     const ajusteTipoPago = tipoPago
         ? (derechoPoliza + subtotalSiniestralidad) * (Number(tipoPago.PorcentajeAjuste) / 100)
