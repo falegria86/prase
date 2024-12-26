@@ -89,10 +89,12 @@ export const calcularPagos = (
     });
 
     const numeroPagos = tipoPago.Divisor;
-    const montoPrimerPagoBase = (resultados.total / numeroPagos) + derechoPoliza;
+    const montoPrimerPagoBase = (total / numeroPagos) + derechoPoliza;
     const primerPago = montoPrimerPagoBase;
-    const montoRestante = resultados.total - primerPago;
+    const montoRestante = total - primerPago;
     const pagoSubsecuente = montoRestante / (numeroPagos - 1);
+    console.log("costo base: ", total)
+    console.log(montoPrimerPagoBase)
 
     return {
         primerPago,

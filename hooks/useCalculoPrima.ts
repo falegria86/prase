@@ -71,11 +71,11 @@ export const useCalculosPrima = () => {
         const numeroPagos = tipoPago.Divisor;
         const porcentajeAjuste = parseFloat(tipoPago.PorcentajeAjuste) / 100;
 
-        const montoPrimerPagoBase = (total / numeroPagos) + derechoPoliza;
+        const montoPrimerPagoBase = (Number(total) / numeroPagos) + derechoPoliza;
         const montoPrimerPagoAjustado = montoPrimerPagoBase * (1 + porcentajeAjuste);
         const primerPago = montoPrimerPagoAjustado * 1.16;
 
-        const montoTotalAjustado = ((total + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
+        const montoTotalAjustado = ((Number(total) + derechoPoliza) * (1 + porcentajeAjuste)) * 1.16;
         const pagoSubsecuente = (montoTotalAjustado - primerPago) / (numeroPagos - 1);
 
         return {
