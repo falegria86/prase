@@ -13,9 +13,8 @@ import type { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iPostDocumento } from "@/interfaces/CatPolizas";
-import Loading from "@/app/(protected)/loading";
 import { generarPDFPoliza } from "./GenerarPDFPoliza";
-import { calcularPrima } from "@/components/cotizador/CalculosPrima";
+import { LoaderModales } from "@/components/LoaderModales";
 
 const pasos = [
     { title: "Cliente", icon: "User" },
@@ -150,10 +149,9 @@ export const ActivarPolizaForm = ({
                     EstadoPoliza: "ACTIVA",
                     VersionActual: 1,
                     DerechoPolizaAplicado: Number(cotizacion.DerechoPoliza),
-                    TotalSinIVA: cotizacion.CostoBase,
+                    TotalSinIVA: cotizacion.CostoNeto,
                 };
 
-                console.log(datosPoliza)
                 const respuesta = await postPoliza(datosPoliza);
 
                 if (respuesta) {
@@ -193,9 +191,14 @@ export const ActivarPolizaForm = ({
         });
     };
 
+    if (isPending) {
+        return (
+            <LoaderModales />
+        );
+    }
+
     return (
         <>
-            {isPending && <Loading />}
             <div className="space-y-6">
                 <StepIndicator
                     pasos={pasos}

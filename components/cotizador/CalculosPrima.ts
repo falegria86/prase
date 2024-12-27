@@ -24,12 +24,6 @@ interface ResultadosCalculo {
     total: number;
 }
 
-interface ResultadosPagos {
-    primerPago: number;
-    pagoSubsecuente: number;
-    numeroPagosSubsecuentes: number;
-}
-
 export const calcularPrima = ({
     costoBase,
     ajustes,
@@ -38,20 +32,20 @@ export const calcularPrima = ({
     derechoPoliza
 }: DatosPrima): ResultadosCalculo => {
     const ajusteSiniestralidad = ajustes?.ajuste
-        ? costoBase * (Number(ajustes.ajuste.AjustePrima) / 100)
+        ? Number(costoBase) * (Number(ajustes.ajuste.AjustePrima) / 100)
         : 0;
 
-    const subtotalSiniestralidad = Number(costoBase + ajusteSiniestralidad);
-
+    const subtotalSiniestralidad = Number(costoBase) + Number(ajusteSiniestralidad);
+    const bonificacionMonto = subtotalSiniestralidad * (bonificacion / 100);
+    const costoNeto = subtotalSiniestralidad - bonificacionMonto;
+    
     const ajusteTipoPago = tipoPago
-        ? (derechoPoliza + subtotalSiniestralidad) * (Number(tipoPago.PorcentajeAjuste) / 100)
+        ? (Number(derechoPoliza) + costoNeto) * (Number(tipoPago.PorcentajeAjuste) / 100)
         : 0;
 
-    const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
-    const bonificacionMonto = subtotalTipoPago * (bonificacion / 100);
-    const costoNeto = subtotalTipoPago - bonificacionMonto;
+    const subtotalTipoPago = costoNeto + ajusteTipoPago;
 
-    const montoAntesIVA = costoNeto + derechoPoliza;
+    const montoAntesIVA = subtotalTipoPago + Number(derechoPoliza);
     const iva = montoAntesIVA * 0.16;
     const total = montoAntesIVA + iva;
 
@@ -64,41 +58,5 @@ export const calcularPrima = ({
         costoNeto,
         iva,
         total
-    };
-};
-
-export const calcularPagos = (
-    total: number,
-    tipoPago: { Divisor: number; PorcentajeAjuste: string },
-    derechoPoliza: number,
-    ajustes?: {
-        ajuste: {
-            AjustePrima: string;
-        };
-    },
-    bonificacion = 0
-): ResultadosPagos | null => {
-    if (!tipoPago || tipoPago.Divisor === 1) return null;
-
-    const resultados = calcularPrima({
-        costoBase: total,
-        ajustes,
-        tipoPago,
-        bonificacion,
-        derechoPoliza
-    });
-
-    const numeroPagos = tipoPago.Divisor;
-    const montoPrimerPagoBase = (total / numeroPagos) + derechoPoliza;
-    const primerPago = montoPrimerPagoBase;
-    const montoRestante = total - primerPago;
-    const pagoSubsecuente = montoRestante / (numeroPagos - 1);
-    console.log("costo base: ", total)
-    console.log(montoPrimerPagoBase)
-
-    return {
-        primerPago,
-        pagoSubsecuente,
-        numeroPagosSubsecuentes: numeroPagos - 1
     };
 };

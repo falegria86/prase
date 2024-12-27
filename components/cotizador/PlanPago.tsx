@@ -7,13 +7,6 @@ import {
   FormControl,
   FormDescription,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { CreditCard } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
@@ -55,9 +48,9 @@ export const PlanPago = ({
     obtenerAjustes();
   }, [codigoPostal]);
 
+  const formData = form.getValues();
   const tipoPagoSeleccionado = form.watch("TipoPagoID");
   const bonificacion = form.watch("PorcentajeDescuento") || 0;
-  // const tipoPago = tiposPagos.find((t) => t.TipoPagoID === tipoPagoSeleccionado);
   const tipoPagoAnual = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('anual'));
   const tipoPagoSemestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
   const tipoPagoTrimestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
@@ -84,13 +77,13 @@ export const PlanPago = ({
   });
 
   const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
-    costoBase,
+    formData.CostoNeto,
     tipoPagoSemestral,
     derechoPoliza
   ) : null;
 
   const detallesPagoTrimestral = tipoPagoTrimestral ? obtenerPagos(
-    costoBase,
+    formData.CostoNeto,
     tipoPagoTrimestral,
     derechoPoliza
   ) : null;
@@ -115,49 +108,6 @@ export const PlanPago = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          {/* <FormField
-            control={form.control}
-            name="TipoPagoID"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Pago</FormLabel>
-                <Select
-                  onValueChange={(valor) => {
-                    const tipoPagoId = Number(valor);
-                    field.onChange(tipoPagoId);
-                    const tipoPagoAnual = tiposPagos.find(t => t.TipoPagoID === tipoPagoId);
-                    calcularAjustes({
-                      form,
-                      costoBase,
-                      ajustesCP: ajustes,
-                      tipoPago: tipoPagoAnual
-                    });
-                  }}
-                  value={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el tipo de pago" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {tiposPagos.map((tipo) => (
-                      <SelectItem
-                        key={tipo.TipoPagoID}
-                        value={tipo.TipoPagoID.toString()}
-                      >
-                        {tipo.Descripcion}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Selecciona la forma en que deseas pagar
-                </FormDescription>
-              </FormItem>
-            )}
-          /> */}
-
           <FormField
             control={form.control}
             name="PorcentajeDescuento"
@@ -198,46 +148,32 @@ export const PlanPago = ({
               <span>{formatCurrency(costoBase)}</span>
             </div>
 
-            {resultadosSemestral.ajusteSiniestralidad > 0 && (
+            {resultadosAnual.ajusteSiniestralidad > 0 && (
               <div className="flex justify-end gap-4 items-center text-amber-600">
                 <span className="font-medium">
                   Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
                 </span>
-                <span>+{formatCurrency(resultadosSemestral.ajusteSiniestralidad)}</span>
+                <span>+{formatCurrency(resultadosAnual.ajusteSiniestralidad)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
-              <span>{formatCurrency(resultadosSemestral.subtotalSiniestralidad)}</span>
+              <span>{formatCurrency(resultadosAnual.subtotalSiniestralidad)}</span>
             </div>
 
-            {/* {resultadosSemestral.ajusteTipoPago > 0 && (
-              <div className="flex justify-end gap-4 items-center text-amber-600">
-                <span className="font-medium">
-                  Ajuste por tipo de pago ({tipoPagoAnual?.PorcentajeAjuste}%):
-                </span>
-                <span>+{formatCurrency(resultadosSemestral.ajusteTipoPago)}</span>
-              </div>
-            )} */}
-
-            {/* <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Subtotal con ajuste tipo pago:</span>
-              <span>{formatCurrency(resultadosSemestral.subtotalTipoPago)}</span>
-            </div> */}
-
-            {resultadosSemestral.bonificacion > 0 && (
+            {resultadosAnual.bonificacion > 0 && (
               <div className="flex justify-end gap-4 items-center text-green-600">
                 <span className="font-medium">
                   Bonificación técnica ({bonificacion}%):
                 </span>
-                <span>-{formatCurrency(resultadosSemestral.bonificacion)}</span>
+                <span>-{formatCurrency(resultadosAnual.bonificacion)}</span>
               </div>
             )}
 
             <div className="flex justify-end gap-4 items-center font-medium">
               <span>Costo Neto:</span>
-              <span>{formatCurrency(resultadosSemestral.costoNeto)}</span>
+              <span>{formatCurrency(resultadosAnual.costoNeto)}</span>
             </div>
 
             <div className="flex justify-end gap-4 items-center">
@@ -247,7 +183,7 @@ export const PlanPago = ({
 
             <div className="flex justify-end gap-4 items-center">
               <span className="font-medium">IVA (16%):</span>
-              <span>+{formatCurrency(resultadosSemestral.iva)}</span>
+              <span>+{formatCurrency(resultadosAnual.iva)}</span>
             </div>
 
             <div className="flex justify-end gap-4 items-center pt-2 border-t">
@@ -256,21 +192,6 @@ export const PlanPago = ({
                 {formatCurrency(resultadosAnual.total)}
               </span>
             </div>
-
-            {/* Costo Total Semestral */}
-            {/* {resultadosSemestral.ajusteTipoPago > 0 && (
-              <div className="flex justify-end gap-4 items-center text-amber-600">
-                <span className="font-medium">
-                  Ajuste por tipo de pago ({tipoPagoAnual?.PorcentajeAjuste}%):
-                </span>
-                <span>+{formatCurrency(resultadosSemestral.ajusteTipoPago)}</span>
-              </div>
-            )} */}
-
-            {/* <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Subtotal con ajuste tipo pago:</span>
-              <span>{formatCurrency(resultadosSemestral.subtotalTipoPago)}</span>
-            </div> */}
 
             <div className="flex justify-end gap-4 items-center pt-2 border-t">
               <span className="text-lg font-semibold">Costo Total Pago Semestral:</span>

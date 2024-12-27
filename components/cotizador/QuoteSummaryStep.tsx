@@ -54,7 +54,6 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
 
     useEffect(() => {
         const validarCampos = async () => {
-            // Validar específicamente los campos nuevos obligatorios
             const validacionTelefono = await form.trigger("Telefono");
             const validacionCorreo = await form.trigger("Correo");
             const esValido = validacionTelefono && validacionCorreo;

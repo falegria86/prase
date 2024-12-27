@@ -17,24 +17,22 @@ export const useCalculosPrima = () => {
         ajustesCP,
         tipoPago,
     }: CalculosPrimaParams) => {
+        const porcentajeDescuento = form.getValues("PorcentajeDescuento") || 0;
         const ajusteSiniestralidad = ajustesCP?.ajuste
             ? costoBase * (parseFloat(ajustesCP.ajuste.AjustePrima) / 100)
             : 0;
 
         const derechoPoliza = form.getValues("DerechoPoliza");
         const subtotalSiniestralidad = costoBase + ajusteSiniestralidad;
+        const bonificacion = subtotalSiniestralidad * (porcentajeDescuento / 100);
+        const costoNeto = subtotalSiniestralidad - bonificacion;
 
         const ajusteTipoPago = tipoPago
-            ? (derechoPoliza + subtotalSiniestralidad) * (parseFloat(tipoPago.PorcentajeAjuste) / 100)
+            ? (derechoPoliza + costoNeto) * (parseFloat(tipoPago.PorcentajeAjuste) / 100)
             : 0;
 
-        const subtotalTipoPago = subtotalSiniestralidad + ajusteTipoPago;
-
-        const porcentajeDescuento = form.getValues("PorcentajeDescuento") || 0;
-        const bonificacion = subtotalTipoPago * (porcentajeDescuento / 100);
-        const costoNeto = subtotalTipoPago - bonificacion;
-
-        const montoAntesIVA = costoNeto + derechoPoliza;
+        const subtotalTipoPago = costoNeto + ajusteTipoPago;
+        const montoAntesIVA = subtotalTipoPago + derechoPoliza;
         const iva = montoAntesIVA * 0.16;
         const total = montoAntesIVA + iva;
 

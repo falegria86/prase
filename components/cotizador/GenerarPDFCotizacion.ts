@@ -52,7 +52,6 @@ export const generarPDFCotizacion = async ({
 
   const nombreUso = usosVehiculo.find((uso) => uso.UsoID === datos.UsoVehiculo)?.Nombre || "No especificado";
   const nombreTipo = tiposVehiculo.find((tipo) => tipo.TipoID === datos.TipoVehiculo)?.Nombre || "No especificado";
-  // const tipoPago = tiposPago.find((tipo) => tipo.TipoPagoID === datos.TipoPagoID);
   const tipoPagoAnual = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('anual'));
   const tipoPagoSemestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
   const tipoPagoTrimestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
@@ -67,7 +66,7 @@ export const generarPDFCotizacion = async ({
     bonificacion: Number(datos.PorcentajeDescuento),
     derechoPoliza: Number(datos.DerechoPoliza)
   });
-
+  
   const resultadosSemestral = calcularPrima({
     costoBase: datos.CostoBase,
     ajustes: ajustesCP,
@@ -85,13 +84,13 @@ export const generarPDFCotizacion = async ({
   });
 
   const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
-    datos.CostoBase,
+    datos.CostoNeto,
     tipoPagoSemestral,
     Number(datos.DerechoPoliza)
   ) : null;
 
   const detallesPagoTrimestral = tipoPagoTrimestral ? obtenerPagos(
-    datos.CostoBase,
+    datos.CostoNeto,
     tipoPagoTrimestral,
     Number(datos.DerechoPoliza)
   ) : null;

@@ -122,12 +122,12 @@ export const ResumenPolizaStep = ({
             costoBase: cotizacion.CostoBase,
             ajustes: ajustesCP,
             tipoPago,
-            bonificacion: Number(form.getValues("descuentoProntoPago")),
+            bonificacion: Number(cotizacion.PorcentajeDescuento),
             derechoPoliza: Number(cotizacion.DerechoPoliza)
         });
 
         const detallesPago = tipoPago.Divisor > 1 ? obtenerPagos(
-            cotizacion.CostoBase,
+            resultados.costoNeto,
             tipoPago,
             Number(cotizacion.DerechoPoliza)
         ) : null;
@@ -393,16 +393,9 @@ export const ResumenPolizaStep = ({
                             </div>
                         )}
 
-                        {resultadosCalculo.ajusteTipoPago > 0 && (
-                            <div className="flex justify-between items-center text-amber-600">
-                                <span>Ajuste por tipo de pago:</span>
-                                <span>+{formatCurrency(resultadosCalculo.ajusteTipoPago)}</span>
-                            </div>
-                        )}
-
                         {resultadosCalculo.bonificacion > 0 && (
                             <div className="flex justify-between items-center text-green-600">
-                                <span>Descuento pronto pago:</span>
+                                <span>Bonificación:</span>
                                 <span>-{formatCurrency(resultadosCalculo.bonificacion)}</span>
                             </div>
                         )}
@@ -411,6 +404,14 @@ export const ResumenPolizaStep = ({
                             <span>Costo Neto:</span>
                             <span>{formatCurrency(resultadosCalculo.costoNeto)}</span>
                         </div>
+
+                        {resultadosCalculo.ajusteTipoPago > 0 && (
+                            <div className="flex justify-between items-center text-amber-600">
+                                <span>Ajuste por tipo de pago:</span>
+                                <span>+{formatCurrency(resultadosCalculo.ajusteTipoPago)}</span>
+                            </div>
+                        )}
+
 
                         <div className="flex justify-between items-center">
                             <span>Derecho de Póliza:</span>
