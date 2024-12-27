@@ -15,6 +15,7 @@ import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iPostDocumento } from "@/interfaces/CatPolizas";
 import Loading from "@/app/(protected)/loading";
 import { generarPDFPoliza } from "./GenerarPDFPoliza";
+import { calcularPrima } from "@/components/cotizador/CalculosPrima";
 
 const pasos = [
     { title: "Cliente", icon: "User" },
@@ -53,7 +54,8 @@ export const ActivarPolizaForm = ({
     const [modalDocumentosAbierto, setModalDocumentosAbierto] = useState(false);
     const [polizaId, setPolizaId] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
-    
+    const [costoTotal, setCostoTotal] = useState(0);
+
     const router = useRouter();
     const { toast } = useToast();
 
@@ -121,25 +123,24 @@ export const ActivarPolizaForm = ({
     };
 
     const manejarConfirmacion = async (datosResumen: {
+        primaTotal: number;
         fechaInicio: Date;
         fechaFin: Date;
         descuentoProntoPago: number;
         tieneReclamos: boolean;
+        tipoPagoID: number;
     }) => {
         if (!clienteId || !vehiculoId) return;
-
-        const numeroPagos = tiposPago.find(
-            tipo => tipo.TipoPagoID === cotizacion.TipoPagoID
-        )?.Divisor ?? 12;
+        const numeroPagos = tiposPago.find(tipo => tipo.TipoPagoID === datosResumen.tipoPagoID)?.Divisor ?? 12;
 
         startTransition(async () => {
             try {
                 const datosPoliza = {
                     CotizacionID: cotizacion.CotizacionID,
-                    TipoPagoID: cotizacion.TipoPagoID,
+                    TipoPagoID: datosResumen.tipoPagoID,
                     FechaInicio: datosResumen.fechaInicio.toISOString().split("T")[0],
                     FechaFin: datosResumen.fechaFin.toISOString().split("T")[0],
-                    PrimaTotal: Number(cotizacion.PrimaTotal),
+                    PrimaTotal: datosResumen.primaTotal,
                     TotalPagos: 0,
                     NumeroPagos: numeroPagos,
                     DescuentoProntoPago: datosResumen.descuentoProntoPago,
@@ -152,6 +153,7 @@ export const ActivarPolizaForm = ({
                     TotalSinIVA: cotizacion.CostoBase,
                 };
 
+                console.log(datosPoliza)
                 const respuesta = await postPoliza(datosPoliza);
 
                 if (respuesta) {
@@ -222,6 +224,7 @@ export const ActivarPolizaForm = ({
                         cotizacion={cotizacion}
                         alConfirmar={manejarConfirmacion}
                         coberturas={coberturas}
+                        tiposPago={tiposPago}
                     />
                 )}
                 <Dialog open={modalDocumentosAbierto} onOpenChange={manejarCierreModal}>

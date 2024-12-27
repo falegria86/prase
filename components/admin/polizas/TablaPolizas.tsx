@@ -45,7 +45,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { iGetEsquemaPago, iGetMetodosPago, iGetStatusPago, iPostPagoPoliza, type iGetPolizas, type iPatchPoliza } from "@/interfaces/CatPolizas";
+import { iGetEsquemaPago, iGetMetodosPago, iGetStatusPago, iPostPagoPoliza, iPostPolizaResp, type iGetPolizas, type iPatchPoliza } from "@/interfaces/CatPolizas";
 import type { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { useToast } from "@/hooks/use-toast";
 import { deletePoliza, getEsquemaPago, patchPoliza, postPagoPoliza } from "@/actions/PolizasActions";
@@ -58,6 +58,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GestionPagosPoliza } from "./GestionPagosPoliza";
 import { generarTicketPDF } from "./GenerarTicketPDF";
 import { FiltrosPolizas, FiltrosPolizasState } from "./FiltrosPolizas";
+import { generarPDFPoliza } from "./GenerarPDFPoliza";
+import { getCotizacionById } from "@/actions/CotizadorActions";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -77,7 +79,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
     const [errorMotivo, setErrorMotivo] = useState(false);
     const [modalPagosAbierto, setModalPagosAbierto] = useState(false);
     const [polizaSeleccionada, setPolizaSeleccionada] = useState<iGetPolizas | null>(null);
-    const [esquemaPago, setEsquemaPago] = useState<iGetEsquemaPago | null>(null);
+    const [esquemaPago, setEsquemaPago] = useState<iGetEsquemaPago | null | undefined>(null);
     const [filtros, setFiltros] = useState<FiltrosPolizasState>({
         textoBusqueda: "",
         estado: null
@@ -209,6 +211,11 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
             if (resp.statusCode !== 400) {
                 await generarTicketPDF(resp, polizaSeleccionada?.NumeroPoliza || '');
 
+                if (polizaSeleccionada) {
+                    const nuevoEsquema = await getEsquemaPago(polizaSeleccionada.NumeroPoliza);
+                    setEsquemaPago(nuevoEsquema);
+                }
+
                 toast({
                     title: "Éxito",
                     description: "Pago registrado correctamente",
@@ -231,7 +238,83 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
     };
 
     const manejarDescargaPolizaPDF = async (poliza: iGetPolizas) => {
-        console.log(poliza)
+        // try {
+        //     const [esquemaPago, cotizacionCompleta] = await Promise.all([
+        //         getEsquemaPago(poliza.NumeroPoliza),
+        //         getCotizacionById(poliza.cotizacion.CotizacionID)
+        //     ]);
+
+        //     if (!cotizacionCompleta) {
+        //         throw new Error("No se pudo obtener la información completa de la cotización");
+        //     }
+
+        //     const cotizacionMapeada = {
+        //         ...cotizacionCompleta,
+        //         FechaUltimaActualizacion: null,
+        //         FechaCotizacion: new Date(cotizacionCompleta.FechaCotizacion)
+        //     };
+
+        //     const datosPoliza: iPostPolizaResp = {
+        //         PolizaID: poliza.PolizaID,
+        //         NumeroPoliza: poliza.NumeroPoliza,
+        //         FechaInicio: poliza.FechaInicio,
+        //         FechaFin: poliza.FechaFin,
+        //         PrimaTotal: Number(poliza.PrimaTotal),
+        //         TotalPagos: Number(poliza.TotalPagos),
+        //         NumeroPagos: poliza.NumeroPagos,
+        //         DescuentoProntoPago: Number(poliza.DescuentoProntoPago),
+        //         VersionActual: Number(poliza.VersionActual),
+        //         TieneReclamos: poliza.TieneReclamos,
+        //         DerechoPolizaAplicado: poliza.DerechoPolizaAplicado,
+        //         EstadoPoliza: poliza.EstadoPoliza,
+        //         cliente: {
+        //             NombreCompleto: cotizacionCompleta.NombrePersona,
+        //             Telefono: cotizacionCompleta.Telefono || '',
+        //             RFC: '',
+        //             Direccion: '',
+        //             Email: cotizacionCompleta.Correo || ''
+        //         },
+        //         vehiculo: {
+        //             Marca: cotizacionCompleta.Marca,
+        //             Modelo: cotizacionCompleta.Submarca,
+        //             AnoFabricacion: cotizacionCompleta.Modelo,
+        //             Placas: cotizacionCompleta.Placa || '',
+        //             NoMotor: cotizacionCompleta.NoMotor || '',
+        //             VIN: cotizacionCompleta.VIN || ''
+        //         },
+        //         tipoPago: {
+        //             TipoPagoID: cotizacionCompleta.TipoPagoID,
+        //             Divisor: poliza.NumeroPagos,
+        //             PorcentajeAjuste: "0"
+        //         },
+        //         cotizacion: cotizacionMapeada,
+        //         historial: poliza.historial,
+        //         detalles: poliza.detalles,
+        //         FechayHora: new Date().toISOString(),
+        //         FechaEmision: new Date().toISOString()
+        //     };
+
+        //     const doc = await generarPDFPoliza({
+        //         respuestaPoliza: datosPoliza,
+        //         cotizacion: cotizacionCompleta,
+        //         coberturas,
+        //         esquemaPago
+        //     });
+
+        //     doc.save(`poliza_${poliza.NumeroPoliza}.pdf`);
+
+        //     toast({
+        //         title: "PDF generado",
+        //         description: "La póliza se ha descargado correctamente"
+        //     });
+        // } catch (error) {
+        //     console.error('Error al generar PDF:', error);
+        //     toast({
+        //         title: "Error",
+        //         description: "Hubo un problema al generar el PDF",
+        //         variant: "destructive"
+        //     });
+        // }
     };
 
     return (

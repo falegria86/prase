@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +18,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,18 +41,27 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { useCalculosPrima } from "@/hooks/useCalculoPrima";
+import { getAjustesCP } from "@/actions/AjustesCP";
+import { calcularPrima } from "@/components/cotizador/CalculosPrima";
 
 const resumenSchema = z.object({
     fechaInicio: z.date(),
     fechaFin: z.date(),
     descuentoProntoPago: z.coerce.number().min(0),
     tieneReclamos: z.boolean(),
+    tipoPagoID: z.coerce.number().min(1, {
+        message: "El tipo de pago es requerido"
+    }),
+    primaTotal: z.number()
 });
 
 interface ResumenPolizaStepProps {
     cotizacion: iGetCotizacion;
     coberturas: iGetCoberturas[];
     alConfirmar: (datos: z.infer<typeof resumenSchema>) => void;
+    tiposPago: iGetTipoPagos[];
 }
 
 const hoy = new Date();
@@ -51,8 +70,35 @@ hoy.setHours(0, 0, 0, 0);
 export const ResumenPolizaStep = ({
     cotizacion,
     coberturas,
-    alConfirmar
+    alConfirmar,
+    tiposPago,
 }: ResumenPolizaStepProps) => {
+
+    const [resultadosCalculo, setResultadosCalculo] = useState<{
+        total: number;
+        ajusteSiniestralidad: number;
+        subtotalSiniestralidad: number;
+        ajusteTipoPago: number;
+        bonificacion: number;
+        costoNeto: number;
+        iva: number;
+        detallesPago: {
+            primerPago?: number;
+            pagoSubsecuente?: number;
+            numeroPagosSubsecuentes?: number;
+        };
+    }>({
+        total: 0,
+        ajusteSiniestralidad: 0,
+        subtotalSiniestralidad: 0,
+        ajusteTipoPago: 0,
+        bonificacion: 0,
+        costoNeto: 0,
+        iva: 0,
+        detallesPago: {}
+    });
+
+    const { obtenerPagos } = useCalculosPrima();
 
     const form = useForm<z.infer<typeof resumenSchema>>({
         resolver: zodResolver(resumenSchema),
@@ -61,17 +107,70 @@ export const ResumenPolizaStep = ({
             fechaFin: new Date(hoy.getFullYear() + 1, hoy.getMonth(), hoy.getDate()),
             descuentoProntoPago: 0,
             tieneReclamos: false,
+            tipoPagoID: 7,
+            primaTotal: ((Number(cotizacion.CostoBase) + Number(cotizacion.DerechoPoliza)) * 0.16) + Number(cotizacion.CostoBase)
         },
     });
+
+    const actualizarCalculos = async (tipoPagoId: number) => {
+        const tipoPago = tiposPago.find(t => t.TipoPagoID === tipoPagoId);
+        if (!tipoPago) return;
+
+        const ajustesCP = await getAjustesCP(cotizacion.CP);
+
+        const resultados = calcularPrima({
+            costoBase: cotizacion.CostoBase,
+            ajustes: ajustesCP,
+            tipoPago,
+            bonificacion: Number(form.getValues("descuentoProntoPago")),
+            derechoPoliza: Number(cotizacion.DerechoPoliza)
+        });
+
+        const detallesPago = tipoPago.Divisor > 1 ? obtenerPagos(
+            cotizacion.CostoBase,
+            tipoPago,
+            Number(cotizacion.DerechoPoliza)
+        ) : null;
+
+        setResultadosCalculo({
+            ...resultados,
+            detallesPago: detallesPago || {}
+        });
+    };
+
+    useEffect(() => {
+        const subscription = form.watch((valor, { name }) => {
+            if (name === "descuentoProntoPago") {
+                const tipoPagoId = form.getValues("tipoPagoID");
+                if (tipoPagoId) {
+                    actualizarCalculos(tipoPagoId);
+                }
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [form]);
+
+    useEffect(() => {
+        actualizarCalculos(7);
+    }, []);
 
     const obtenerNombreCobertura = (coberturaId: number): string => {
         const cobertura = coberturas?.find(c => c.CoberturaID === coberturaId);
         return cobertura?.NombreCobertura || `Cobertura ${coberturaId}`;
     };
 
+    const onSubmit = (datos: z.infer<typeof resumenSchema>) => {
+        const datosCompletos = {
+            ...datos,
+            primaTotal: resultadosCalculo.total
+        };
+        alConfirmar(datosCompletos);
+    };
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(alConfirmar)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -238,17 +337,112 @@ export const ResumenPolizaStep = ({
 
                 <Card>
                     <CardHeader>
+                        <CardTitle>Pago</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <FormField
+                            control={form.control}
+                            name="tipoPagoID"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de pago</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            onValueChange={(valor) => {
+                                                field.onChange(Number(valor));
+                                                actualizarCalculos(Number(valor));
+                                            }}
+                                            value={field.value?.toString()}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona tipo de pago..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {tiposPago.map(tipo => (
+                                                    <SelectItem
+                                                        key={tipo.TipoPagoID}
+                                                        value={tipo.TipoPagoID.toString()}
+                                                    >
+                                                        {tipo.Descripcion}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
                         <CardTitle>Resumen de Pagos</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Costo Base:</span>
+                            <span>{formatCurrency(cotizacion.CostoBase)}</span>
+                        </div>
+
+                        {resultadosCalculo.ajusteSiniestralidad > 0 && (
+                            <div className="flex justify-between items-center text-amber-600">
+                                <span>Ajuste por siniestralidad:</span>
+                                <span>+{formatCurrency(resultadosCalculo.ajusteSiniestralidad)}</span>
+                            </div>
+                        )}
+
+                        {resultadosCalculo.ajusteTipoPago > 0 && (
+                            <div className="flex justify-between items-center text-amber-600">
+                                <span>Ajuste por tipo de pago:</span>
+                                <span>+{formatCurrency(resultadosCalculo.ajusteTipoPago)}</span>
+                            </div>
+                        )}
+
+                        {resultadosCalculo.bonificacion > 0 && (
+                            <div className="flex justify-between items-center text-green-600">
+                                <span>Descuento pronto pago:</span>
+                                <span>-{formatCurrency(resultadosCalculo.bonificacion)}</span>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-center">
+                            <span>Costo Neto:</span>
+                            <span>{formatCurrency(resultadosCalculo.costoNeto)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <span>Derecho de Póliza:</span>
+                            <span>+{formatCurrency(Number(cotizacion.DerechoPoliza))}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <span>IVA (16%):</span>
+                            <span>{formatCurrency(resultadosCalculo.iva)}</span>
+                        </div>
+
                         <div className="border-t pt-2 mt-2">
                             <div className="flex justify-between font-semibold">
-                                <span>Total Anual:</span>
+                                <span>Total:</span>
                                 <span className="text-primary">
-                                    {formatCurrency(Number(cotizacion.PrimaTotal))}
+                                    {formatCurrency(resultadosCalculo.total)}
                                 </span>
                             </div>
                         </div>
+
+                        {resultadosCalculo.detallesPago.primerPago && (
+                            <>
+                                <div className="flex justify-between items-center">
+                                    <span>Primer pago:</span>
+                                    <span>{formatCurrency(resultadosCalculo.detallesPago.primerPago)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span>{resultadosCalculo.detallesPago.numeroPagosSubsecuentes} pagos subsecuentes:</span>
+                                    <span>{formatCurrency(resultadosCalculo.detallesPago.pagoSubsecuente || 0)}</span>
+                                </div>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
 

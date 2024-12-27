@@ -251,7 +251,6 @@ export const TableCotizaciones = ({
               <TableHead>Fecha</TableHead>
               <TableHead>Información del Cliente</TableHead>
               <TableHead>Uso del Vehículo</TableHead>
-              <TableHead>Prima Total</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -314,14 +313,13 @@ export const TableCotizaciones = ({
                     <p>Uso: {obtenerNombreUsoVehiculo(cotizacion.UsoVehiculo)}</p>
                   </div>
                 </TableCell>
-                <TableCell>{formatCurrency(Number(cotizacion.PrimaTotal))}</TableCell>
                 <TableCell>
                   <Badge variant={obtenerColorEstado(cotizacion.EstadoCotizacion)}>
                     {cotizacion.EstadoCotizacion}
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-3 mt-3">
-                  {cotizacion.EstadoCotizacion !== "RECHAZADA" && (
+                  {(cotizacion.EstadoCotizacion !== "RECHAZADA" && cotizacion.EstadoCotizacion !== "EMITIDA") && (
                     <AccionesMenu
                       cotizacion={cotizacion}
                       onDescargar={manejarDescargaPDF}

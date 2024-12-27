@@ -28,52 +28,7 @@ export interface iPatchPoliza {
     TieneReclamos?: boolean;
 }
 
-export interface iGetPolizas {
-    PolizaID: number;
-    NumeroPoliza: string;
-    FechaInicio: Date;
-    FechaFin: Date;
-    EstadoPoliza: string;
-    PrimaTotal: string;
-    TotalPagos: string;
-    NumeroPagos: number;
-    DescuentoProntoPago: string;
-    VersionActual: string;
-    TieneReclamos: boolean;
-    FechayHora: Date;
-    FechaEmision: Date;
-    historial: Historial[];
-    detalles: Detalle[];
-    tieneDocumentos?: boolean;
-    DerechoPolizaAplicado: string;
-}
 
-export interface Detalle {
-    DetalleID: number;
-    CoberturaID: number;
-    MontoSumaAsegurada: string;
-    MontoDeducible: string;
-    PrimaCalculada: string;
-    EsPoliza: boolean;
-    PorcentajePrimaAplicado: string;
-    ValorAseguradoUsado: string;
-}
-
-export interface Historial {
-    HistorialID: number;
-    NumeroPoliza: string;
-    Version: number;
-    FechaInicio: Date;
-    FechaFin: Date;
-    EstadoPoliza: string;
-    TotalPagos: string;
-    NumeroPagos: number;
-    MontoPorPago: string;
-    DescuentoProntoPago: string;
-    FechaCancelacion: Date | null;
-    MotivoCancelacion: string | null;
-    FechaVersion: Date | null;
-}
 
 export interface iGetDocumentos {
     DocumentoDigitalizadoID: number;
@@ -113,8 +68,96 @@ export interface iPostDocumento {
     EstadoDocumento: string;
 }
 
+export interface iGetPolizas {
+    PolizaID: number;
+    NumeroPoliza: string;
+    FechaInicio: Date;
+    FechaFin: Date;
+    EstadoPoliza: string;
+    PrimaTotal: string;
+    TotalSinIVA: string;
+    DerechoPolizaAplicado: string;
+    NumeroPagos: number;
+    TotalPagos: string;
+    DescuentoProntoPago: string;
+    VersionActual: string;
+    TieneReclamos: boolean;
+    FechayHora: Date;
+    FechaEmision: Date;
+    historial: Historial[];
+    detalles: Detalle[];
+    cotizacion: CotizacionPoliza;
+    tieneDocumentos?: boolean;
+}
+
+export interface CotizacionPoliza {
+    CotizacionID: number;
+    UsuarioID: number;
+    FechaCotizacion: Date;
+    PrimaTotal: string;
+    EstadoCotizacion: string;
+    TipoPagoID: number;
+    PorcentajeDescuento: string;
+    DerechoPoliza: string;
+    TipoSumaAseguradaID: number;
+    SumaAsegurada: string;
+    PeriodoGracia: number;
+    PaqueteCoberturaID: number;
+    FechaUltimaActualizacion: Date;
+    UsoVehiculo: number;
+    TipoVehiculo: number;
+    NombrePersona: string;
+    UnidadSalvamento: number;
+    VIN: string;
+    CP: string;
+    Marca: string;
+    Submarca: string;
+    Modelo: string;
+    Version: string;
+    Correo: string;
+    Telefono: string;
+    NoMotor: string;
+    Placa: string;
+    UsuarioRegistro: number;
+    CostoBase: string;
+    AjusteSiniestralidad: string;
+    AjusteCP: string;
+    AjusteTipoPago: string;
+    SubtotalSiniestralidad: string;
+    SubtotalTipoPago: string;
+    CostoNeto: string;
+    IVA: string;
+}
+
+export interface Detalle {
+    DetalleID: number;
+    CoberturaID: number;
+    MontoSumaAsegurada: string;
+    MontoDeducible: string;
+    PrimaCalculada: string;
+    EsPoliza: boolean;
+    PorcentajePrimaAplicado: string;
+    ValorAseguradoUsado: string;
+}
+
+export interface Historial {
+    HistorialID: number;
+    NumeroPoliza: string;
+    Version: number;
+    FechaInicio: Date;
+    FechaFin: Date;
+    EstadoPoliza: string;
+    TotalPagos: string;
+    NumeroPagos: number;
+    MontoPorPago: string;
+    DescuentoProntoPago: string;
+    FechaCancelacion: null;
+    MotivoCancelacion: null;
+    FechaVersion: Date;
+}
+
 export interface iPostPolizaResp {
-    cotizacion: Cotizacion;
+    cotizacion: CotizacionResp;
     tipoPago: TipoPago;
     vehiculo: Vehiculo;
     cliente: Cliente;
@@ -148,7 +191,7 @@ export interface Cliente {
     RFC: string;
 }
 
-export interface Cotizacion {
+export interface CotizacionResp {
     CotizacionID: number;
     UsuarioID: number;
     FechaCotizacion: Date;

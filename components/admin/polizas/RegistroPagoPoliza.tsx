@@ -30,6 +30,10 @@ import type {
     iGetStatusPago,
     iGetMetodosPago
 } from "@/interfaces/CatPolizas";
+import Loading from "@/app/(protected)/loading";
+import { useTransition } from "react";
+import { SyncLoader } from "react-spinners";
+import { LoaderModales } from "@/components/LoaderModales";
 
 const esquemaPagoPoliza = z.object({
     PolizaID: z.number(),
@@ -94,213 +98,226 @@ export const RegistroPagoPoliza = ({
     const nombreMetodo = metodoPagoSeleccionado?.NombreMetodo.toLowerCase() || "";
     const esEfectivo = nombreMetodo.includes("efectivo");
     const pagosCompletos = montoPorPagar === 0;
+    const [isPending, startTransition] = useTransition();
 
     const onSubmit = async (datos: TipoPagoForm) => {
-        await onRegistrarPago({
-            ...datos,
-            ReferenciaPago: datos.ReferenciaPago || "",
-            NombreTitular: datos.NombreTitular || "",
-        });
-        form.reset();
+
+        startTransition(async () => {
+            await onRegistrarPago({
+                ...datos,
+                ReferenciaPago: datos.ReferenciaPago || "",
+                NombreTitular: datos.NombreTitular || "",
+            });
+            form.reset();
+        })
+
     };
 
+    if (isPending) {
+        return (
+            <LoaderModales />
+        );
+    }
+
     return (
-        <div className="space-y-4">
-            {esquemaPago.mensajeAtraso && (
-                <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                        {esquemaPago.mensajeAtraso}
-                    </AlertDescription>
-                </Alert>
-            )}
+        <>
+            <div className="space-y-4">
+                {esquemaPago.mensajeAtraso && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            {esquemaPago.mensajeAtraso}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-            {esquemaPago.descuentoProntoPago > 0 && (
-                <Alert>
-                    <InfoIcon className="h-4 w-4" />
-                    <AlertDescription>
-                        Descuento por pronto pago disponible: {formatCurrency(esquemaPago.descuentoProntoPago)}
-                    </AlertDescription>
-                </Alert>
-            )}
+                {esquemaPago.descuentoProntoPago > 0 && (
+                    <Alert>
+                        <InfoIcon className="h-4 w-4" />
+                        <AlertDescription>
+                            Descuento por pronto pago disponible: {formatCurrency(esquemaPago.descuentoProntoPago)}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-            {pagosCompletos ? (
-                <Alert>
-                    <CheckCircle2 className="h-4 w-4" />
-                    <AlertDescription>
-                        Todos los pagos de la póliza han sido completados
-                    </AlertDescription>
-                </Alert>
-            ) : (
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="FechaPago"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Fecha de pago</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            value={format(new Date(field.value), "PPP", { locale: es })}
-                                            disabled
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <FormLabel>Monto total de póliza</FormLabel>
-                                <Input
-                                    value={formatCurrency(esquemaPago.totalPrima)}
-                                    disabled
-                                />
-                            </div>
-
-                            <div>
-                                <FormLabel>Monto por pagar</FormLabel>
-                                <Input
-                                    value={formatCurrency(montoPorPagar)}
-                                    disabled
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <FormLabel>Pago sugerido</FormLabel>
-                            <Input
-                                value={formatCurrency(pagoSugerido)}
-                                disabled
+                {pagosCompletos ? (
+                    <Alert>
+                        <CheckCircle2 className="h-4 w-4" />
+                        <AlertDescription>
+                            Todos los pagos de la póliza han sido completados
+                        </AlertDescription>
+                    </Alert>
+                ) : (
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="FechaPago"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Fecha de pago</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                value={format(new Date(field.value), "PPP", { locale: es })}
+                                                disabled
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                        </div>
 
-                        <FormField
-                            control={form.control}
-                            name="MontoPagado"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Monto a pagar</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            value={formatCurrency(field.value)}
-                                            onChange={(e) => {
-                                                const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                field.onChange(Number(valor) / 100);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <FormLabel>Monto total de póliza</FormLabel>
+                                    <Input
+                                        value={formatCurrency(esquemaPago.totalPrima)}
+                                        disabled
+                                    />
+                                </div>
 
-                        <FormField
-                            control={form.control}
-                            name="IDMetodoPago"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Método de pago</FormLabel>
-                                    <Select
-                                        onValueChange={(valor) => field.onChange(Number(valor))}
-                                        value={field.value.toString()}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecciona método de pago" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {metodosPago.map((metodo) => (
-                                                <SelectItem
-                                                    key={metodo.IDMetodoPago}
-                                                    value={metodo.IDMetodoPago.toString()}
-                                                >
-                                                    {metodo.NombreMetodo}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                <div>
+                                    <FormLabel>Monto por pagar</FormLabel>
+                                    <Input
+                                        value={formatCurrency(montoPorPagar)}
+                                        disabled
+                                    />
+                                </div>
+                            </div>
 
-                        <FormField
-                            control={form.control}
-                            name="IDEstatusPago"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Estado del pago</FormLabel>
-                                    <Select
-                                        onValueChange={(valor) => field.onChange(Number(valor))}
-                                        value={field.value.toString()}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecciona estado del pago" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {statusPago.map((status) => (
-                                                <SelectItem
-                                                    key={status.IDEstatusPago}
-                                                    value={status.IDEstatusPago.toString()}
-                                                >
-                                                    {status.NombreEstatus}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {!esEfectivo && (
-                            <>
-                                <FormField
-                                    control={form.control}
-                                    name="ReferenciaPago"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Número de transacción</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                            <div>
+                                <FormLabel>Pago sugerido</FormLabel>
+                                <Input
+                                    value={formatCurrency(pagoSugerido)}
+                                    disabled
                                 />
+                            </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="NombreTitular"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Titular de la cuenta</FormLabel>
+                            <FormField
+                                control={form.control}
+                                name="MontoPagado"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Monto a pagar</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="IDMetodoPago"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Método de pago</FormLabel>
+                                        <Select
+                                            onValueChange={(valor) => field.onChange(Number(valor))}
+                                            value={field.value.toString()}
+                                        >
                                             <FormControl>
-                                                <Input {...field} />
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona método de pago" />
+                                                </SelectTrigger>
                                             </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </>
-                        )}
+                                            <SelectContent>
+                                                {metodosPago.map((metodo) => (
+                                                    <SelectItem
+                                                        key={metodo.IDMetodoPago}
+                                                        value={metodo.IDMetodoPago.toString()}
+                                                    >
+                                                        {metodo.NombreMetodo}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        <Button type="submit">
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Registrar Pago
-                        </Button>
-                    </form>
-                </Form>
-            )}
-        </div>
+                            <FormField
+                                control={form.control}
+                                name="IDEstatusPago"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Estado del pago</FormLabel>
+                                        <Select
+                                            onValueChange={(valor) => field.onChange(Number(valor))}
+                                            value={field.value.toString()}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecciona estado del pago" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {statusPago.map((status) => (
+                                                    <SelectItem
+                                                        key={status.IDEstatusPago}
+                                                        value={status.IDEstatusPago.toString()}
+                                                    >
+                                                        {status.NombreEstatus}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {!esEfectivo && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="ReferenciaPago"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Número de transacción</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="NombreTitular"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Titular de la cuenta</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )}
+
+                            <Button type="submit">
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Registrar Pago
+                            </Button>
+                        </form>
+                    </Form>
+                )}
+            </div>
+        </>
     );
 };
 
