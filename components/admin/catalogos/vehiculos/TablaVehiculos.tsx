@@ -45,12 +45,16 @@ import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from 'react';
 import { EditarVehiculoForm } from './EditarVehiculoModal';
+import { iGetTiposVehiculo, iGetUsosVehiculo } from '@/interfaces/CatVehiculosInterface';
+import { formatCurrency } from '@/lib/format';
 
 interface Props {
     vehiculos: iGetVehiculo[];
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
 }
 
-export const TableVehiculos = ({ vehiculos }: Props) => {
+export const TableVehiculos = ({ vehiculos, tiposVehiculo, usosVehiculo }: Props) => {
     const [isPending, startTransition] = useTransition();
     const [selectedVehiculo, setSelectedVehiculo] = useState<iGetVehiculo | null>(null);
     const [editVehiculo, setEditVehiculo] = useState<iGetVehiculo | null>(null);
@@ -132,51 +136,57 @@ export const TableVehiculos = ({ vehiculos }: Props) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {vehiculos.map((vehiculo) => (
-                            <TableRow key={vehiculo.VehiculoID}>
-                                <TableCell>{vehiculo.Marca}</TableCell>
-                                <TableCell>{vehiculo.Modelo}</TableCell>
-                                <TableCell>{vehiculo.AnoFabricacion}</TableCell>
-                                <TableCell>{vehiculo.TipoVehiculo}</TableCell>
-                                <TableCell>{vehiculo.ValorVehiculo}</TableCell>
-                                <TableCell>{vehiculo.ValorFactura}</TableCell>
-                                <TableCell>
-                                    {new Date(vehiculo.FechaRegistro).toLocaleDateString()} {/* Convierte a Date y formatea */}
-                                </TableCell>
-                                <TableCell>{vehiculo.UsoVehiculo}</TableCell>
-                                <TableCell>{vehiculo.ZonaResidencia}</TableCell>
-                                <TableCell>{vehiculo.Salvamento}</TableCell>
-                                <TableCell className="flex items-center gap-3">
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Edit
-                                                size={16}
-                                                className="text-gray-600 cursor-pointer"
-                                                onClick={() => {
-                                                    setEditVehiculo(vehiculo);
-                                                    setEditVehiculoModalOpen(true);
-                                                }}
-                                            >
-                                            </Edit>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Editar</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <AlertDialogTrigger asChild>
-                                                <Trash2
+                        {vehiculos.map((vehiculo) => {
+                            const nomTipo = tiposVehiculo.find(tipo => tipo.TipoID === Number(vehiculo.TipoVehiculo))?.Nombre;
+                            const nomUso = usosVehiculo.find(uso => uso.UsoID === Number(vehiculo.UsoVehiculo))?.Nombre;
+
+                            return (
+                                <TableRow key={vehiculo.VehiculoID}>
+                                    <TableCell>{vehiculo.Marca}</TableCell>
+                                    <TableCell>{vehiculo.Modelo}</TableCell>
+                                    <TableCell>{vehiculo.AnoFabricacion}</TableCell>
+                                    <TableCell>{nomTipo}</TableCell>
+                                    <TableCell>{formatCurrency(vehiculo.ValorVehiculo)}</TableCell>
+                                    <TableCell>{formatCurrency(vehiculo.ValorFactura)}</TableCell>
+                                    <TableCell>
+                                        {new Date(vehiculo.FechaRegistro).toLocaleDateString()} {/* Convierte a Date y formatea */}
+                                    </TableCell>
+                                    <TableCell>{nomUso}</TableCell>
+                                    <TableCell>{vehiculo.ZonaResidencia}</TableCell>
+                                    <TableCell>{vehiculo.Salvamento}</TableCell>
+                                    <TableCell className="flex items-center gap-3">
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <Edit
                                                     size={16}
                                                     className="text-gray-600 cursor-pointer"
-                                                    onClick={() => handleSelectVehiculo(vehiculo)}
-                                                />
-                                            </AlertDialogTrigger>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Eliminar</TooltipContent>
-                                    </Tooltip>
+                                                    onClick={() => {
+                                                        setEditVehiculo(vehiculo);
+                                                        setEditVehiculoModalOpen(true);
+                                                    }}
+                                                >
+                                                </Edit>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Editar</TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <AlertDialogTrigger asChild>
+                                                    <Trash2
+                                                        size={16}
+                                                        className="text-gray-600 cursor-pointer"
+                                                        onClick={() => handleSelectVehiculo(vehiculo)}
+                                                    />
+                                                </AlertDialogTrigger>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Eliminar</TooltipContent>
+                                        </Tooltip>
 
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        }
+                        )}
                     </TableBody>
                 </Table>
             </AlertDialog>

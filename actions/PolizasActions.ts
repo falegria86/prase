@@ -45,7 +45,7 @@ export const patchPoliza = async (id: number, body: iPatchPoliza) => {
             },
             body: JSON.stringify(body),
         });
-
+        console.log("wa", resp)
         const data = await resp.json();
         return data;
     } catch (error) {
@@ -64,8 +64,7 @@ export const deletePoliza = async (id: number, body: { motivo: string }) => {
             body: JSON.stringify(body),
         });
 
-        const data = await resp.json();
-        return data;
+        return resp.status;
     } catch (error) {
         console.error('Error al eliminar póliza: ', error);
         return null;

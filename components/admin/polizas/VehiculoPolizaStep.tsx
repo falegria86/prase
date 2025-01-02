@@ -35,6 +35,7 @@ import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 import Loading from "@/app/(protected)/loading";
 import { formatCurrency } from "@/lib/format";
+import { ArrowRight } from "lucide-react";
 
 type VehiculoFormData = z.infer<typeof vehiculoSchema>;
 
@@ -83,11 +84,6 @@ export const VehiculoPolizaStep = ({
     const [cargando, setCargando] = useState(true);
 
     const vehiculosCliente = vehiculos.filter(v => v.ClienteID === clienteId);
-    const usosFiltrados = tiposVehiculo.find(
-        tipo => tipo.TipoID === cotizacion.TipoVehiculo
-    )?.uso ? [tiposVehiculo.find(
-        tipo => tipo.TipoID === cotizacion.TipoVehiculo
-    )?.uso] : usosVehiculo;
 
     const form = useForm<VehiculoFormData>({
         resolver: zodResolver(vehiculoSchema),
@@ -155,7 +151,7 @@ export const VehiculoPolizaStep = ({
             const vehiculoSeleccionado = vehiculos.find(
                 vehiculo => vehiculo.VehiculoID.toString() === valorSeleccionado
             );
-            // console.log(vehiculoSeleccionado)
+
             if (vehiculoSeleccionado) {
                 form.reset({
                     vehiculoExistente: valorSeleccionado,
@@ -167,7 +163,7 @@ export const VehiculoPolizaStep = ({
                     FechaRegistro: vehiculoSeleccionado.FechaRegistro,
                     ValorVehiculo: vehiculoSeleccionado.ValorVehiculo,
                     ValorFactura: Number(vehiculoSeleccionado.ValorFactura),
-                    UsoVehiculo: vehiculoSeleccionado.UsoVehiculo,
+                    UsoVehiculo: vehiculoSeleccionado.UsoVehiculo.toString(),
                     ZonaResidencia: vehiculoSeleccionado.ZonaResidencia,
                     NoMotor: vehiculoSeleccionado.NoMotor ?? "",
                     Placas: vehiculoSeleccionado.Placas ?? "",
@@ -358,7 +354,10 @@ export const VehiculoPolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Uso del Vehículo</FormLabel>
                                         <Select
-                                            onValueChange={(valor) => form.setValue("UsoVehiculo", valor)}
+                                            onValueChange={(valor) => {
+                                                // console.log(typeof(valor))
+                                                form.setValue("UsoVehiculo", valor)
+                                            }}
                                             value={field.value?.toString()}
                                             disabled={deshabilitarCampos}
                                         >
@@ -368,7 +367,7 @@ export const VehiculoPolizaStep = ({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {usosFiltrados.map((uso, index) => (
+                                                {usosVehiculo.map((uso, index) => (
                                                     <SelectItem
                                                         key={index}
                                                         value={uso?.UsoID.toString() ?? ""}
@@ -487,6 +486,7 @@ export const VehiculoPolizaStep = ({
                         <div className="flex justify-end space-x-4 mt-6">
                             <Button type="submit">
                                 Siguiente
+                                <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </form>

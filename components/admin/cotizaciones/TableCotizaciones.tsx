@@ -477,6 +477,8 @@ const ModalesControl = ({
             cotizacion={cotizacionSeleccionada}
             coberturas={coberturas}
             tiposPago={tiposPago}
+            tiposVehiculo={tiposVehiculo}
+            usosVehiculo={usosVehiculo}
           />
         )}
       </DialogContent>

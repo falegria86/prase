@@ -306,7 +306,8 @@ export const CoverageStep = ({
         form.setValue("PrimaTotal", primaTotal);
       }
 
-      setIsStepValid?.(true);
+      if (coberturasDelPaquete.length > 0) setIsStepValid?.(true);
+      else setIsStepValid?.(false)
     },
     [
       form,
@@ -745,10 +746,12 @@ export const CoverageStep = ({
             <FormItem>
               <FormLabel>Monto Fijo del Paquete</FormLabel>
               <Input
-                type="text"
-                value={montoFijo}
-                onChange={(e) => manejarCambioMontoFijo(e.target.value)}
                 placeholder="Ingrese el monto fijo"
+                value={formatCurrency(Number(montoFijo))}
+                onChange={(e) => {
+                  const valor = e.target.value.replace(/[^0-9]/g, "");
+                  manejarCambioMontoFijo((Number(valor)/100).toString())
+                }}
               />
               <FormDescription>
                 Este es el monto fijo para el paquete seleccionado

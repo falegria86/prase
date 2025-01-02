@@ -5,12 +5,15 @@ import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { iGetCotizacion } from "@/interfaces/CotizacionInterface";
 import { iGetEsquemaPago, iPostPolizaResp } from "@/interfaces/CatPolizas";
 import { formatCurrency } from "@/lib/format";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 
 interface GenerarPDFPolizaProps {
     respuestaPoliza: iPostPolizaResp;
     cotizacion: iGetCotizacion;
     coberturas: iGetCoberturas[];
     esquemaPago?: iGetEsquemaPago | undefined | null;
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
 }
 
 export const generarPDFPoliza = async ({
@@ -18,10 +21,18 @@ export const generarPDFPoliza = async ({
     cotizacion,
     coberturas,
     esquemaPago,
+    tiposVehiculo,
+    usosVehiculo,
 }: GenerarPDFPolizaProps) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+        format: 'letter'
+    });
+
+    const tipoVehiculo = tiposVehiculo.find(t => t.TipoID === Number(cotizacion.TipoVehiculo))?.Nombre || "No especificado";
+    const usoVehiculo = usosVehiculo.find(u => u.UsoID === Number(cotizacion.UsoVehiculo))?.Nombre || "No especificado";
+
     const MARGEN_X = 15;
-    const MARGEN_Y = 15;
+    const MARGEN_Y = 10;
     const ANCHO_PAGINA = doc.internal.pageSize.width - MARGEN_X * 2;
 
     const obtenerNombreCobertura = (coberturaId: number): string => {
@@ -95,6 +106,8 @@ export const generarPDFPoliza = async ({
         startY: posicionY,
         head: [["DATOS DE LA UNIDAD"]],
         body: [
+            [`Tipo: ${tipoVehiculo}`],
+            [`Uso: ${usoVehiculo}`],
             [`Marca: ${respuestaPoliza.vehiculo.Marca}`],
             [`Submarca: ${respuestaPoliza.vehiculo.Modelo}`],
             [`Modelo: ${respuestaPoliza.vehiculo.AnoFabricacion}`],
@@ -128,7 +141,7 @@ export const generarPDFPoliza = async ({
     posicionY = Math.max(
         (doc as any).lastAutoTable.finalY,
         (doc as any).previousAutoTable.finalY
-    ) + 20;
+    ) + 24;
 
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
@@ -139,7 +152,7 @@ export const generarPDFPoliza = async ({
         align: "justify"
     });
 
-    posicionY += 7;
+    posicionY += 10;
 
     autoTable(doc, {
         startY: posicionY,
@@ -150,8 +163,8 @@ export const generarPDFPoliza = async ({
 
     const coberturasTabla = cotizacion.detalles.map(detalle => [
         obtenerNombreCobertura(detalle.CoberturaID),
-        formatCurrency(Number(detalle.MontoSumaAsegurada)),
-        `${detalle.MontoDeducible}%`,
+        detalle.MontoSumaAsegurada === '0' ? 'AMPARADA' : formatCurrency(Number(detalle.MontoSumaAsegurada)),
+        detalle.MontoDeducible === '0' ? 'NO APLICA' : `${detalle.MontoDeducible}%`,
     ]);
 
     autoTable(doc, {
@@ -240,7 +253,22 @@ export const generarPDFPoliza = async ({
     });
 
     const qrDataUrl = await QRCode.toDataURL(`https://prase.vercel.app/consulta/${respuestaPoliza.NumeroPoliza}`);
-    doc.addImage(qrDataUrl, "PNG", doc.internal.pageSize.width - 35, doc.internal.pageSize.height - 35, 25, 25);
+    const qrX = doc.internal.pageSize.width - 35;
+    const qrY = doc.internal.pageSize.height - 35;
+    const qrSize = 25;
+
+    doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+    doc.setFontSize(7);
+
+    doc.text(
+        "Verifica aquí vigencia y términos y condiciones",
+        qrX,
+        qrY + qrSize + 5,
+        {
+            align: "left",
+            maxWidth: qrSize
+        }
+    );
 
     return doc;
 };

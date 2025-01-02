@@ -335,7 +335,7 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                 Costo Total Pago Trimestral:
                             </div>
                             <span className="text-2xl font-bold text-primary">
-                                {formatCurrency(formData.costoTotalTrimestral   )}
+                                {formatCurrency(formData.costoTotalTrimestral)}
                             </span>
                         </div>
                     </CardContent>

@@ -128,8 +128,8 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
             const respuesta = await deletePoliza(polizaParaEliminar.PolizaID, {
                 motivo: motivoCancelacion.trim()
             });
-            console.log(respuesta)
-            if (respuesta) {
+
+            if (respuesta === 200) {
                 toast({
                     title: "Póliza eliminada",
                     description: "La póliza se canceló correctamente.",
@@ -157,14 +157,19 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
 
         try {
             const respuesta = await patchPoliza(polizaParaEditar.PolizaID, datos);
-            if (respuesta) {
+            console.log(respuesta)
+            if (respuesta.statusCode !== 400) {
                 toast({
                     title: "Póliza actualizada",
                     description: "Los cambios se guardaron correctamente.",
                 });
                 router.refresh();
             } else {
-                throw new Error("Error al actualizar la póliza");
+                toast({
+                    title: "Error",
+                    description: respuesta.message,
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             toast({

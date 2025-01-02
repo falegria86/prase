@@ -226,9 +226,12 @@ export const ResumenPolizaStep = ({
                                     <FormLabel>Descuento por pronto pago</FormLabel>
                                     <FormControl>
                                         <Input
-                                            type="number"
                                             {...field}
-                                            min="0"
+                                            value={formatCurrency(field.value)}
+                                            onChange={(e) => {
+                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                field.onChange(Number(valor) / 100);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -318,18 +321,21 @@ export const ResumenPolizaStep = ({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {cotizacion.detalles.map((detalle) => (
-                                    <TableRow key={detalle.DetalleID}>
-                                        <TableCell>{obtenerNombreCobertura(detalle.CoberturaID)}</TableCell>
-                                        <TableCell>
-                                            {formatCurrency(Number(detalle.MontoSumaAsegurada))}
-                                        </TableCell>
-                                        <TableCell>{detalle.MontoDeducible}%</TableCell>
-                                        <TableCell>
-                                            {formatCurrency(Number(detalle.PrimaCalculada))}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {cotizacion.detalles.map((detalle) => {
+
+                                    return (
+                                        <TableRow key={detalle.DetalleID}>
+                                            <TableCell>{obtenerNombreCobertura(detalle.CoberturaID)}</TableCell>
+                                            <TableCell>
+                                                {detalle.MontoSumaAsegurada === '0' ? 'AMPARADA' : formatCurrency(Number(detalle.MontoSumaAsegurada))}
+                                            </TableCell>
+                                            <TableCell>{detalle.MontoDeducible === '0' ? 'NO APLICA' : `${detalle.MontoDeducible}%`}</TableCell>
+                                            <TableCell>
+                                                {formatCurrency(Number(detalle.PrimaCalculada))}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </CardContent>

@@ -141,111 +141,109 @@ export const PlanPago = ({
           />
         </div>
 
-        {tipoPagoSeleccionado !== 0 && (
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Costo Base:</span>
-              <span>{formatCurrency(costoBase)}</span>
-            </div>
-
-            {resultadosAnual.ajusteSiniestralidad > 0 && (
-              <div className="flex justify-end gap-4 items-center text-amber-600">
-                <span className="font-medium">
-                  Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
-                </span>
-                <span>+{formatCurrency(resultadosAnual.ajusteSiniestralidad)}</span>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
-              <span>{formatCurrency(resultadosAnual.subtotalSiniestralidad)}</span>
-            </div>
-
-            {resultadosAnual.bonificacion > 0 && (
-              <div className="flex justify-end gap-4 items-center text-green-600">
-                <span className="font-medium">
-                  Bonificación técnica ({bonificacion}%):
-                </span>
-                <span>-{formatCurrency(resultadosAnual.bonificacion)}</span>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-4 items-center font-medium">
-              <span>Costo Neto:</span>
-              <span>{formatCurrency(resultadosAnual.costoNeto)}</span>
-            </div>
-
-            <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">Derecho de póliza:</span>
-              <span>+{formatCurrency(derechoPoliza)}</span>
-            </div>
-
-            <div className="flex justify-end gap-4 items-center">
-              <span className="font-medium">IVA (16%):</span>
-              <span>+{formatCurrency(resultadosAnual.iva)}</span>
-            </div>
-
-            <div className="flex justify-end gap-4 items-center pt-2 border-t">
-              <span className="text-lg font-semibold">Costo Total Pago Anual:</span>
-              <span className="text-lg font-bold text-primary">
-                {formatCurrency(resultadosAnual.total)}
-              </span>
-            </div>
-
-            <div className="flex justify-end gap-4 items-center pt-2 border-t">
-              <span className="text-lg font-semibold">Costo Total Pago Semestral:</span>
-              <span className="text-lg font-bold text-primary">
-                {formatCurrency(resultadosSemestral.total)}
-              </span>
-            </div>
-
-            {detallesPagoSemestral && (
-              <>
-                <div className="flex justify-end gap-4 items-center pt-2 border-t">
-                  <span className="font-medium">Primer pago:</span>
-                  <span>{formatCurrency(detallesPagoSemestral.primerPago)}</span>
-                </div>
-
-                <div className="flex justify-end gap-4 items-center">
-                  <span className="font-medium">
-                    {detallesPagoSemestral.numeroPagosSubsecuentes}{" "}
-                    {detallesPagoSemestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
-                    subsecuentes:
-                  </span>
-                  <span>{formatCurrency(detallesPagoSemestral.pagoSubsecuente)}</span>
-                </div>
-              </>
-            )}
-
-
-            {/* Costo Trimestral */}
-            <div className="flex justify-end gap-4 items-center pt-2 border-t">
-              <span className="text-lg font-semibold">Costo Total Pago Trimestral:</span>
-              <span className="text-lg font-bold text-primary">
-                {formatCurrency(resultadosTrimestral.total)}
-              </span>
-            </div>
-
-            {detallesPagoTrimestral && (
-              <>
-                <div className="flex justify-end gap-4 items-center pt-2 border-t">
-                  <span className="font-medium">Primer pago:</span>
-                  <span>{formatCurrency(detallesPagoTrimestral.primerPago)}</span>
-                </div>
-
-                <div className="flex justify-end gap-4 items-center">
-                  <span className="font-medium">
-                    {detallesPagoTrimestral.numeroPagosSubsecuentes}{" "}
-                    {detallesPagoTrimestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
-                    subsecuentes:
-                  </span>
-                  <span>{formatCurrency(detallesPagoTrimestral.pagoSubsecuente)}</span>
-                </div>
-              </>
-            )}
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-end gap-4 items-center">
+            <span className="font-medium">Costo Base:</span>
+            <span>{formatCurrency(costoBase)}</span>
           </div>
-        )}
+
+          {resultadosAnual.ajusteSiniestralidad > 0 && (
+            <div className="flex justify-end gap-4 items-center text-amber-600">
+              <span className="font-medium">
+                Ajuste por siniestralidad ({ajustes?.ajuste.AjustePrima}%):
+              </span>
+              <span>+{formatCurrency(resultadosAnual.ajusteSiniestralidad)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-4 items-center">
+            <span className="font-medium">Subtotal con ajuste siniestralidad:</span>
+            <span>{formatCurrency(resultadosAnual.subtotalSiniestralidad)}</span>
+          </div>
+
+          {resultadosAnual.bonificacion > 0 && (
+            <div className="flex justify-end gap-4 items-center text-green-600">
+              <span className="font-medium">
+                Bonificación técnica ({bonificacion}%):
+              </span>
+              <span>-{formatCurrency(resultadosAnual.bonificacion)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-4 items-center font-medium">
+            <span>Costo Neto:</span>
+            <span>{formatCurrency(resultadosAnual.costoNeto)}</span>
+          </div>
+
+          <div className="flex justify-end gap-4 items-center">
+            <span className="font-medium">Derecho de póliza:</span>
+            <span>+{formatCurrency(derechoPoliza)}</span>
+          </div>
+
+          <div className="flex justify-end gap-4 items-center">
+            <span className="font-medium">IVA (16%):</span>
+            <span>+{formatCurrency(resultadosAnual.iva)}</span>
+          </div>
+
+          <div className="flex justify-end gap-4 items-center pt-2 border-t">
+            <span className="text-lg font-semibold">Costo Total Pago Anual:</span>
+            <span className="text-lg font-bold text-primary">
+              {formatCurrency(resultadosAnual.total)}
+            </span>
+          </div>
+
+          <div className="flex justify-end gap-4 items-center pt-2 border-t">
+            <span className="text-lg font-semibold">Costo Total Pago Semestral:</span>
+            <span className="text-lg font-bold text-primary">
+              {formatCurrency(resultadosSemestral.total)}
+            </span>
+          </div>
+
+          {detallesPagoSemestral && (
+            <>
+              <div className="flex justify-end gap-4 items-center pt-2 border-t">
+                <span className="font-medium">Primer pago:</span>
+                <span>{formatCurrency(detallesPagoSemestral.primerPago)}</span>
+              </div>
+
+              <div className="flex justify-end gap-4 items-center">
+                <span className="font-medium">
+                  {detallesPagoSemestral.numeroPagosSubsecuentes}{" "}
+                  {detallesPagoSemestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
+                  subsecuentes:
+                </span>
+                <span>{formatCurrency(detallesPagoSemestral.pagoSubsecuente)}</span>
+              </div>
+            </>
+          )}
+
+
+          {/* Costo Trimestral */}
+          <div className="flex justify-end gap-4 items-center pt-2 border-t">
+            <span className="text-lg font-semibold">Costo Total Pago Trimestral:</span>
+            <span className="text-lg font-bold text-primary">
+              {formatCurrency(resultadosTrimestral.total)}
+            </span>
+          </div>
+
+          {detallesPagoTrimestral && (
+            <>
+              <div className="flex justify-end gap-4 items-center pt-2 border-t">
+                <span className="font-medium">Primer pago:</span>
+                <span>{formatCurrency(detallesPagoTrimestral.primerPago)}</span>
+              </div>
+
+              <div className="flex justify-end gap-4 items-center">
+                <span className="font-medium">
+                  {detallesPagoTrimestral.numeroPagosSubsecuentes}{" "}
+                  {detallesPagoTrimestral.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
+                  subsecuentes:
+                </span>
+                <span>{formatCurrency(detallesPagoTrimestral.pagoSubsecuente)}</span>
+              </div>
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

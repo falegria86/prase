@@ -30,6 +30,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 const clienteSchema = z.object({
     clienteExistente: z.string().optional(),
@@ -216,7 +217,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Nombre Completo</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Juan Pérez"/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Juan Pérez" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -271,7 +272,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Dirección</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Dirección del cliente..."/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Dirección del cliente..." />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -285,7 +286,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Teléfono</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="3111234567"/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="3111234567" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -299,7 +300,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Correo Electrónico</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="correo@ejemplo.com"/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="correo@ejemplo.com" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -313,7 +314,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>RFC</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="XXXX0000000XX"/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="XXXX0000000XX" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -327,7 +328,7 @@ export const ClientePolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Zona de Residencia</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Zona de residencia..."/>
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="Zona de residencia..." />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -338,6 +339,7 @@ export const ClientePolizaStep = ({
                         <div className="flex justify-end space-x-4 mt-6">
                             <Button type="submit">
                                 Siguiente
+                                <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </form>

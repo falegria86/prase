@@ -24,6 +24,7 @@ import { patchVehiculo } from '@/actions/vehiculoActions';
 import { iGetVehiculo } from '@/interfaces/VehiculoInterface';
 // schemas
 import { patchVehiculoSchema } from '@/schemas/admin/vehiculos/vehiculosSchema';
+import { formatCurrency } from "@/lib/format";
 
 interface EditarVehiculoFormProps {
     vehiculo: iGetVehiculo;
@@ -92,8 +93,13 @@ export const EditarVehiculoForm = ({ vehiculo, onSave }: EditarVehiculoFormProps
                                     <FormLabel>Valor del Vehículo</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Direccion..."
+                                            placeholder="Valor del vehículo..."
                                             {...field}
+                                            value={formatCurrency(field.value)}
+                                            onChange={(e) => {
+                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                field.onChange(Number(valor) / 100);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />

@@ -11,12 +11,28 @@ export default async function Vehiculos() {
     const tiposVehiculo = await getTiposVehiculo();
     const usosVehiculo = await getUsoVehiculo();
 
+    if(!tiposVehiculo || tiposVehiculo.length === 0){
+        return (
+            <h4 className="text-red-500">No se pudieron obtener los tipos de vehículo, inténtelo nuevamente.</h4>
+        )
+    }
+
+    if(!usosVehiculo || usosVehiculo.length === 0){
+        return (
+            <h4 className="text-red-500">No se pudieron obtener los usos de vehículo, inténtelo nuevamente.</h4>
+        )
+    }
+
     return (
         <Suspense fallback={<div>Cargando...</div>}>
             <h2 className="text-3xl font-bold mb-6">Vehículo</h2>
             {vehiculos ? (
                 vehiculos.length > 0 ? (
-                    <TableVehiculos vehiculos={vehiculos} />
+                    <TableVehiculos
+                        vehiculos={vehiculos}
+                        tiposVehiculo={tiposVehiculo}
+                        usosVehiculo={usosVehiculo}
+                    />
                 ) : (
                     <h4 className="text-red-500">No hay vehículos registrados.</h4>
                 )

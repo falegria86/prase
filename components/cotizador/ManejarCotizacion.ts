@@ -163,9 +163,6 @@ export const manejarCotizacion = async ({
             };
 
             respuestaCotizacion = await postCotizacion(cotizacionParaAPI);
-            if (!respuestaCotizacion) {
-                console.log("Error al crear la cotización")
-            }
         }
 
         const datosPDF = mapearDatosParaPDF(datosFormulario, respuestaCotizacion);

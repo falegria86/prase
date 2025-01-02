@@ -28,9 +28,11 @@ export const generarPDFCotizacion = async ({
   tiposPago,
   isSave,
 }: GenerarPDFProps) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    format: 'letter'
+  });
   const MARGEN_X = 15;
-  const MARGEN_Y = 15;
+  const MARGEN_Y = 10;
   const ANCHO_PAGINA = doc.internal.pageSize.width - MARGEN_X * 2;
 
   const formatearFecha = (fecha: Date | string): string => {
@@ -66,7 +68,7 @@ export const generarPDFCotizacion = async ({
     bonificacion: Number(datos.PorcentajeDescuento),
     derechoPoliza: Number(datos.DerechoPoliza)
   });
-  
+
   const resultadosSemestral = calcularPrima({
     costoBase: datos.CostoBase,
     ajustes: ajustesCP,
@@ -95,7 +97,7 @@ export const generarPDFCotizacion = async ({
     Number(datos.DerechoPoliza)
   ) : null;
 
-  doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 30, 25);
+  doc.addImage("/prase-logo.png", "PNG", MARGEN_X, MARGEN_Y, 30, 30);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(47, 84, 149);
@@ -138,8 +140,8 @@ export const generarPDFCotizacion = async ({
   });
 
   posicionY = Math.max(
-    (doc as any).lastAutoTable.finalY + 10,
-    (doc as any).previousAutoTable.finalY + 10
+    (doc as any).lastAutoTable.finalY + 5,
+    (doc as any).previousAutoTable.finalY + 5
   );
 
   const coberturasInfo = await getCoberturas();

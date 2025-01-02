@@ -27,6 +27,7 @@ import { postVehiculo } from "@/actions/vehiculoActions"
 //interfaces
 import { iGetCliente } from "@/interfaces/ClientesInterface"
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface"
+import { formatCurrency } from "@/lib/format"
 
 interface Props {
     clientes: iGetCliente[];
@@ -215,8 +216,12 @@ export const NuevoVehiculoForm = ({ clientes, tiposVehiculo, usosVehiculo }: Pro
                                         <FormLabel>Valor del Vehículo</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
                                                 {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -231,8 +236,12 @@ export const NuevoVehiculoForm = ({ clientes, tiposVehiculo, usosVehiculo }: Pro
                                         <FormLabel>Valor Factura</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
                                                 {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />

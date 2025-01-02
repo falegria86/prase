@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { BarChart, DollarSign, Users, AlertTriangle, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 export default function Inicio() {
     return (
@@ -125,10 +126,12 @@ export default function Inicio() {
                     <CardTitle>Acciones Rápidas</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Button className="w-full">
-                        Nueva Cotización
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                    <Link href="/cotizaciones/nueva">
+                        <Button className="w-full">
+                            Nueva Cotización
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </Link>
                     <Button className="w-full">
                         Gestionar Reclamos
                         <ArrowRight className="ml-2 h-4 w-4" />

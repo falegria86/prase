@@ -15,6 +15,7 @@ import type { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iPostDocumento } from "@/interfaces/CatPolizas";
 import { generarPDFPoliza } from "./GenerarPDFPoliza";
 import { LoaderModales } from "@/components/LoaderModales";
+import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface";
 
 const pasos = [
     { title: "Cliente", icon: "User" },
@@ -26,6 +27,8 @@ interface ActivarPolizaFormProps {
     cotizacion: iGetCotizacion;
     coberturas: iGetCoberturas[];
     tiposPago: iGetTipoPagos[];
+    tiposVehiculo: iGetTiposVehiculo[];
+    usosVehiculo: iGetUsosVehiculo[];
 }
 
 interface ArchivosBase64 {
@@ -44,6 +47,8 @@ export const ActivarPolizaForm = ({
     cotizacion,
     coberturas,
     tiposPago,
+    tiposVehiculo,
+    usosVehiculo,
 }: ActivarPolizaFormProps) => {
     const [pasoActual, setPasoActual] = useState(1);
     const [pasoMaximoAlcanzado, setPasoMaximoAlcanzado] = useState(1);
@@ -53,7 +58,6 @@ export const ActivarPolizaForm = ({
     const [modalDocumentosAbierto, setModalDocumentosAbierto] = useState(false);
     const [polizaId, setPolizaId] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [costoTotal, setCostoTotal] = useState(0);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -167,7 +171,9 @@ export const ActivarPolizaForm = ({
                         respuestaPoliza: respuesta,
                         cotizacion,
                         coberturas,
-                        esquemaPago
+                        esquemaPago,
+                        tiposVehiculo,
+                        usosVehiculo
                     });
 
                     doc.save(`poliza_${respuesta.NumeroPoliza}.pdf`);
