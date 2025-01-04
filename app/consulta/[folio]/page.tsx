@@ -147,6 +147,10 @@ export default function EsquemaPagosPage() {
                   `${esquemaPagos.fechaFin}T00:00:00Z`
                 ).toLocaleDateString(undefined, { timeZone: "UTC" })}
               </p>
+              <p className="mt-2 text-sm text-gray-600 font-bold">
+                LA PRESENTE VIGENCIA NO APLICARÁ SI LA EMPRESA NO CUENTA CON SU
+                PAGO EN LOS TIEMPOS SEÑALADOS.
+              </p>
             </div>
           </div>
         )}
@@ -232,6 +236,37 @@ export default function EsquemaPagosPage() {
             ))}
           </div>
         )}
+
+        <section className="bg-gray-100 shadow-lg rounded-lg p-5 mt-10">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">
+            Términos y Condiciones
+          </h3>
+          <p className="text-gray-600 text-sm">
+            Al utilizar nuestros servicios, usted acepta los{" "}
+            <a
+              href="https://prase.mx/terminos-y-condiciones/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline"
+            >
+              Términos y Condiciones
+            </a>{" "}
+            establecidos en nuestro sitio web. Estos términos regulan el uso de
+            nuestros servicios y describen sus derechos y obligaciones como
+            usuario.
+          </p>
+          <p className="text-gray-600 text-sm mt-2">
+            Es su responsabilidad revisar periódicamente los términos para estar
+            informado de cualquier cambio. Si tiene alguna pregunta, no dude en
+            ponerse en contacto con nosotros.
+          </p>
+          <p className="text-blue-800 text-base font-bold flex items-center mt-2 gap-2">
+            📞 Atención al Cliente:{" "}
+            <a href="tel:8009089008" className="text-blue-600 underline">
+              800-908-9008
+            </a>
+          </p>
+        </section>
       </main>
     </div>
   );
