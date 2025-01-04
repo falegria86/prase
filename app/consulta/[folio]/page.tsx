@@ -41,10 +41,24 @@ export default function EsquemaPagosPage() {
       const data = await response.json();
       setEsquemaPagos(data);
 
-      if (data.mensajeAtraso) {
-        setMensajeVigencia(data.mensajeAtraso);
+      // Validación de los mensajes de vigencia
+      const fechaActual = new Date();
+      const tienePagosExitosos = data.esquemaPagos.some(
+        (pago: any) => pago.estado === "Pagado"
+      );
+
+      if (tienePagosExitosos) {
+        setMensajeVigencia("PÓLIZA VIGENTE Y AL CORRIENTE");
       } else {
-        setMensajeVigencia("La póliza está vigente y al corriente.");
+        const pagosPendientes = data.esquemaPagos.filter(
+          (pago: any) => new Date(fechaActual) <= new Date(pago.fechaPago)
+        );
+
+        if (pagosPendientes.length > 0) {
+          setMensajeVigencia("CLIENTE SE ENCUENTRA EN PERIODO DE GRACIA");
+        } else if (data.mensajeAtraso) {
+          setMensajeVigencia(data.mensajeAtraso);
+        }
       }
     } catch (error: any) {
       console.error("Error:", error.message);
@@ -84,12 +98,14 @@ export default function EsquemaPagosPage() {
         {mensajeVigencia && (
           <div
             className={`flex items-center justify-center gap-2 font-bold mb-5 p-4 rounded-lg shadow-md ${
-              mensajeVigencia.includes("vigente")
+              mensajeVigencia.includes("VIGENTE") ||
+              mensajeVigencia.includes("GRACIA")
                 ? "bg-green-50 text-green-600"
                 : "bg-red-50 text-red-600"
             }`}
           >
-            {mensajeVigencia.includes("vigente") ? (
+            {mensajeVigencia.includes("VIGENTE") ||
+            mensajeVigencia.includes("GRACIA") ? (
               <CheckCircle className="w-6 h-6" />
             ) : (
               <AlertCircle className="w-6 h-6" />
@@ -144,7 +160,7 @@ export default function EsquemaPagosPage() {
             </h3>
             <p>
               <DollarSign className="inline-block w-5 h-5 text-gray-500 mr-1" />
-              <strong>Total Prima:</strong> $
+              <strong>Total de la Póliza:</strong> $
               {esquemaPagos.totalPrima.toFixed(2)}
             </p>
             <p>
@@ -189,7 +205,7 @@ export default function EsquemaPagosPage() {
                 </div>
                 <p>
                   <Calendar className="inline-block w-5 h-5 text-blue-500 mr-1" />
-                  <strong>Fecha:</strong>{" "}
+                  <strong>Fecha Límite de Pago:</strong>{" "}
                   {new Date(pago.fechaPago).toLocaleDateString()}
                 </p>
                 <p>
