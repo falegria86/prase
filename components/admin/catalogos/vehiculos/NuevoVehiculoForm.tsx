@@ -20,11 +20,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-//schemas
 import { postVehiculoSchema } from "@/schemas/admin/vehiculos/vehiculosSchema"
-//actions
 import { postVehiculo } from "@/actions/vehiculoActions"
-//interfaces
 import { iGetCliente } from "@/interfaces/ClientesInterface"
 import { iGetTiposVehiculo, iGetUsosVehiculo } from "@/interfaces/CatVehiculosInterface"
 import { formatCurrency } from "@/lib/format"
@@ -40,12 +37,15 @@ export const NuevoVehiculoForm = ({ clientes, tiposVehiculo, usosVehiculo }: Pro
     const { toast } = useToast();
     const router = useRouter();
 
+    //TODO: Agregar campos correspondientes
     const form = useForm<z.infer<typeof postVehiculoSchema>>({
         resolver: zodResolver(postVehiculoSchema),
         defaultValues: {
             ClienteID: 0,
             Marca: "",
-            Modelo: "",
+            Submarca: "",
+            Modelo: 0,
+            Version: "",
             AnoFabricacion: 0,
             TipoVehiculo: "",
             ValorVehiculo: 0,

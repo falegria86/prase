@@ -105,7 +105,7 @@ export const TableVehiculos = ({ vehiculos, tiposVehiculo, usosVehiculo }: Props
                         <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
                             Esta acción no se puede deshacer. Esto eliminará permanentemente el vehículo{" "}
-                            <strong>{selectedVehiculo?.Marca} {selectedVehiculo?.Modelo} {selectedVehiculo?.AnoFabricacion}</strong> y eliminará todos sus datos.
+                            <strong>{selectedVehiculo?.Marca} {selectedVehiculo?.Modelo}</strong> y eliminará todos sus datos.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -139,12 +139,11 @@ export const TableVehiculos = ({ vehiculos, tiposVehiculo, usosVehiculo }: Props
                         {vehiculos.map((vehiculo) => {
                             const nomTipo = tiposVehiculo.find(tipo => tipo.TipoID === Number(vehiculo.TipoVehiculo))?.Nombre;
                             const nomUso = usosVehiculo.find(uso => uso.UsoID === Number(vehiculo.UsoVehiculo))?.Nombre;
-
+                            //TODO: Agregar nuevos campos de vehiculo
                             return (
                                 <TableRow key={vehiculo.VehiculoID}>
                                     <TableCell>{vehiculo.Marca}</TableCell>
                                     <TableCell>{vehiculo.Modelo}</TableCell>
-                                    <TableCell>{vehiculo.AnoFabricacion}</TableCell>
                                     <TableCell>{nomTipo}</TableCell>
                                     <TableCell>{formatCurrency(vehiculo.ValorVehiculo)}</TableCell>
                                     <TableCell>{formatCurrency(vehiculo.ValorFactura)}</TableCell>
