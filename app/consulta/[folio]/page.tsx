@@ -55,7 +55,10 @@ export default function EsquemaPagosPage() {
         );
 
         if (pagosPendientes.length > 0) {
-          setMensajeVigencia("CLIENTE SE ENCUENTRA EN PERIODO DE GRACIA");
+          const fechaLimitePago = ajustarFecha(pagosPendientes[0].fechaPago);
+          setMensajeVigencia(
+            `Cliente se encuentra en periodo de gracia. Vence el día ${fechaLimitePago}. Su vehículo no se encuentra asegurado hasta que realice el pago.`
+          );
         } else if (data.mensajeAtraso) {
           setMensajeVigencia(data.mensajeAtraso);
         }
@@ -66,6 +69,12 @@ export default function EsquemaPagosPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const ajustarFecha = (fechaISO: string) => {
+    const fecha = new Date(fechaISO);
+    fecha.setMinutes(fecha.getMinutes() + fecha.getTimezoneOffset());
+    return fecha.toLocaleDateString();
   };
 
   useEffect(() => {
@@ -98,15 +107,17 @@ export default function EsquemaPagosPage() {
         {mensajeVigencia && (
           <div
             className={`flex items-center justify-center gap-2 font-bold mb-5 p-4 rounded-lg shadow-md ${
-              mensajeVigencia.includes("VIGENTE") ||
-              mensajeVigencia.includes("GRACIA")
+              mensajeVigencia.includes("VIGENTE")
                 ? "bg-green-50 text-green-600"
+                : mensajeVigencia.includes("gracia")
+                ? "bg-yellow-50 text-yellow-600"
                 : "bg-red-50 text-red-600"
             }`}
           >
-            {mensajeVigencia.includes("VIGENTE") ||
-            mensajeVigencia.includes("GRACIA") ? (
+            {mensajeVigencia.includes("VIGENTE") ? (
               <CheckCircle className="w-6 h-6" />
+            ) : mensajeVigencia.includes("gracia") ? (
+              <Clock className="w-6 h-6" />
             ) : (
               <AlertCircle className="w-6 h-6" />
             )}
@@ -210,7 +221,7 @@ export default function EsquemaPagosPage() {
                 <p>
                   <Calendar className="inline-block w-5 h-5 text-blue-500 mr-1" />
                   <strong>Fecha Límite de Pago:</strong>{" "}
-                  {new Date(pago.fechaPago).toLocaleDateString()}
+                  {ajustarFecha(pago.fechaPago)}
                 </p>
                 <p>
                   <DollarSign className="inline-block w-5 h-5 text-blue-500 mr-1" />
