@@ -109,8 +109,9 @@ export const generarPDFPoliza = async ({
             [`Tipo: ${tipoVehiculo}`],
             [`Uso: ${usoVehiculo}`],
             [`Marca: ${respuestaPoliza.vehiculo.Marca}`],
-            [`Submarca: ${respuestaPoliza.vehiculo.Modelo}`],
-            [`Modelo: ${respuestaPoliza.vehiculo.AnoFabricacion}`],
+            [`Submarca: ${respuestaPoliza.vehiculo.Submarca}`],
+            [`Modelo: ${respuestaPoliza.vehiculo.Modelo}`],
+            [`Version: ${respuestaPoliza.vehiculo.Version}`],
             [`Placas: ${respuestaPoliza.vehiculo.Placas}`],
             [`Número de motor: ${respuestaPoliza.vehiculo.NoMotor}`],
             [`VIN: ${respuestaPoliza.vehiculo.VIN || "---"}`]
@@ -141,7 +142,7 @@ export const generarPDFPoliza = async ({
     posicionY = Math.max(
         (doc as any).lastAutoTable.finalY,
         (doc as any).previousAutoTable.finalY
-    ) + 24;
+    ) + 30;
 
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
@@ -242,8 +243,8 @@ export const generarPDFPoliza = async ({
 
     const textoLegalPie = [
         "Atención a siniestros en México 800-772-73-10",
-        "Atención a clientes y cotizaciones al 800 908-90-08 consultas, modificaciones y otros trámites 311-909-10-00.",
-        "Avenida Independencia #361 Colonia los Llanitos, Tepic Nayarit, C.p. 63170.",
+        "Atención a clientes y cotizaciones al 800 908-90-08 consultas, modificaciones y otros trámites 311-909-10-00",
+        "Avenida Independencia #361 Colonia los Llanitos, Tepic,Nayarit, C.p. 63170",
         "*Esta póliza pierde cobertura en caso de no tener al corriente sus pagos."
     ];
 
@@ -253,17 +254,17 @@ export const generarPDFPoliza = async ({
     });
 
     const qrDataUrl = await QRCode.toDataURL(`https://prase.vercel.app/consulta/${respuestaPoliza.NumeroPoliza}`);
-    const qrX = doc.internal.pageSize.width - 35;
+    const qrX = doc.internal.pageSize.width - 40;
     const qrY = doc.internal.pageSize.height - 35;
     const qrSize = 25;
 
     doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
-    doc.setFontSize(7);
+    doc.setFontSize(5);
 
     doc.text(
         "Verifica aquí vigencia y términos y condiciones",
         qrX,
-        qrY + qrSize + 5,
+        qrY + qrSize + 2,
         {
             align: "left",
             maxWidth: qrSize

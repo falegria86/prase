@@ -45,13 +45,14 @@ const vehiculoSchema = z.object({
     Marca: z.string().min(1, {
         message: "Requerido"
     }),
-    Modelo: z.string().min(1, {
+    Submarca: z.string().min(1, {
         message: "Requerido"
     }),
-    AnoFabricacion: z.coerce.number(),
+    Version: z.string().min(1, { message: "Requerido" }),
+    Modelo: z.coerce.number(),
     TipoVehiculo: z.string().min(1),
-    ValorVehiculo: z.coerce.number().min(0, { message: "Debe ser un número mayor o igual a 0" }),
-    ValorFactura: z.coerce.number().min(0, { message: "Debe ser un número mayor o igual a 0" }),
+    ValorVehiculo: z.coerce.number().min(10000, { message: "Debe ser un número mayor o igual a 10,000" }),
+    ValorFactura: z.coerce.number().min(10000, { message: "Debe ser un número mayor o igual a 10,000" }),
     FechaRegistro: z.string(),
     UsoVehiculo: z.string().min(1, {
         message: "Requerido"
@@ -91,8 +92,9 @@ export const VehiculoPolizaStep = ({
             vehiculoExistente: "",
             ClienteID: 0,
             Marca: cotizacion.Marca,
-            Modelo: cotizacion.Submarca,
-            AnoFabricacion: Number(cotizacion.Modelo),
+            Submarca: cotizacion.Submarca,
+            Version: cotizacion.Version,
+            Modelo: Number(cotizacion.Modelo),
             TipoVehiculo: cotizacion.TipoVehiculo.toString(),
             ValorVehiculo: 0,
             ValorFactura: 0,
@@ -134,8 +136,8 @@ export const VehiculoPolizaStep = ({
                 vehiculoExistente: "",
                 ClienteID: 0,
                 Marca: cotizacion.Marca,
-                Modelo: cotizacion.Submarca,
-                AnoFabricacion: Number(cotizacion.Modelo),
+                Submarca: cotizacion.Submarca,
+                Modelo: Number(cotizacion.Modelo),
                 TipoVehiculo: cotizacion.TipoVehiculo.toString(),
                 ValorVehiculo: 0,
                 ValorFactura: 0,
@@ -157,8 +159,8 @@ export const VehiculoPolizaStep = ({
                     vehiculoExistente: valorSeleccionado,
                     ClienteID: vehiculoSeleccionado.ClienteID,
                     Marca: vehiculoSeleccionado.Marca,
-                    Modelo: vehiculoSeleccionado.Modelo,
-                    AnoFabricacion: vehiculoSeleccionado.AnoFabricacion,
+                    Submarca: vehiculoSeleccionado.Submarca,
+                    Modelo: Number(vehiculoSeleccionado.Modelo),
                     TipoVehiculo: vehiculoSeleccionado.TipoVehiculo,
                     FechaRegistro: vehiculoSeleccionado.FechaRegistro,
                     ValorVehiculo: vehiculoSeleccionado.ValorVehiculo,
@@ -193,14 +195,15 @@ export const VehiculoPolizaStep = ({
             ClienteID: clienteId,
             Marca: datos.Marca,
             Modelo: datos.Modelo,
-            AnoFabricacion: datos.AnoFabricacion,
+            Submarca: datos.Submarca,
+            Version: datos.Version,
             TipoVehiculo: datos.TipoVehiculo,
             ValorVehiculo: datos.ValorVehiculo,
             ValorFactura: datos.ValorFactura,
             FechaRegistro: new Date().toISOString(),
             UsoVehiculo: datos.UsoVehiculo,
             ZonaResidencia: datos.ZonaResidencia,
-            Salvamento: 0,
+            Salvamento: 1,
             NoMotor: datos.NoMotor,
             VIN: datos.VIN,
             Placas: datos.Placas,
@@ -258,7 +261,7 @@ export const VehiculoPolizaStep = ({
                                                         key={vehiculo.VehiculoID}
                                                         value={vehiculo.VehiculoID.toString()}
                                                     >
-                                                        {`${vehiculo.Marca} ${vehiculo.Modelo} ${vehiculo.AnoFabricacion}`}
+                                                        {`${vehiculo.Marca} ${vehiculo.Submarca} ${vehiculo.Modelo} `}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -285,10 +288,10 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="Modelo"
+                                name="Submarca"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Modelo</FormLabel>
+                                        <FormLabel>Submarca</FormLabel>
                                         <FormControl>
                                             <Input {...field} disabled={deshabilitarCampos} />
                                         </FormControl>
@@ -299,16 +302,26 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
-                                name="AnoFabricacion"
+                                name="Version"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Año de Fabricación</FormLabel>
+                                        <FormLabel>Versión</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="number"
-                                                {...field}
-                                                disabled={deshabilitarCampos}
-                                            />
+                                            <Input {...field} disabled={deshabilitarCampos} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="Modelo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Modelo</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} disabled={deshabilitarCampos} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -433,7 +446,7 @@ export const VehiculoPolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Placas</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="REA5610" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -447,7 +460,7 @@ export const VehiculoPolizaStep = ({
                                     <FormItem>
                                         <FormLabel>Número de motor</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="1234567890" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -461,7 +474,7 @@ export const VehiculoPolizaStep = ({
                                     <FormItem>
                                         <FormLabel>VIN</FormLabel>
                                         <FormControl>
-                                            <Input {...field} disabled={deshabilitarCampos} />
+                                            <Input {...field} disabled={deshabilitarCampos} placeholder="3VWSK69M12M123069" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

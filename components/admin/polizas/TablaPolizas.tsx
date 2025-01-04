@@ -157,7 +157,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
 
         try {
             const respuesta = await patchPoliza(polizaParaEditar.PolizaID, datos);
-            console.log(respuesta)
+
             if (respuesta.statusCode !== 400) {
                 toast({
                     title: "Póliza actualizada",

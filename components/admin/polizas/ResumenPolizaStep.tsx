@@ -51,10 +51,9 @@ const resumenSchema = z.object({
     fechaFin: z.date(),
     descuentoProntoPago: z.coerce.number().min(0),
     tieneReclamos: z.boolean(),
-    tipoPagoID: z.coerce.number().min(1, {
-        message: "El tipo de pago es requerido"
-    }),
-    primaTotal: z.number()
+    tipoPagoID: z.coerce.number().min(1, { message: "El tipo de pago es requerido" }),
+    primaTotal: z.number(),
+    NumOcupantes: z.coerce.number().min(1, { message: "Número de ocupantes requerido" }),
 });
 
 interface ResumenPolizaStepProps {
@@ -108,7 +107,8 @@ export const ResumenPolizaStep = ({
             descuentoProntoPago: 0,
             tieneReclamos: false,
             tipoPagoID: 7,
-            primaTotal: ((Number(cotizacion.CostoBase) + Number(cotizacion.DerechoPoliza)) * 0.16) + Number(cotizacion.CostoBase)
+            primaTotal: ((Number(cotizacion.CostoBase) + Number(cotizacion.DerechoPoliza)) * 0.16) + Number(cotizacion.CostoBase),
+            NumOcupantes: 5
         },
     });
 
@@ -175,7 +175,7 @@ export const ResumenPolizaStep = ({
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="h-5 w-5" />
-                            Fechas y descuentos
+                            Fechas y datos adicionales
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-2 gap-4">
@@ -211,6 +211,24 @@ export const ResumenPolizaStep = ({
                                             value={field.value ? field.value.toISOString().split('T')[0] : ''}
                                             onChange={e => field.onChange(new Date(e.target.value))}
                                             min={form.getValues("fechaInicio").toISOString().split('T')[0]}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="NumOcupantes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Número de Ocupantes</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            {...field}
+                                            onChange={e => field.onChange(Number(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -267,6 +285,10 @@ export const ResumenPolizaStep = ({
                             <p className="text-sm">
                                 <span className="text-muted-foreground">Marca:</span>{" "}
                                 {cotizacion.Marca}
+                            </p>
+                            <p className="text-sm">
+                                <span className="text-muted-foreground">Submarca:</span>{" "}
+                                {cotizacion.Submarca}
                             </p>
                             <p className="text-sm">
                                 <span className="text-muted-foreground">Modelo:</span>{" "}

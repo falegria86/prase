@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Trash2, Trash } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -182,7 +182,7 @@ export const TableAsociaciones = ({ asociaciones }: AsociacionProps) => {
                             <TableCell>{asociacion.NombrePaquete}</TableCell>
                             <TableCell>
                                 {asociacion.coberturas.map((cobertura) => (
-                                    <div key={cobertura.CoberturaID} className="flex items-center justify-between">
+                                    <div key={cobertura.CoberturaID} className="flex items-center justify-between border-y border-b-gray-100 py-1">
                                         {cobertura.NombreCobertura}
                                         <Tooltip>
                                             <TooltipTrigger>
@@ -207,8 +207,8 @@ export const TableAsociaciones = ({ asociaciones }: AsociacionProps) => {
                             <TableCell>
                                 <Tooltip>
                                     <TooltipTrigger>
-                                        <Trash
-                                            size={16}
+                                        <Trash2
+                                            size={20}
                                             className="text-red-600 cursor-pointer"
                                             onClick={() => setSelectedPaquete(asociacion.PaqueteCoberturaID)}
                                         />

@@ -14,6 +14,7 @@ export interface iPostPoliza {
     ClienteID: number;
     DerechoPolizaAplicado: number;
     TotalSinIVA: number;
+    NumOcupantes: number;
 }
 
 
@@ -158,8 +159,9 @@ export interface Historial {
 
 export interface iPostPolizaResp {
     cotizacion: CotizacionResp;
+    DerechoPolizaAplicado: number;
     tipoPago: TipoPago;
-    vehiculo: Vehiculo;
+    vehiculo: VehiculoResp;
     cliente: Cliente;
     FechaInicio: Date;
     FechaFin: Date;
@@ -174,7 +176,29 @@ export interface iPostPolizaResp {
     PolizaID: number;
     FechayHora: Date;
     FechaEmision: Date;
+    NumOcupantes: Number;
+    TotalSinIVA: string;
 }
+
+export interface VehiculoResp {
+    VehiculoID: number;
+    ClienteID: number;
+    Marca: string;
+    Submarca: string;
+    Version: string;
+    Modelo: number;
+    TipoVehiculo: string;
+    ValorVehiculo: string;
+    ValorFactura: string;
+    FechaRegistro: Date;
+    UsoVehiculo: string;
+    ZonaResidencia: string;
+    NoMotor: string;
+    VIN: string;
+    Placas: string;
+    Salvamento: number;
+}
+
 
 export interface Cliente {
     ClienteID: number;

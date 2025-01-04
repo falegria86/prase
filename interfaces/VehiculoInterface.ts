@@ -1,18 +1,19 @@
 export interface iPostVehiculo {
     ClienteID: number;
     Marca: string;
-    Modelo: string;
-    AnoFabricacion: number;
+    Submarca: string;
+    Version: string;
+    Modelo: number;
     TipoVehiculo: string;
     ValorVehiculo: number;
     ValorFactura: number;
-    FechaRegistro: string;
+    FechaRegistro: Date | string;
     UsoVehiculo: string;
     ZonaResidencia: string;
     Salvamento: number;
-    Placas: string;
-    VIN: string;
     NoMotor: string;
+    VIN: string;
+    Placas: string;
 }
 
 export interface iGetVehiculo {
@@ -20,7 +21,7 @@ export interface iGetVehiculo {
     ClienteID: number;
     Marca: string;
     Modelo: string;
-    AnoFabricacion: number;
+    Submarca: string;
     TipoVehiculo: string;
     ValorVehiculo: number;
     ValorFactura: number;
@@ -31,6 +32,7 @@ export interface iGetVehiculo {
     Placas: null | string;
     VIN: null | string;
     NoMotor: null | string;
+    Version: null | string;
 }
 
 export interface iPatchVehiculo {

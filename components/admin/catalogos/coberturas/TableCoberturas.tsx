@@ -106,7 +106,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                             <TableHead>Cobertura</TableHead>
                             <TableHead>Descripción</TableHead>
                             <TableHead>Prima Base</TableHead>
-                            <TableHead className="w-20">Tasa Base</TableHead>
+                            <TableHead>Tasa Base</TableHead>
                             <TableHead>Tipo Moneda</TableHead>
                             <TableHead>Tipo Deducible</TableHead>
                             <TableHead>¿Cobertura Amparada?</TableHead>
@@ -121,7 +121,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                                 <TableCell>{cobertura.NombreCobertura}</TableCell>
                                 <TableCell>{cobertura.Descripcion}</TableCell>
                                 <TableCell>${cobertura.PrimaBase}</TableCell>
-                                <TableCell>{cobertura.PorcentajePrima} %</TableCell>
+                                <TableCell>{Number(cobertura.PorcentajePrima).toFixed(2)}%</TableCell>
                                 <TableCell>{cobertura.tipoMoneda?.Abreviacion}</TableCell>
                                 <TableCell>{cobertura.tipoDeducible?.Nombre}</TableCell>
                                 <TableCell>{cobertura.CoberturaAmparada ? "Si" : "No"}</TableCell>

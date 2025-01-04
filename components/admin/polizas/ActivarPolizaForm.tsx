@@ -132,6 +132,7 @@ export const ActivarPolizaForm = ({
         descuentoProntoPago: number;
         tieneReclamos: boolean;
         tipoPagoID: number;
+        NumOcupantes: number;
     }) => {
         if (!clienteId || !vehiculoId) return;
         const numeroPagos = tiposPago.find(tipo => tipo.TipoPagoID === datosResumen.tipoPagoID)?.Divisor ?? 12;
@@ -154,6 +155,7 @@ export const ActivarPolizaForm = ({
                     VersionActual: 1,
                     DerechoPolizaAplicado: Number(cotizacion.DerechoPoliza),
                     TotalSinIVA: cotizacion.CostoNeto,
+                    NumOcupantes: datosResumen.NumOcupantes,
                 };
 
                 const respuesta = await postPoliza(datosPoliza);
@@ -199,7 +201,7 @@ export const ActivarPolizaForm = ({
 
     if (isPending) {
         return (
-            <LoaderModales />
+            <LoaderModales texto="Activando Póliza..."/>
         );
     }
 
