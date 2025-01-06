@@ -172,6 +172,7 @@ export const Cotizador = ({
                     usosVehiculo,
                     guardarCotizacion: true,
                     tiposPago: tiposPagos,
+                    coberturas,
                 });
 
                 if (resultado.success) {

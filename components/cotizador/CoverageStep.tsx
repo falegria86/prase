@@ -117,10 +117,10 @@ export const CoverageStep = ({
   );
 
   const obtenerDeducible = useCallback((cobertura: CoberturaExtendida): number => {
-    // if (cobertura.CoberturaAmparada) return 0; 
+    // if (cobertura.CoberturaAmparada) return 0;
     if (cobertura.tipoDeducible.Nombre === "UMA") {
       return (
-        cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMax)
+        cobertura.deducibleSeleccionado || parseInt(cobertura.DeducibleMin)
       );
     }
 
@@ -358,6 +358,8 @@ export const CoverageStep = ({
           PorcentajePrimaAplicado: parseFloat(cobertura.PorcentajePrima),
           ValorAseguradoUsado: montoSumaAsegurada,
           Obligatoria: cobertura.Obligatoria || false,
+          TipoDeducible: cobertura.tipoDeducible.Nombre,
+          TipoMoneda: cobertura.tipoMoneda.Abreviacion,
         };
       });
 
@@ -750,7 +752,7 @@ export const CoverageStep = ({
                 value={formatCurrency(Number(montoFijo))}
                 onChange={(e) => {
                   const valor = e.target.value.replace(/[^0-9]/g, "");
-                  manejarCambioMontoFijo((Number(valor)/100).toString())
+                  manejarCambioMontoFijo((Number(valor) / 100).toString())
                 }}
               />
               <FormDescription>

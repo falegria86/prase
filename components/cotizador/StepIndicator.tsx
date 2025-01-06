@@ -39,7 +39,6 @@ export const StepIndicator = ({
     alCambiarPaso
 }: PropiedadesIndicadorPasos) => {
     const manejarClicPaso = (indicePaso: number) => {
-        // Solo permitir navegación a pasos que ya se han visitado
         if (alCambiarPaso && indicePaso <= pasoMaximoAlcanzado) {
             alCambiarPaso(indicePaso);
         }

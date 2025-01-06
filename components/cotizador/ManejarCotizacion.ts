@@ -9,15 +9,27 @@ import { iSendMail, iPostCotizacion, iGetCotizacion } from "@/interfaces/Cotizac
 import { generarPDFCotizacion } from "./GenerarPDFCotizacion";
 import { postCotizacion, sendMail } from "@/actions/CotizadorActions";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 
 type FormData = z.infer<typeof nuevaCotizacionSchema>;
+type DetalleBase = FormData['detalles'][0];
+
+interface DetalleExtendido extends Pick<DetalleBase, keyof DetalleBase> {
+    TipoDeducible?: string;
+    TipoMoneda?: string;
+}
+
+interface FormDataExtendida extends Omit<FormData, 'detalles'> {
+    detalles: DetalleExtendido[];
+}
 
 interface OpcionesCotizacion {
-    datosFormulario: FormData;
+    datosFormulario: FormDataExtendida;
     tiposVehiculo: iGetTiposVehiculo[];
     usosVehiculo: iGetUsosVehiculo[];
     guardarCotizacion?: boolean;
     tiposPago: iGetTipoPagos[];
+    coberturas: iGetCoberturas[];
 }
 
 const obtenerPDFBase64 = (doc: jsPDF): string => {
@@ -40,11 +52,11 @@ const mapearDetallesParaAPI = (detalles: FormData['detalles']): any => {
         TipoMoneda: "MXN",
         EsAmparada: false,
         SumaAseguradaPorPasajero: false,
-        TipoDeducible: "",
+        TipoDeducible: "", //TODO: Obtener el nombre del tipo de deducible
     }));
 };
 
-const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any): iGetCotizacion => {
+const mapearDatosParaPDF = (datosFormulario: FormDataExtendida, respuestaCotizacion: any): iGetCotizacion => {
     return {
         CotizacionID: respuestaCotizacion?.CotizacionID || 0,
         UsuarioID: datosFormulario.UsuarioID,
@@ -86,7 +98,9 @@ const mapearDatosParaPDF = (datosFormulario: FormData, respuestaCotizacion: any)
             PorcentajePrimaAplicado: detalle.PorcentajePrimaAplicado.toString(),
             ValorAseguradoUsado: detalle.ValorAseguradoUsado.toString(),
             NombreCobertura: detalle.NombreCobertura,
-            Descripcion: detalle.Descripcion
+            Descripcion: detalle.Descripcion,
+            TipoDeducible: detalle.TipoDeducible,
+            TipoMoneda: detalle.TipoMoneda,
         })),
 
         // Campos de cálculos
@@ -166,7 +180,7 @@ export const manejarCotizacion = async ({
         }
 
         const datosPDF = mapearDatosParaPDF(datosFormulario, respuestaCotizacion);
-
+        console.log("datospdf:  ", datosPDF)
         const doc = await generarPDFCotizacion({
             datos: datosPDF,
             tiposVehiculo,

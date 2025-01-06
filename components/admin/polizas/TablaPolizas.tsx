@@ -102,9 +102,11 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
 
 
 
-    const obtenerColorEstado = (estado: string): "default" | "destructive" | "secondary" | "outline" | null | undefined => {
+    const obtenerColorEstado = (estado: string): "pendiente" | "success" | "default" | "destructive" | "secondary" | "outline" | null | undefined => {
         const colores = {
-            "ACTIVA": "default",
+            "ACTIVA": "success",
+            "PERIODO DE GRACIA": "default",
+            "PENDIENTE": "pendiente",
             "CANCELADA": "destructive",
             "VENCIDA": "secondary",
         } as const;

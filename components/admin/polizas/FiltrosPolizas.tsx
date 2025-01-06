@@ -54,6 +54,8 @@ export const FiltrosPolizas = ({ onFiltrar }: PropiedadesFiltrosPolizas) => {
                 <SelectContent>
                     <SelectItem value="TODOS">Todos</SelectItem>
                     <SelectItem value="ACTIVA">Activas</SelectItem>
+                    <SelectItem value="PENDIENTE">Pendiente</SelectItem>
+                    <SelectItem value="PERIODO DE GRACIA">Periodo de gracia</SelectItem>
                     <SelectItem value="CANCELADA">Canceladas</SelectItem>
                 </SelectContent>
             </Select>
