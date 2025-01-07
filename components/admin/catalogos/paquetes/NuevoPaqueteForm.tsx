@@ -20,6 +20,7 @@ import { SaveIcon, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { postPaqueteCobertura } from "@/actions/CatPaquetesActions"
 import Loading from "@/app/(protected)/loading"
+import { formatCurrency } from "@/lib/format"
 
 export const NuevoPaqueteForm = () => {
     const [isPending, startTransition] = useTransition()
@@ -31,13 +32,21 @@ export const NuevoPaqueteForm = () => {
         defaultValues: {
             NombrePaquete: '',
             DescripcionPaquete: '',
+            PrecioTotalFijo: 0,
         },
     })
 
     const onSubmit = (values: z.infer<typeof nuevoPaqueteSchema>) => {
+        const newValues = {
+            ...values,
+            PrecioTotalFijo: values.PrecioTotalFijo.toString(),
+        }
+
+        // console.log(newValues)
+
         startTransition(async () => {
             try {
-                const resp = await postPaqueteCobertura(values)
+                const resp = await postPaqueteCobertura(newValues)
 
                 if (!resp) {
                     toast({
@@ -96,6 +105,27 @@ export const NuevoPaqueteForm = () => {
                                         <Input
                                             placeholder="Describe lo que incluye el paquete..."
                                             {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="PrecioTotalFijo"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Precio Total Fijo</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Costo fijo del paquete..."
+                                            {...field}
+                                            value={formatCurrency(field.value)}
+                                            onChange={(e) => {
+                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                field.onChange(Number(valor) / 100)
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />

@@ -96,7 +96,7 @@ export const NuevoTipoPagoForm = () => {
                                 </FormItem>
                             )}
                         />
-                           <FormField
+                        <FormField
                             control={form.control}
                             name="Divisor"
                             render={({ field }) => (

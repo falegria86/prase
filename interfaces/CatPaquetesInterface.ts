@@ -9,11 +9,13 @@ export interface iGetAllPaquetes {
 export interface iPostPaqueteCobertura {
     NombrePaquete: string;
     DescripcionPaquete: string;
+    PrecioTotalFijo: string;
 }
 
 export interface iPatchPaqueteCobertura {
     NombrePaquete?: string;
     DescripcionPaquete?: string;
+    PrecioTotalFijo?: string;
 }
 
 export interface iPostPaqueteResp {

@@ -7,11 +7,15 @@ export const nuevoPaqueteSchema = z.object({
     DescripcionPaquete: z.string().min(3, {
         message: "La descripción debe contener al menos 3 caracteres."
     }),
+    PrecioTotalFijo: z.coerce.number().min(1, {
+        message: "El precio total fijo es requerido."
+    })
 });
 
 export const editPaqueteSchema = z.object({
     NombrePaquete: z.string(),
     DescripcionPaquete: z.string(),
+    PrecioTotalFijo: z.coerce.number(),
 });
 
 export const nuevoDeducibleSchema = z.object({

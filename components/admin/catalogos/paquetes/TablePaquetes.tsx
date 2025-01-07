@@ -40,6 +40,7 @@ import { formatDateLocal } from "@/lib/format-date";
 import { deletePaqueteCobertura } from "@/actions/CatPaquetesActions";
 import Loading from "@/app/(protected)/loading";
 import { EditarPaqueteForm } from "./EditarPaqueteForm";
+import { formatCurrency } from "@/lib/format";
 
 interface Props {
     paquetes: iGetAllPaquetes[];
@@ -107,6 +108,7 @@ export const TablePaquetes = ({ paquetes }: Props) => {
                             <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Paquete</TableHead>
                             <TableHead>Descripción</TableHead>
+                            <TableHead>Precio total fijo</TableHead>
                             <TableHead>Fecha de creación</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
@@ -117,6 +119,7 @@ export const TablePaquetes = ({ paquetes }: Props) => {
                                 <TableCell className="font-medium">{paquete.PaqueteCoberturaID}</TableCell>
                                 <TableCell>{paquete.NombrePaquete}</TableCell>
                                 <TableCell>{paquete.DescripcionPaquete}</TableCell>
+                                <TableCell>{formatCurrency(Number(paquete.PrecioTotalFijo))}</TableCell>
                                 <TableCell>{formatDateLocal(paquete.FechaCreacion)}</TableCell>
                                 <TableCell className="flex items-center gap-3">
                                     <Tooltip>

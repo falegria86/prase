@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { patchPaqueteCobertura } from "@/actions/CatPaquetesActions";
 import { iGetAllPaquetes } from "@/interfaces/CatPaquetesInterface";
 import { editPaqueteSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
+import { formatCurrency } from "@/lib/format";
 
 interface EditarPaqueteFormProps {
     paquete: iGetAllPaquetes;
@@ -36,13 +37,18 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
         defaultValues: {
             NombrePaquete: paquete.NombrePaquete,
             DescripcionPaquete: paquete.DescripcionPaquete,
+            PrecioTotalFijo: Number(paquete.PrecioTotalFijo),
         },
     });
 
     const onSubmit = (values: z.infer<typeof editPaqueteSchema>) => {
+        const newValues = {
+            ...values,
+            PrecioTotalFijo: values.PrecioTotalFijo.toString(),
+        }
         startTransition(async () => {
             try {
-                const resp = await patchPaqueteCobertura(paquete.PaqueteCoberturaID, values);
+                const resp = await patchPaqueteCobertura(paquete.PaqueteCoberturaID, newValues);
 
                 if (!resp) {
                     toast({
@@ -94,6 +100,27 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
                             <FormLabel>Descripción del paquete</FormLabel>
                             <FormControl>
                                 <Input placeholder="Describe lo que incluye el paquete..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="PrecioTotalFijo"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Precio Total Fijo</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Costo fijo del paquete..."
+                                    {...field}
+                                    value={formatCurrency(field.value)}
+                                    onChange={(e) => {
+                                        const valor = e.target.value.replace(/[^0-9]/g, "");
+                                        field.onChange(Number(valor) / 100)
+                                    }}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
