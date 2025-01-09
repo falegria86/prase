@@ -43,10 +43,12 @@ import type { StepProps } from "@/types/cotizador";
 import { formatCurrency } from "@/lib/format";
 import { PlanPago } from "./PlanPago";
 import { aplicarReglasPorCobertura } from "../../lib/ManejadorReglasCobertura";
+import { Switch } from "../ui/switch";
 
 type TipoCalculo = "fijo" | "cobertura";
 
 interface CoberturaExtendida {
+  sumaAseguradaPorPasajeroOriginal: boolean;
   CoberturaID: number;
   NombreCobertura: string;
   Descripcion: string;
@@ -277,6 +279,7 @@ export const CoverageStep = ({
           // Actualizar valores ajustados
           return {
             ...coberturaNueva,
+            sumaAseguradaPorPasajeroOriginal: cobertura.sumaAseguradaPorPasajero,
             SumaAseguradaMin: valoresAjustados.sumaAseguradaMin.toString(),
             SumaAseguradaMax: valoresAjustados.sumaAseguradaMax.toString(),
             PrimaBase: valoresAjustados.primaBase.toString(),
@@ -477,6 +480,8 @@ export const CoverageStep = ({
     (cobertura: CoberturaExtendida): React.ReactNode => {
       const sumaAseguradaAnterior = form.getValues("SumaAsegurada");
 
+      // console.log(cobertura)
+
       // Si la cobertura aplica suma asegurada, mostrar el select
       if (cobertura.AplicaSumaAsegurada) {
         const rangos = generarRangosSumaAsegurada(sumaAseguradaAnterior);
@@ -513,7 +518,7 @@ export const CoverageStep = ({
       }
 
       // Si es por pasajero
-      if (cobertura.sumaAseguradaPorPasajero) {
+      if (cobertura.sumaAseguradaPorPasajeroOriginal) {
         let montoTexto;
         if (cobertura.tipoMoneda.Abreviacion === "UMA") {
           montoTexto = `${cobertura.SumaAseguradaMax} UMAS`;
@@ -527,11 +532,31 @@ export const CoverageStep = ({
         }
 
         return (
-          <div className="flex flex-col gap-1">
-            <span>{montoTexto}</span>
-            <span className="text-sm text-muted-foreground">
-              POR CADA PASAJERO
-            </span>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col">
+              <span>{montoTexto}</span>
+              <span className="text-sm text-muted-foreground">
+                {cobertura.sumaAseguradaPorPasajero ? "POR CADA PASAJERO" : "TOTAL"}
+              </span>
+            </div>
+            <Switch
+              checked={cobertura.sumaAseguradaPorPasajero}
+              onCheckedChange={(valor) => {
+                const nuevasCoberturas = coberturasSeleccionadas.map((c) => {
+                  if (c.CoberturaID === cobertura.CoberturaID) {
+                    return {
+                      ...c,
+                      sumaAseguradaPorPasajero: valor
+                    };
+                  }
+                  return c;
+                });
+
+                setCoberturasSeleccionadas(nuevasCoberturas);
+                actualizarDetalles(nuevasCoberturas);
+              }}
+              className="ml-2"
+            />
           </div>
         );
       }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/format";
@@ -60,15 +60,19 @@ import { generarTicketPDF } from "./GenerarTicketPDF";
 import { FiltrosPolizas, FiltrosPolizasState } from "./FiltrosPolizas";
 import { generarPDFPoliza } from "./GenerarPDFPoliza";
 import { getCotizacionById } from "@/actions/CotizadorActions";
+import { iGetCliente } from "@/interfaces/ClientesInterface";
+import { LoaderModales } from "@/components/LoaderModales";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
     coberturas: iGetCoberturas[];
     statusPago: iGetStatusPago[];
     metodosPago: iGetMetodosPago[];
+    clientes: iGetCliente[];
 }
 
-export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: TablaPolizasProps) => {
+export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago, clientes }: TablaPolizasProps) => {
+    const [isPending, startTransition] = useTransition();
     const [polizaExpandida, setPolizaExpandida] = useState<number | null>(null);
     const [detalleVisible, setDetalleVisible] = useState<"historial" | "coberturas" | null>(null);
     const [polizaParaEditar, setPolizaParaEditar] = useState<iGetPolizas | null>(null);
@@ -157,32 +161,35 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
     const manejarGuardarEdicion = async (datos: iPatchPoliza) => {
         if (!polizaParaEditar) return;
 
-        try {
-            const respuesta = await patchPoliza(polizaParaEditar.PolizaID, datos);
+        startTransition(async () => {
+            try {
+                const respuesta = await patchPoliza(polizaParaEditar.PolizaID, datos);
 
-            if (respuesta.statusCode !== 400) {
-                toast({
-                    title: "Póliza actualizada",
-                    description: "Los cambios se guardaron correctamente.",
-                });
-                router.refresh();
-            } else {
+                if (respuesta.statusCode !== 400) {
+                    toast({
+                        title: "Póliza actualizada",
+                        description: "Los cambios se guardaron correctamente.",
+                    });
+                    router.refresh();
+                } else {
+                    toast({
+                        title: "Error",
+                        description: respuesta.message,
+                        variant: "destructive",
+                    });
+                }
+            } catch (error) {
                 toast({
                     title: "Error",
-                    description: respuesta.message,
+                    description: "No se pudieron guardar los cambios.",
                     variant: "destructive",
                 });
+            } finally {
+                setPolizaParaEditar(null);
+                setModalEdicionAbierto(false);
             }
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "No se pudieron guardar los cambios.",
-                variant: "destructive",
-            });
-        } finally {
-            setPolizaParaEditar(null);
-            setModalEdicionAbierto(false);
-        }
+        })
+
     };
 
     const MensajeVacio = ({ mensaje }: { mensaje: string }) => (
@@ -601,14 +608,21 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago }: T
 
             <Dialog open={modalEdicionAbierto} onOpenChange={setModalEdicionAbierto}>
                 <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Editar Póliza</DialogTitle>
-                    </DialogHeader>
-                    {polizaParaEditar && (
-                        <EditarPolizaForm
-                            poliza={polizaParaEditar}
-                            onGuardar={manejarGuardarEdicion}
-                        />
+                    {isPending ? (
+                        <LoaderModales texto="Actualizando Póliza" />
+                    ) : (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Editar Póliza</DialogTitle>
+                            </DialogHeader>
+                            {polizaParaEditar && (
+                                <EditarPolizaForm
+                                    poliza={polizaParaEditar}
+                                    onGuardar={manejarGuardarEdicion}
+                                    clientes={clientes}
+                                />
+                            )}
+                        </>
                     )}
                 </DialogContent>
             </Dialog>

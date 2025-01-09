@@ -45,7 +45,7 @@ export const patchPoliza = async (id: number, body: iPatchPoliza) => {
             },
             body: JSON.stringify(body),
         });
-        console.log("wa", resp)
+
         const data = await resp.json();
         return data;
     } catch (error) {

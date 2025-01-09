@@ -23,6 +23,11 @@ import {
   Menu,
   X,
   LucideIcon,
+  UserCog,
+  Receipt,
+  FileCheck,
+  Gauge,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserDropdown from "./UserDropdown";
@@ -48,6 +53,11 @@ const iconosDisponibles: Record<string, LucideIcon> = {
   Car,
   User,
   Plus,
+  FileCheck,
+  Receipt,
+  UserCog,
+  Gauge,
+  UserPlus,
 };
 
 export default function Sidebar({ aplicaciones }: SidebarProps) {
@@ -126,9 +136,18 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                   <span className="flex items-center">
                     {categoria === "Administración" ? (
                       <Shield className="mr-2 h-4 w-4" />
-                    ) : (
-                      <FileText className="mr-2 h-4 w-4" />
-                    )}
+                    )
+                      : categoria === 'Recursos Humanos'
+                        ? (
+                          <UserCog className="mr-2 h-4 w-4" />
+                        )
+                      : categoria === 'Cotizaciones'
+                        ? (
+                          <Receipt className="mr-2 h-4 w-4" />
+                        )
+                        : (
+                          <FileText className="mr-2 h-4 w-4" />
+                        )}
                     {categoria}
                   </span>
                   <motion.div

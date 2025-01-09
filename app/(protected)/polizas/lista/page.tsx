@@ -1,14 +1,16 @@
 // page.tsx
 import { getCoberturas } from "@/actions/CatCoberturasActions";
+import { getAllClientes } from "@/actions/ClientesActions";
 import { getPolizas, getDocumentos, getMetodosPago, getStatusPagos } from "@/actions/PolizasActions"
 import TablaPolizas from "@/components/admin/polizas/TablaPolizas";
 
 export default async function ListaPolizasPage() {
-    const [polizas, coberturas, metodosPago, statusPago] = await Promise.all([
+    const [polizas, coberturas, metodosPago, statusPago, clientes] = await Promise.all([
         getPolizas(),
         getCoberturas(),
         getMetodosPago(),
         getStatusPagos(),
+        getAllClientes(),
     ]);
 
     if (!polizas || polizas.length === 0) {
@@ -35,6 +37,12 @@ export default async function ListaPolizasPage() {
         )
     }
 
+    if(!clientes || clientes.length === 0){
+        return (
+            <div>No se pudo obtener la lista de clientes.</div>
+        )
+    }
+
     const polizasConDocumentos = await Promise.all(
         polizas.map(async (poliza) => {
             const documentos = await getDocumentos(poliza.PolizaID);
@@ -53,6 +61,7 @@ export default async function ListaPolizasPage() {
                 coberturas={coberturas}
                 metodosPago={metodosPago}
                 statusPago={statusPago}
+                clientes={clientes}
             />
         </>
     )

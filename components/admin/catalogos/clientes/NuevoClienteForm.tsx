@@ -20,12 +20,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-// Schema
 import { postClienteSchema } from "@/schemas/admin/clientes/clienteSchema"
-// Actions
 import { postCliente } from "@/actions/ClientesActions"
-// Interfaces
 
 export const NuevoClienteForm = () => {
     const [isPending, startTransition] = useTransition()

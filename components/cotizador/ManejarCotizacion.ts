@@ -19,7 +19,7 @@ interface DetalleExtendido extends Pick<DetalleBase, keyof DetalleBase> {
     TipoMoneda?: string;
 }
 
-interface FormDataExtendida extends Omit<FormData, 'detalles'> {
+export interface FormDataExtendida extends Omit<FormData, 'detalles'> {
     detalles: DetalleExtendido[];
 }
 
@@ -101,6 +101,8 @@ const mapearDatosParaPDF = (datosFormulario: FormDataExtendida, respuestaCotizac
             Descripcion: detalle.Descripcion,
             TipoDeducible: detalle.TipoDeducible,
             TipoMoneda: detalle.TipoMoneda,
+            SumaAseguradaPorPasajero: detalle.SumaAseguradaPorPasajero,
+            DisplaySumaAsegurada: detalle.DisplaySumaAsegurada,
         })),
 
         // Campos de cálculos
@@ -180,7 +182,7 @@ export const manejarCotizacion = async ({
         }
 
         const datosPDF = mapearDatosParaPDF(datosFormulario, respuestaCotizacion);
-        console.log("datospdf:  ", datosPDF)
+        // console.log("datospdf:  ", datosPDF)
         const doc = await generarPDFCotizacion({
             datos: datosPDF,
             tiposVehiculo,

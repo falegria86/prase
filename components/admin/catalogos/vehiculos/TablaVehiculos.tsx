@@ -123,8 +123,9 @@ export const TableVehiculos = ({ vehiculos, tiposVehiculo, usosVehiculo }: Props
                     <TableHeader>
                         <TableRow>
                             <TableHead>Marca</TableHead>
+                            <TableHead>Submarca</TableHead>
                             <TableHead>Modelo</TableHead>
-                            <TableHead>Año de Fabricación</TableHead>
+                            <TableHead>Versión</TableHead>
                             <TableHead>Tipo de Vehículo</TableHead>
                             <TableHead>Valor Vehículo</TableHead>
                             <TableHead>Valor Factura</TableHead>
@@ -143,16 +144,18 @@ export const TableVehiculos = ({ vehiculos, tiposVehiculo, usosVehiculo }: Props
                             return (
                                 <TableRow key={vehiculo.VehiculoID}>
                                     <TableCell>{vehiculo.Marca}</TableCell>
+                                    <TableCell>{vehiculo.Submarca}</TableCell>
                                     <TableCell>{vehiculo.Modelo}</TableCell>
+                                    <TableCell>{vehiculo.Version}</TableCell>
                                     <TableCell>{nomTipo}</TableCell>
                                     <TableCell>{formatCurrency(vehiculo.ValorVehiculo)}</TableCell>
                                     <TableCell>{formatCurrency(vehiculo.ValorFactura)}</TableCell>
                                     <TableCell>
-                                        {new Date(vehiculo.FechaRegistro).toLocaleDateString()} {/* Convierte a Date y formatea */}
+                                        {new Date(vehiculo.FechaRegistro).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>{nomUso}</TableCell>
                                     <TableCell>{vehiculo.ZonaResidencia}</TableCell>
-                                    <TableCell>{vehiculo.Salvamento}</TableCell>
+                                    <TableCell>{vehiculo.Salvamento === 0 ? 'Si' : 'No'}</TableCell>
                                     <TableCell className="flex items-center gap-3">
                                         <Tooltip>
                                             <TooltipTrigger>

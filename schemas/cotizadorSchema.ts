@@ -13,6 +13,8 @@ const detalleSchema = z.object({
     ValorAseguradoUsado: z.coerce.number().min(1, "Valor asegurado usado es requerido"),
     NombreCobertura: z.string(),
     Descripcion: z.string(),
+    DisplaySumaAsegurada: z.any(),
+    SumaAseguradaPorPasajero: z.any(),
 });
 
 export const nuevaCotizacionSchema = z.object({

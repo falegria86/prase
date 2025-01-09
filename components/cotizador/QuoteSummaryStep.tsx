@@ -268,36 +268,38 @@ export const QuoteSummaryStep = ({ form, setIsStepValid }: StepProps) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {formData.detalles.map((detalle) => (
-                                    <TableRow key={detalle.CoberturaID}>
-                                        <TableCell>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <div className="flex items-center gap-2">
-                                                            <span>{detalle.NombreCobertura}</span>
-                                                            <Info className="h-4 w-4 text-muted-foreground" />
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p className="max-w-xs">{detalle.Descripcion}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </TableCell>
-                                        <TableCell>
-                                            {obtenerValorSumaAsegurada(detalle)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {obtenerValorDeducible(detalle)}
-                                        </TableCell>
-                                        {tipoCalculo !== "fijo" && (
+                                {formData.detalles.map((detalle) => {
+                                    return (
+                                        <TableRow key={detalle.CoberturaID}>
                                             <TableCell>
-                                                {formatCurrency(detalle.PrimaCalculada)}
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            <div className="flex items-center gap-2">
+                                                                <span>{detalle.NombreCobertura}</span>
+                                                                <Info className="h-4 w-4 text-muted-foreground" />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="max-w-xs">{detalle.Descripcion}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </TableCell>
-                                        )}
-                                    </TableRow>
-                                ))}
+                                            <TableCell>
+                                                {obtenerValorSumaAsegurada(detalle)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {obtenerValorDeducible(detalle)}
+                                            </TableCell>
+                                            {tipoCalculo !== "fijo" && (
+                                                <TableCell>
+                                                    {formatCurrency(detalle.PrimaCalculada)}
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </CardContent>

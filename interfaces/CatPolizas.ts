@@ -82,13 +82,30 @@ export interface iGetPolizas {
     TotalPagos: string;
     DescuentoProntoPago: string;
     VersionActual: string;
+    NumOcupantes: number;
     TieneReclamos: boolean;
     FechayHora: Date;
     FechaEmision: Date;
     historial: Historial[];
     detalles: Detalle[];
     cotizacion: CotizacionPoliza;
+    cliente: Cliente;
     tieneDocumentos?: boolean;
+}
+
+export interface Cliente {
+    ClienteID: number;
+    NombreCompleto: string;
+    FechaNacimiento: Date;
+    Genero: string;
+    Direccion: string;
+    Telefono: string;
+    Email: string;
+    HistorialSiniestros: number;
+    HistorialReclamos: number;
+    ZonaResidencia: string;
+    RFC: string;
+    FechaRegistro: Date;
 }
 
 export interface CotizacionPoliza {
@@ -156,6 +173,7 @@ export interface Historial {
     MotivoCancelacion: null;
     FechaVersion: Date;
 }
+
 
 export interface iPostPolizaResp {
     cotizacion: CotizacionResp;
