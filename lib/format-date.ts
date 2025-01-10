@@ -7,6 +7,16 @@ export const formatDateLocal = (dateString: Date) => {
     return `${day}/${month}/${year}`;
 }
 
+export const formatearFecha = (fecha: Date) => {
+    return new Date(fecha).toLocaleDateString("es-MX", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    })
+}
+
 export const formatDateFullTz = (dateString: Date) => {
     const date = fixDate(dateString);
     const day = String(date.getDate()).padStart(2, '0');
