@@ -20,11 +20,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { registrarUsuarioSchema } from '@/schemas/admin/usuariosSchemas';
 import Loading from '@/app/(protected)/loading';
-import { iGetGroups } from '@/interfaces/SeguridadInterface';
+import { iGetGroups, iGetSucursales } from '@/interfaces/SeguridadInterface';
 import { postUsuario } from '@/actions/SeguridadActions';
 import { iGetEmpleados } from '@/interfaces/EmpleadosInterface';
 
-export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], empleados: iGetEmpleados[] }) => {
+export const NuevoUsuarioForm = ({ groups, empleados, sucursales }: { groups: iGetGroups[], empleados: iGetEmpleados[], sucursales: iGetSucursales[] }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [fuerzaPassword, setFuerzaPassword] = useState(0);
     const [isPending, startTransition] = useTransition();
@@ -39,6 +39,7 @@ export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], em
             confirmPassword: "",
             idGroup: 0,
             EmpleadoID: 0,
+            SucursalID: 0,
         },
     })
 
@@ -58,33 +59,34 @@ export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], em
     }, [fuerzaPassword])
 
     const onSubmit = (values: z.infer<typeof registrarUsuarioSchema>) => {
-        startTransition(async () => {
-            try {
-                const resp = await postUsuario(values)
+        console.log(values)
+        // startTransition(async () => {
+        //     try {
+        //         const resp = await postUsuario(values)
 
-                if (!resp) {
-                    toast({
-                        title: "Error",
-                        description: "Hubo un problema al crear usuario.",
-                        variant: "destructive",
-                    })
-                } else {
-                    toast({
-                        title: "Usuario creado",
-                        description: "El usuario se ha creado exitosamente.",
-                        variant: "default",
-                    })
-                    form.reset();
-                    router.refresh();
-                }
-            } catch (error) {
-                toast({
-                    title: "Error",
-                    description: "Hubo un problema al crear el usuario.",
-                    variant: "destructive",
-                })
-            }
-        })
+        //         if (!resp) {
+        //             toast({
+        //                 title: "Error",
+        //                 description: "Hubo un problema al crear usuario.",
+        //                 variant: "destructive",
+        //             })
+        //         } else {
+        //             toast({
+        //                 title: "Usuario creado",
+        //                 description: "El usuario se ha creado exitosamente.",
+        //                 variant: "default",
+        //             })
+        //             form.reset();
+        //             router.refresh();
+        //         }
+        //     } catch (error) {
+        //         toast({
+        //             title: "Error",
+        //             description: "Hubo un problema al crear el usuario.",
+        //             variant: "destructive",
+        //         })
+        //     }
+        // })
     }
 
     const strengthInfo = fuerzaContraInfo()
@@ -213,6 +215,28 @@ export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], em
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="SucursalID"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Sucursal</FormLabel>
+                                        <FormControl>
+                                            <Select onValueChange={field.onChange}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione sucursal..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {sucursales.map(sucursal => (
+                                                        <SelectItem key={sucursal.SucursalID} value={sucursal.SucursalID.toString()}>{sucursal.NombreSucursal}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                         <Button type="submit" className="mt-5">
                             <UserPlus className="w-4 h-4 mr-2" />
@@ -224,5 +248,3 @@ export const RegistrarForm = ({ groups, empleados, }: { groups: iGetGroups[], em
         </>
     )
 }
-
-export default RegistrarForm

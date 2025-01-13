@@ -14,6 +14,9 @@ export const registrarUsuarioSchema = z.object({
         message: "El empleado es requerido"
     }),
     confirmPassword: z.string(),
+    SucursalID: z.coerce.number().min(1, {
+        message: "La sucursal es requerida"
+    })
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],

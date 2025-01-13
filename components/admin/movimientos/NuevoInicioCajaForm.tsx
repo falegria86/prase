@@ -53,8 +53,8 @@ export const NuevoInicioCajaForm = ({
             MontoInicial: 0,
             TotalEfectivo: 0,
             TotalTransferencia: 0,
-            UsuarioID: usuarioAutorizoId,
-            UsuarioAutorizoID: 8,
+            UsuarioID: 8,
+            UsuarioAutorizoID: usuarioAutorizoId,
         },
     })
 
@@ -116,7 +116,7 @@ export const NuevoInicioCajaForm = ({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
-                    name="UsuarioAutorizoID"
+                    name="UsuarioID"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Usuario</FormLabel>

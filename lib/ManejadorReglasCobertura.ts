@@ -109,6 +109,7 @@ export const aplicarReglasPorCobertura = (
           );
           valores.sumaAseguradaMin = valorAjustadoSuma;
           valores.sumaAseguradaMax = valorAjustadoSuma;
+
           break;
 
         case "Prima":

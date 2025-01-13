@@ -451,12 +451,12 @@ export const CoverageStep = ({
   );
 
   const generarRangosSumaAsegurada = useCallback(
-    (sumaBase: number): number[] => {
+    (sumaBase: number, limiteInferior: number, limiteSuperior: number): number[] => {
       const rangos: number[] = [];
       const esMayorA500k = sumaBase > 500000;
       const incremento = esMayorA500k ? 100000 : 10000;
-      const limiteInferior = Math.floor(sumaBase * 0.5);
-      const limiteSuperior = sumaBase;
+      // const limiteInferior = Math.floor(sumaBase * 0.5);
+      // const limiteSuperior = sumaBase;
 
       for (
         let valor = limiteInferior;
@@ -484,7 +484,9 @@ export const CoverageStep = ({
 
       // Si la cobertura aplica suma asegurada, mostrar el select
       if (cobertura.AplicaSumaAsegurada) {
-        const rangos = generarRangosSumaAsegurada(sumaAseguradaAnterior);
+        const limiteInferior = Math.floor(sumaAseguradaAnterior * 0.5)
+        const limiteSuperior = sumaAseguradaAnterior;
+        const rangos = generarRangosSumaAsegurada(sumaAseguradaAnterior, limiteInferior, limiteSuperior);
         const valorActual =
           cobertura.sumaAseguradaPersonalizada || sumaAseguradaAnterior;
 
@@ -568,6 +570,8 @@ export const CoverageStep = ({
 
       // Para montos en pesos
       const rangosMax = generarRangosSumaAsegurada(
+        Number(cobertura.SumaAseguradaMax),
+        Number(cobertura.SumaAseguradaMin),
         Number(cobertura.SumaAseguradaMax)
       );
       const valorSelect =

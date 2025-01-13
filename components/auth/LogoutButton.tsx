@@ -17,10 +17,6 @@ interface Props {
 }
 
 export const LogoutButton = ({ children }: Props) => {
-    const onClick = () => {
-        logout();
-    }
-
     return (
         <div className="flex justify-center">
             <DropdownMenu>
@@ -33,7 +29,7 @@ export const LogoutButton = ({ children }: Props) => {
                     <DropdownMenuLabel>Menú</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem><IoKey className="text-gray-500 mr-2 focus:text-white" /> Cambiar contraseña</DropdownMenuItem>
-                    <DropdownMenuItem onClick={onClick}><IoIosLogOut className="text-gray-500 mr-2 focus:text-white" size={12} /> Cerrar sesión</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => logout()}><IoIosLogOut className="text-gray-500 mr-2 focus:text-white" size={12} /> Cerrar sesión</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div >

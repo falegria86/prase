@@ -3,6 +3,8 @@ import { getCoberturas } from "@/actions/CatCoberturasActions";
 import { getAllClientes } from "@/actions/ClientesActions";
 import { getPolizas, getDocumentos, getMetodosPago, getStatusPagos } from "@/actions/PolizasActions"
 import TablaPolizas from "@/components/admin/polizas/TablaPolizas";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default async function ListaPolizasPage() {
     const [polizas, coberturas, metodosPago, statusPago, clientes] = await Promise.all([
@@ -15,31 +17,46 @@ export default async function ListaPolizasPage() {
 
     if (!polizas || polizas.length === 0) {
         return (
-            <div>No se pudieron obtener los datos de pólizas.</div>
+            <Alert variant="destructive" className="w-fit">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>No se pudieron obtener los datos de pólizas.</AlertDescription>
+            </Alert>
         )
     }
 
     if (!coberturas || coberturas.length === 0) {
         return (
-            <div>No se pudieron obtener los datos de coberturas.</div>
+            <Alert variant="destructive" className="w-fit">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>No se pudieron obtener los datos de coberturas.</AlertDescription>
+            </Alert>
         )
     }
 
     if (!metodosPago || metodosPago.length === 0) {
         return (
-            <div>No se pudieron obtener los métodos de pago.</div>
+            <Alert variant="destructive" className="w-fit">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>No se pudieron obtener los métodos de pago.</AlertDescription>
+            </Alert>
         )
     }
 
     if (!statusPago || statusPago.length === 0) {
         return (
-            <div>No se pudieron obtener los estatus de pago.</div>
+            <Alert variant="destructive" className="w-fit">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>No se pudieron obtener los status de pago.</AlertDescription>
+            </Alert>
         )
     }
 
-    if(!clientes || clientes.length === 0){
+    if (!clientes || clientes.length === 0) {
         return (
-            <div>No se pudo obtener la lista de clientes.</div>
+            <Alert variant="destructive" className="w-fit">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>No se pudo obtener la lista de clientes.</AlertDescription>
+            </Alert>
         )
     }
 
