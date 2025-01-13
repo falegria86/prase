@@ -92,12 +92,3 @@ export interface iPatchApplicationGroup {
 export interface iDeleteApplicationGroup {
     aplicacionesIds: number[];
 }
-
-export interface iGetSucursales {
-    SucursalID: number;
-    NombreSucursal: string;
-    Direccion: string;
-    Ciudad: string;
-    Estado: string;
-    Activa: number;
-}
