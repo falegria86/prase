@@ -20,9 +20,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { registrarUsuarioSchema } from '@/schemas/admin/usuariosSchemas';
 import Loading from '@/app/(protected)/loading';
-import { iGetGroups, iGetSucursales } from '@/interfaces/SeguridadInterface';
+import { iGetGroups } from '@/interfaces/SeguridadInterface';
 import { postUsuario } from '@/actions/SeguridadActions';
 import { iGetEmpleados } from '@/interfaces/EmpleadosInterface';
+import { iGetSucursales } from '@/interfaces/SucursalesInterface';
 
 export const NuevoUsuarioForm = ({ groups, empleados, sucursales }: { groups: iGetGroups[], empleados: iGetEmpleados[], sucursales: iGetSucursales[] }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -59,34 +60,34 @@ export const NuevoUsuarioForm = ({ groups, empleados, sucursales }: { groups: iG
     }, [fuerzaPassword])
 
     const onSubmit = (values: z.infer<typeof registrarUsuarioSchema>) => {
-        console.log(values)
-        // startTransition(async () => {
-        //     try {
-        //         const resp = await postUsuario(values)
+        // console.log(values)
+        startTransition(async () => {
+            try {
+                const resp = await postUsuario(values)
 
-        //         if (!resp) {
-        //             toast({
-        //                 title: "Error",
-        //                 description: "Hubo un problema al crear usuario.",
-        //                 variant: "destructive",
-        //             })
-        //         } else {
-        //             toast({
-        //                 title: "Usuario creado",
-        //                 description: "El usuario se ha creado exitosamente.",
-        //                 variant: "default",
-        //             })
-        //             form.reset();
-        //             router.refresh();
-        //         }
-        //     } catch (error) {
-        //         toast({
-        //             title: "Error",
-        //             description: "Hubo un problema al crear el usuario.",
-        //             variant: "destructive",
-        //         })
-        //     }
-        // })
+                if (!resp) {
+                    toast({
+                        title: "Error",
+                        description: "Hubo un problema al crear usuario.",
+                        variant: "destructive",
+                    })
+                } else {
+                    toast({
+                        title: "Usuario creado",
+                        description: "El usuario se ha creado exitosamente.",
+                        variant: "default",
+                    })
+                    form.reset();
+                    router.refresh();
+                }
+            } catch (error) {
+                toast({
+                    title: "Error",
+                    description: "Hubo un problema al crear el usuario.",
+                    variant: "destructive",
+                })
+            }
+        })
     }
 
     const strengthInfo = fuerzaContraInfo()

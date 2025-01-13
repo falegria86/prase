@@ -1,6 +1,6 @@
 "use server";
 
-import { iDeleteApplicationGroup, iGetApplicationGroup, iGetApplications, iGetGroups, iGetSucursales, iGetUsers, iPatchApplication, iPatchGroup, iPatchUsuario, iPostApplication, iPostApplicationGroup, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
+import { iDeleteApplicationGroup, iGetApplicationGroup, iGetApplications, iGetGroups, iGetUsers, iPatchApplication, iPatchGroup, iPatchUsuario, iPostApplication, iPostApplicationGroup, iPostApplicationResp, iPostGroup, iPostUsuario } from "@/interfaces/SeguridadInterface";
 
 const url = process.env.API_URL;
 
