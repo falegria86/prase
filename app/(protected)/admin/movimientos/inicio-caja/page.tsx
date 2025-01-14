@@ -1,5 +1,6 @@
 import { getEmpleados } from "@/actions/EmpleadosActionts";
 import { getIniciosCaja } from "@/actions/MovimientosActions"
+import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoInicioCajaForm } from "@/components/admin/movimientos/NuevoInicioCajaForm";
 import { TableIniciosCaja } from "@/components/admin/movimientos/TableIniciosCaja";
 import { currentUser } from "@/lib/auth";
@@ -14,9 +15,9 @@ export default async function IniciosCajaPage() {
         )
     }
 
-    const empleados = await getEmpleados();
+    const usuarios = await getUsuarios();
 
-    if (!empleados || empleados.length === 0) {
+    if (!usuarios || usuarios.length === 0) {
         return (
             <h4 className="text-red-500">Error al obtener información de empleados, intente nuevamente.</h4>
         )
@@ -45,7 +46,7 @@ export default async function IniciosCajaPage() {
             <h2 className="text-3xl font-bold mt-8 mb-6">Crear un nuevo inicio de caja</h2>
             <NuevoInicioCajaForm
                 usuarioAutorizoId={usuarioAutorizoID}
-                empleados={empleados}
+                usuarios={usuarios}
             />
         </>
     )

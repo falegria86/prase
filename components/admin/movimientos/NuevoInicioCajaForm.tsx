@@ -30,16 +30,17 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { nuevoInicioCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema"
+import { iGetUsers } from "@/interfaces/SeguridadInterface"
 
 type ReactSignatureCanvas = SignatureCanvas
 
 interface NuevoInicioCajaFormProps {
-    empleados: iGetEmpleados[]
+    usuarios: iGetUsers[]
     usuarioAutorizoId: number
 }
 
 export const NuevoInicioCajaForm = ({
-    empleados,
+    usuarios,
     usuarioAutorizoId,
 }: NuevoInicioCajaFormProps) => {
     const [isPending, startTransition] = useTransition()
@@ -53,7 +54,7 @@ export const NuevoInicioCajaForm = ({
             MontoInicial: 0,
             TotalEfectivo: 0,
             TotalTransferencia: 0,
-            UsuarioID: 8,
+            UsuarioID: 24,
             UsuarioAutorizoID: usuarioAutorizoId,
         },
     })
@@ -130,12 +131,12 @@ export const NuevoInicioCajaForm = ({
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {empleados.map((empleado) => (
+                                    {usuarios.map((usuario) => (
                                         <SelectItem
-                                            key={empleado.EmpleadoID}
-                                            value={empleado.EmpleadoID.toString()}
+                                            key={usuario.UsuarioID}
+                                            value={usuario.UsuarioID.toString()}
                                         >
-                                            {empleado.Nombre}
+                                            {usuario.NombreUsuario}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
