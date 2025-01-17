@@ -209,7 +209,6 @@ export const Cotizador = ({
         });
     };
 
-    // Renderizado condicional del paso actual
     const renderStep = () => {
         const props = {
             form,

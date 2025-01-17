@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input"
 import { postInicioCaja } from "@/actions/MovimientosActions"
 import { LoaderModales } from "@/components/LoaderModales"
 import { formatCurrency } from "@/lib/format"
-import { iGetEmpleados } from "@/interfaces/EmpleadosInterface"
 import {
     Form,
     FormControl,

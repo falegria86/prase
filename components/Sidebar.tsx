@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,12 +28,24 @@ import {
   FileCheck,
   Gauge,
   UserPlus,
+  Building,
+  DollarSign,
+  ScrollText,
+  ShieldCheck,
+  Coins,
+  Truck,
+  Wallet,
+  PercentSquare,
+  Landmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserDropdown from "./UserDropdown";
 import { Aplicaciones } from "@/next-auth";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
+import { getInicioActivo } from "@/actions/MovimientosActions";
+import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
 
 interface SidebarProps {
   aplicaciones: Aplicaciones[];
@@ -58,6 +70,14 @@ const iconosDisponibles: Record<string, LucideIcon> = {
   UserCog,
   Gauge,
   UserPlus,
+  Building,
+  ScrollText,
+  ShieldCheck,
+  Coins,
+  Truck,
+  Wallet,
+  PercentSquare,
+  Landmark,
 };
 
 export default function Sidebar({ aplicaciones }: SidebarProps) {
@@ -65,6 +85,21 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   const user = useCurrentUser();
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
+  const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
+  const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
+
+  useEffect(() => {
+    const obtenerInicioCaja = async () => {
+      if (user?.usuario.UsuarioID) {
+        const respuesta = await getInicioActivo(user.usuario.UsuarioID);
+        if (respuesta && !('statusCode' in respuesta)) {
+          setInicioCajaActivo(respuesta);
+        }
+      }
+    };
+
+    obtenerInicioCaja();
+  }, [user?.usuario.UsuarioID]);
 
   const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
     if (!acc[app.categoria]) {
@@ -141,13 +176,13 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                         ? (
                           <UserCog className="mr-2 h-4 w-4" />
                         )
-                      : categoria === 'Cotizaciones'
-                        ? (
-                          <Receipt className="mr-2 h-4 w-4" />
-                        )
-                        : (
-                          <FileText className="mr-2 h-4 w-4" />
-                        )}
+                        : categoria === 'Cotizaciones'
+                          ? (
+                            <Receipt className="mr-2 h-4 w-4" />
+                          )
+                          : (
+                            <FileText className="mr-2 h-4 w-4" />
+                          )}
                     {categoria}
                   </span>
                   <motion.div
@@ -198,8 +233,25 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
             ))}
           </nav>
 
-          <div className="mt-auto px-4 py-4 border-t">
-            <UserDropdown user={user ?? null} />
+          <div className="mt-auto">
+            {inicioCajaActivo && (
+              <div className="px-4 py-2">
+                <Button
+                  variant="success"
+                  className="w-full rounded-lg"
+                  onClick={() => setModalInicioCajaAbierto(true)}
+                >
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Inicio de Caja Activo
+                </Button>
+              </div>
+            )}
+
+            {user && (
+              <div className="px-4 py-4 border-t">
+                <UserDropdown user={user} />
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -208,6 +260,14 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         <div
           className="fixed inset-0 bg-black/50 z-30 xl:hidden"
           onClick={() => setSidebarAbierta(false)}
+        />
+      )}
+
+      {inicioCajaActivo && (
+        <InicioCajaActivoModal
+          inicioCaja={inicioCajaActivo}
+          abierto={modalInicioCajaAbierto}
+          alCerrar={() => setModalInicioCajaAbierto(false)}
         />
       )}
     </>

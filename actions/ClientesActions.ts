@@ -3,7 +3,10 @@
 import {
     iGetCliente,
     iPostCliente,
-    iPatchCliente
+    iPatchCliente,
+    iGetCuentasBancarias,
+    iPostCuentaBancaria,
+    iPatchCuentaBancaria
 } from '@/interfaces/ClientesInterface';
 
 const url = process.env.API_URL;
@@ -103,5 +106,84 @@ export const deleteCliente = async (id: number) => {
         return true;
     } catch (error) {
         console.log('Error al eliminar cliente: ', error);
+    }
+}
+
+export const getCuentasBancarias = async () => {
+    try {
+        const resp = await fetch(`${url}/cuentas-bancarias`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetCuentasBancarias[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener cuentas bancarias: ', error);
+    }
+}
+
+export const postCuentaBancaria = async (body: iPostCuentaBancaria) => {
+    try {
+        const resp = await fetch(`${url}/cuentas-bancarias`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) {
+            console.log(`Error al crear cuenta bancaria`);
+            return null;
+        }
+
+        const cliente: iGetCuentasBancarias = await resp.json();
+        return cliente;
+    } catch (error) {
+        console.log('Error al crear cuenta bancaria: ', error);
+    }
+}
+
+export const patchCuentaBancaria = async (id: number, data: iPatchCuentaBancaria) => {
+    try {
+        const resp = await fetch(`${url}/cuentas-bancarias/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!resp.ok) {
+            console.log(`Error al modificar cuenta bancaria con id ${id}`);
+            return null;
+        }
+
+        const cliente: iGetCuentasBancarias = await resp.json();
+        return cliente;
+    } catch (error) {
+        console.log('Error al modificar cuenta bancaria: ', error);
+    }
+}
+
+export const deleteCuentaBancaria = async (id: number) => {
+    try {
+        const resp = await fetch(`${url}/cuentas-bancarias/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (resp.ok) {
+            return 'OK';
+        } else {
+            console.error(`Error: ${resp.status} ${resp.statusText}`);
+            return null;
+        }
+    } catch (error) {
+        console.log('Error al eliminar cuenta bancaria: ', error);
     }
 }

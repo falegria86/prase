@@ -10,21 +10,7 @@ import {
 const user = process.env.LIBRO_USER;
 const pass = process.env.LIBRO_PASS;
 const url = process.env.API_LIBRO_AZUL;
-
-export const login = async (user: string, pass: string) => {
-    try {
-        const resp = await fetch(`${url}/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
-            cache: 'no-store'
-        });
-
-        if (!resp.ok) return null;
-
-        const data: string = await resp.json();
-        return data;
-    } catch (error) {
-        console.log('Error al obtener reglas de negocio: ', error);
-    }
-}
+const clase = process.env.CLASE;
 
 export const loginAuto = async () => {
     try {
@@ -42,9 +28,8 @@ export const loginAuto = async () => {
 }
 
 export const getAnios = async (key: string) => {
-
     try {
-        const resp = await fetch(`${url}/A%C3%B1os/?Llave=${key}`, {
+        const resp = await fetch(`${url}/A%C3%B1os/?Llave=${key}&Clase=${clase}`, {
             method: 'POST'
         });
 

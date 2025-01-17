@@ -31,3 +31,25 @@ export interface iPatchCliente {
     Direccion: string;
     Telefono: string;
 }
+
+export interface iGetCuentasBancarias {
+    CuentaBancariaID: number;
+    NombreBanco: string;
+    NumeroCuenta: string;
+    ClabeInterbancaria: string;
+    Activa: number;
+}
+
+export interface iPostCuentaBancaria {
+    NombreBanco: string;
+    NumeroCuenta: string;
+    ClabeInterbancaria: string;
+    Activa: boolean;
+}
+
+export interface iPatchCuentaBancaria {
+    NombreBanco?: string;
+    NumeroCuenta?: string;
+    ClabeInterbancaria?: string;
+    Activa?: boolean;
+}

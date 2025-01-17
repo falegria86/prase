@@ -34,6 +34,8 @@ import Loading from "@/app/(protected)/loading";
 import { useTransition } from "react";
 import { SyncLoader } from "react-spinners";
 import { LoaderModales } from "@/components/LoaderModales";
+import { useInicioCaja } from "@/context/InicioCajaContext";
+import { MensajeError } from "@/components/ui/MensajeError";
 
 const esquemaPagoPoliza = z.object({
     PolizaID: z.number(),
@@ -66,6 +68,8 @@ export const RegistroPagoPoliza = ({
     statusPago,
     metodosPago,
 }: PropiedadesRegistroPago) => {
+    const { inicioCaja } = useInicioCaja();
+
     //TODO: Implementar el modal de visualizar ticket de pago
     const form = useForm<TipoPagoForm>({
         resolver: zodResolver(esquemaPagoPoliza),
@@ -116,6 +120,14 @@ export const RegistroPagoPoliza = ({
     if (isPending) {
         return (
             <LoaderModales />
+        );
+    }
+
+    if (!inicioCaja) {
+        return (
+            <MensajeError
+                mensaje="Para registrar pagos necesitas tener un inicio de caja activo"
+            />
         );
     }
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetIniciosCaja, iPatchInicioCaja, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
+import { iGetInicioActivo, iGetIniciosCaja, iPatchInicioCaja, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
 
 const url = process.env.API_URL;
 
@@ -13,6 +13,21 @@ export const getIniciosCaja = async () => {
         if (!resp.ok) return null;
 
         const data: iGetIniciosCaja[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log(`Error al obtener inicios de caja: ${error}`);
+    }
+}
+
+export const getInicioActivo = async (idUser: number) => {
+    try {
+        const resp = await fetch(`${url}/inicios-caja/activo/${idUser}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetInicioActivo = await resp.json();
         return data;
     } catch (error) {
         console.log(`Error al obtener inicios de caja: ${error}`);

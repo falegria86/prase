@@ -35,3 +35,16 @@ export interface iPatchInicioCaja {
     FirmaElectronica?: string;
     Estatus?: string;
 }
+
+export interface iGetInicioActivo {
+    InicioCajaID: number;
+    FechaInicio: Date;
+    FechaActualizacion: Date;
+    MontoInicial: string;
+    TotalEfectivo: string;
+    TotalTransferencia: string;
+    FirmaElectronica: string;
+    Estatus: string;
+    Usuario: UsuarioInicioCaja;
+    UsuarioAutorizo: UsuarioInicioCaja;
+}

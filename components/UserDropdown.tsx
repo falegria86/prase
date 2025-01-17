@@ -36,8 +36,6 @@ export default function UserDropdown({ user }: { user: CustomUser | null }) {
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configuración</DropdownMenuItem>
                 <DropdownMenuItem className='cursor-pointer'>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span onClick={() => logout()}>Cerrar Sesión</span>
