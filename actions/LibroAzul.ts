@@ -12,6 +12,21 @@ const pass = process.env.LIBRO_PASS;
 const url = process.env.API_LIBRO_AZUL;
 const clase = process.env.CLASE;
 
+export const login = async (user: string, pass: string) => {
+    try {
+        const resp = await fetch(`${url}/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: string = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al obtener reglas de negocio: ', error);
+    }
+}
+
 export const loginAuto = async () => {
     try {
         const resp = await fetch(`${url}/Sesion/?Usuario=${user}&Contrasena=${pass}`, {
