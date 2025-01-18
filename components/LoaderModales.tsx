@@ -9,7 +9,7 @@ interface PropiedadesLoader {
 
 export const LoaderModales = ({ texto = "" }: PropiedadesLoader) => {
     return (
-        <div className="w-full h-[300px] flex flex-col justify-center items-center gap-4">
+        <div className="w-full h-[300px] flex flex-col justify-center items-center gap-4 container">
             <SyncLoader size={8} color="#9ca3af" />
             {texto && (
                 <motion.span

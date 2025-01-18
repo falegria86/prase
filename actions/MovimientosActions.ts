@@ -1,6 +1,6 @@
 "use server";
 
-import { iGetInicioActivo, iGetIniciosCaja, iPatchInicioCaja, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
+import { iDeleteMovimiento, iGetInicioActivo, iGetIniciosCaja, iGetMovimientos, iPatchInicioCaja, iPostInicioCaja, iPostMovimiento } from "@/interfaces/MovimientosInterface";
 
 const url = process.env.API_URL;
 
@@ -86,5 +86,75 @@ export const deleteInicioCaja = async (id: number) => {
         return { msg: 'Inicio de caja eliminado correctamente' }
     } catch (error) {
         console.log(`Error al eliminar inicio de caja: ${error}`)
+    }
+}
+
+export const getMovimientos = async () => {
+    try {
+        const resp = await fetch(`${url}/transacciones`, {
+            cache: 'no-store'
+        });
+
+        if (!resp.ok) return null;
+
+        const data: iGetMovimientos[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log(`Error al obtener movimientos: ${error}`);
+    }
+}
+
+export const postMovimiento = async (body: iPostMovimiento) => {
+    try {
+        const resp = await fetch(`${url}/transacciones`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) return { error: 'Error al crear transacción' };
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log(`Error al crear transacción: ${error}`);
+    }
+}
+
+export const postGenerarCodigo = async (idTransaccion: number) => {
+    try {
+        const resp = await fetch(`${url}/transacciones/generar-codigo/${idTransaccion}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!resp.ok) return null;
+
+        const data: { id: string, codigo: string } = await resp.json();
+        return data;
+    } catch (error) {
+        console.log(`Error al crear transacción: ${error}`);
+    }
+}
+
+export const deleteMovimiento = async (body: iDeleteMovimiento) => {
+    try {
+        const resp = await fetch(`${url}/transacciones`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!resp.ok) return { error: 'Error al eliminar movimiento' }
+
+        return { msg: 'Movimiento eliminado correctamente' }
+    } catch (error) {
+        console.log(`Error al eliminar movimiento: ${error}`)
     }
 }

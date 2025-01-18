@@ -147,7 +147,7 @@ export const CoverageStep = ({
       const primaPorcentaje = parseFloat(cobertura.PorcentajePrima) / 100;
       const primaBase = sumaAsegurada * primaPorcentaje;
 
-      if (cobertura.DeducibleMin === "0" || cobertura.CoberturaAmparada) {
+      if (cobertura.CoberturaAmparada) {
         return primaBase;
       }
 
@@ -533,33 +533,62 @@ export const CoverageStep = ({
           montoTexto = formatCurrency(Number(cobertura.SumaAseguradaMax));
         }
 
-        return (
-          <div className="flex items-center justify-between w-full">
-            <div className="flex flex-col">
-              <span>{montoTexto}</span>
-              <span className="text-sm text-muted-foreground">
-                {cobertura.sumaAseguradaPorPasajero ? "POR CADA PASAJERO" : "TOTAL"}
-              </span>
-            </div>
-            <Switch
-              checked={cobertura.sumaAseguradaPorPasajero}
-              onCheckedChange={(valor) => {
-                const nuevasCoberturas = coberturasSeleccionadas.map((c) => {
-                  if (c.CoberturaID === cobertura.CoberturaID) {
-                    return {
-                      ...c,
-                      sumaAseguradaPorPasajero: valor
-                    };
-                  }
-                  return c;
-                });
+        // Para montos en pesos
+        const rangosMax = generarRangosSumaAsegurada(
+          Number(cobertura.SumaAseguradaMax),
+          Number(cobertura.SumaAseguradaMin),
+          Number(cobertura.SumaAseguradaMax)
+        );
+        const valorSelect =
+          cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
 
-                setCoberturasSeleccionadas(nuevasCoberturas);
-                actualizarDetalles(nuevasCoberturas);
-              }}
-              className="ml-2"
-            />
-          </div>
+        return (
+          <>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex flex-col">
+                <Select
+                  value={valorSelect.toString()}
+                  onValueChange={(valor) =>
+                    manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)
+                  }
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue>
+                      {formatCurrency(parseFloat(valorSelect.toString()))}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rangosMax.map((valor) => (
+                      <SelectItem key={valor} value={valor.toString()}>
+                        {formatCurrency(valor)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  {cobertura.sumaAseguradaPorPasajero ? "POR CADA PASAJERO" : "TOTAL"}
+                </span>
+              </div>
+              <Switch
+                checked={cobertura.sumaAseguradaPorPasajero}
+                onCheckedChange={(valor) => {
+                  const nuevasCoberturas = coberturasSeleccionadas.map((c) => {
+                    if (c.CoberturaID === cobertura.CoberturaID) {
+                      return {
+                        ...c,
+                        sumaAseguradaPorPasajero: valor
+                      };
+                    }
+                    return c;
+                  });
+
+                  setCoberturasSeleccionadas(nuevasCoberturas);
+                  actualizarDetalles(nuevasCoberturas);
+                }}
+                className="ml-2"
+              />
+            </div>
+          </>
         );
       }
 

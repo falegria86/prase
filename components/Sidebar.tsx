@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,6 +82,7 @@ const iconosDisponibles: Record<string, LucideIcon> = {
 
 export default function Sidebar({ aplicaciones }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useCurrentUser();
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
@@ -116,6 +117,15 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
 
   const alternarMenu = (categoria: string) => {
     setCategoriaAbierta(categoriaAbierta === categoria ? null : categoria);
+  };
+
+  const manejarActualizacionInicioCaja = async () => {
+    setModalInicioCajaAbierto(false);
+    const respuesta = await getInicioActivo(user?.usuario.UsuarioID || 0);
+    if (respuesta && !('statusCode' in respuesta)) {
+      setInicioCajaActivo(respuesta);
+    }
+    router.refresh();
   };
 
   return (
@@ -228,16 +238,14 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                       </div>
                     </motion.div>
                   )}
+
                 </AnimatePresence>
               </div>
             ))}
-          </nav>
-
-          <div className="mt-auto">
             {inicioCajaActivo && (
               <div className="px-4 py-2">
                 <Button
-                  variant="success"
+                  variant="outline"
                   className="w-full rounded-lg"
                   onClick={() => setModalInicioCajaAbierto(true)}
                 >
@@ -246,7 +254,9 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                 </Button>
               </div>
             )}
+          </nav>
 
+          <div className="mt-auto">
             {user && (
               <div className="px-4 py-4 border-t">
                 <UserDropdown user={user} />
@@ -268,6 +278,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
           inicioCaja={inicioCajaActivo}
           abierto={modalInicioCajaAbierto}
           alCerrar={() => setModalInicioCajaAbierto(false)}
+          alAceptar={manejarActualizacionInicioCaja}
         />
       )}
     </>

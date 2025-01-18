@@ -15,13 +15,13 @@ export const ProtectedRouteWrapper = ({
 }: ProtectedRouteWrapperProps) => {
   const pathname = usePathname();
 
-  // const tieneAcceso =
-  //   pathname === "/" ||
-  //   aplicaciones.some((app) => app.descripcion === pathname && app.ingresar);
+  const tieneAcceso =
+    pathname === "/" ||
+    aplicaciones.some((app) => app.descripcion === pathname && app.ingresar);
 
-  // if (!tieneAcceso) {
-  //   redirect("/unauthorized");
-  // }
+  if (!tieneAcceso) {
+    redirect("/unauthorized");
+  }
 
   return <>{children}</>;
 };

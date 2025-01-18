@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useRouter } from "next/navigation"
 import SignatureCanvas from 'react-signature-canvas'
-import { useRef, useState, useTransition } from "react"
-import { SaveIcon, Loader2, Trash2 } from "lucide-react"
+import { useRef, useTransition } from "react"
+import { SaveIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +43,6 @@ export const NuevoInicioCajaForm = ({
     usuarioAutorizoId,
 }: NuevoInicioCajaFormProps) => {
     const [isPending, startTransition] = useTransition()
-    const signatureRef = useRef<ReactSignatureCanvas>(null)
     const { toast } = useToast()
     const router = useRouter()
 
@@ -58,28 +57,10 @@ export const NuevoInicioCajaForm = ({
         },
     })
 
-    const limpiarFirma = () => {
-        if (signatureRef.current) {
-            signatureRef.current.clear()
-        }
-    }
-
     const onSubmit = async (values: z.infer<typeof nuevoInicioCajaSchema>) => {
         startTransition(async () => {
             try {
-                let firmaBase64 = ""
-                if (signatureRef.current) {
-                    if (!signatureRef.current.isEmpty()) {
-                        firmaBase64 = signatureRef.current.toDataURL()
-                    }
-                }
-
-                const formToSend = {
-                    ...values,
-                    FirmaElectronica: firmaBase64,
-                }
-
-                const respuesta = await postInicioCaja(formToSend)
+                const respuesta = await postInicioCaja(values)
 
                 if (respuesta?.error) {
                     toast({
@@ -113,7 +94,7 @@ export const NuevoInicioCajaForm = ({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 container">
                 <FormField
                     control={form.control}
                     name="UsuarioID"
@@ -208,7 +189,7 @@ export const NuevoInicioCajaForm = ({
                     )}
                 />
 
-                <div className="space-y-4">
+                {/* <div className="space-y-4">
                     <FormLabel>Firma Electrónica</FormLabel>
                     <div className="space-y-2">
                         <div className="border rounded-lg w-fit">
@@ -231,7 +212,7 @@ export const NuevoInicioCajaForm = ({
                             Limpiar
                         </Button>
                     </div>
-                </div>
+                </div> */}
 
                 <Button type="submit" disabled={isPending}>
                     <SaveIcon className="w-4 h-4 mr-2" />
