@@ -539,8 +539,7 @@ export const CoverageStep = ({
           Number(cobertura.SumaAseguradaMin),
           Number(cobertura.SumaAseguradaMax)
         );
-        const valorSelect =
-          cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
+        const valorSelect = cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
 
         return (
           <>
@@ -551,10 +550,11 @@ export const CoverageStep = ({
                   onValueChange={(valor) =>
                     manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)
                   }
+                  disabled={cobertura.tipoMoneda.Abreviacion === 'UMA'}
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue>
-                      {formatCurrency(parseFloat(valorSelect.toString()))}
+                      {cobertura.tipoMoneda.Abreviacion === 'UMA' ? `${valorSelect.toString()} UMAS` : formatCurrency(parseFloat(valorSelect.toString()))}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
