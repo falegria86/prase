@@ -58,6 +58,7 @@ export const NuevoInicioCajaForm = ({
     })
 
     const onSubmit = async (values: z.infer<typeof nuevoInicioCajaSchema>) => {
+        // console.log(values)
         startTransition(async () => {
             try {
                 const respuesta = await postInicioCaja(values)
