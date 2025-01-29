@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Select,
@@ -17,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
 import { StepProps } from "@/types/cotizador";
 import {
   getMarcasPorAnio,
@@ -26,213 +26,122 @@ import {
   getPrecioVersionPorClave,
 } from "@/actions/LibroAzul";
 import { formatCurrency } from "@/lib/format";
-import {
+import type {
   iGetMarcasPorAnio,
   iGetModelosPorAnioMarca,
   iGetVersionesPorAnioMarcaModelo,
   iGetPrecioVersionPorClave,
+  iGetAnios,
 } from "@/interfaces/LibroAzul";
+import { FormData } from "@/types/cotizador";
 import LocationCombobox from "./LocationCombobox";
 import { Feature } from "@/interfaces/GeoApifyInterface";
+
+interface VehicleDataStepProps extends StepProps {
+  apiKey: string;
+  years: iGetAnios[];
+}
 
 export const VehicleDataStep = ({
   form,
   apiKey,
   years,
   setIsStepValid,
-}: StepProps) => {
-  const [brands, setBrands] = useState<iGetMarcasPorAnio[]>([]);
-  const [models, setModels] = useState<iGetModelosPorAnioMarca[]>([]);
-  const [versions, setVersions] = useState<iGetVersionesPorAnioMarcaModelo[]>(
-    []
-  );
-  const [price, setPrice] = useState<iGetPrecioVersionPorClave | null>(null);
-  const [loading, setLoading] = useState(false);
+}: VehicleDataStepProps) => {
+  const [isPending, startTransition] = useTransition();
+  const [marcas, setMarcas] = useState<iGetMarcasPorAnio[]>([]);
+  const [modelos, setModelos] = useState<iGetModelosPorAnioMarca[]>([]);
+  const [versiones, setVersiones] = useState<iGetVersionesPorAnioMarcaModelo[]>([]);
+  const [precio, setPrecio] = useState<iGetPrecioVersionPorClave | null>(null);
 
-  const validateFields = async () => {
-    const fieldsToValidate = [
-      "Modelo",
-      "Marca",
-      "Submarca",
-      "Version",
-      "CP",
-    ] as const;
+  const valoresFormulario = form.watch([
+    "Modelo",
+    "Marca",
+    "Submarca",
+    "Version",
+    "CP",
+    "marcaNombre",
+    "modeloNombre",
+    "versionNombre"
+  ]);
 
-    const validationResults = await Promise.all(
-      fieldsToValidate.map(async (field) => {
-        const isValid = await form.trigger(field);
-        return isValid;
-      })
-    );
+  const [anio, marca, submarca, version, cp] = valoresFormulario;
 
-    const isValid = validationResults.every(Boolean);
-    setIsStepValid?.(isValid);
-
-    return isValid;
-  };
-
-  // Efecto para validación continua
   useEffect(() => {
-    const subscription = form.watch((_, { name }) => {
-      if (name) {
-        validateFields();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
-
-  // Efecto para restaurar datos cuando se vuelve al paso
-  useEffect(() => {
-    const restoreData = async () => {
-      const formData = form.getValues();
-      if (formData.Modelo) {
-        await handleYearSelect(formData.Modelo);
-      }
+    const validarCampos = async () => {
+      const camposValidar = ["Modelo", "Marca", "Submarca", "Version", "CP"] as const;
+      const resultados = await Promise.all(
+        camposValidar.map(campo => form.trigger(campo as keyof FormData))
+      );
+      setIsStepValid?.(resultados.every(Boolean));
     };
-    restoreData();
-  }, []);
 
-  const handleYearSelect = async (yearClave: string) => {
-    if (!apiKey || !years) return;
+    validarCampos();
+  }, [anio, marca, submarca, version, cp, form, setIsStepValid]);
 
-    setLoading(true);
-    try {
-      const year = years.find((y) => y.Clave === yearClave);
-      if (!year) return;
-
-      form.setValue("Modelo", yearClave, { shouldValidate: true });
-      const brandsData = await getMarcasPorAnio(apiKey, year);
-      setBrands(brandsData || []);
-
-      // Resetear campos dependientes
-      form.setValue("Marca", "", { shouldValidate: true });
-      form.setValue("Submarca", "", { shouldValidate: true });
-      form.setValue("Version", "", { shouldValidate: true });
-      form.setValue("marcaNombre", "");
-      form.setValue("modeloNombre", "");
-      form.setValue("versionNombre", "");
-      setModels([]);
-      setVersions([]);
-      setPrice(null);
-
-      await validateFields();
-    } catch (error) {
-      console.error("Error loading brands:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBrandSelect = async (brandClave: string) => {
-    if (!apiKey) return;
-
-    setLoading(true);
-    try {
-      const brand = brands.find((b) => b.Clave === brandClave);
-      if (!brand) return;
-
-      form.setValue("Marca", brandClave, { shouldValidate: true });
-      form.setValue("marcaNombre", brand.Nombre);
-
-      const modelsData = await getModelosPorAnioMarca(
-        apiKey,
-        form.getValues("Modelo"),
-        brand
-      );
-      setModels(modelsData || []);
-
-      // Resetear campos dependientes
-      form.setValue("Submarca", "", { shouldValidate: true });
-      form.setValue("Version", "", { shouldValidate: true });
-      form.setValue("modeloNombre", "");
-      form.setValue("versionNombre", "");
-      setVersions([]);
-      setPrice(null);
-
-      await validateFields();
-    } catch (error) {
-      console.error("Error loading models:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleModelSelect = async (modelClave: string) => {
-    if (!apiKey) return;
-
-    setLoading(true);
-    try {
-      const model = models.find((m) => m.Clave === modelClave);
-      if (!model) return;
-
-      form.setValue("Submarca", modelClave, { shouldValidate: true });
-      form.setValue("modeloNombre", model.Nombre);
-
-      const versionsData = await getVersionesPorAnioMarcaModelo(
-        apiKey,
-        form.getValues("Modelo"),
-        form.getValues("Marca"),
-        model
-      );
-      setVersions(versionsData || []);
-
-      form.setValue("Version", "", { shouldValidate: true });
-      form.setValue("versionNombre", "");
-      setPrice(null);
-
-      await validateFields();
-    } catch (error) {
-      console.error("Error loading versions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVersionSelect = async (versionClave: string) => {
-    if (!apiKey) return;
-
-    setLoading(true);
-    try {
-      const version = versions.find((v) => v.Clave === versionClave);
-      if (!version) return;
-
-      form.setValue("Version", versionClave, { shouldValidate: true });
-      form.setValue("versionNombre", version.Nombre);
-
-      const priceData = await getPrecioVersionPorClave(apiKey, version);
-      setPrice(priceData || null);
-
-      if (priceData) {
-        form.setValue("SumaAsegurada", priceData.Venta);
-        form.setValue("minSumaAsegurada", priceData.Compra);
-        form.setValue("maxSumaAsegurada", priceData.Venta);
-      }
-
-      await validateFields();
-    } catch (error) {
-      console.error("Error loading price:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLocationSelect = (location: Feature) => {
-    const postcode = location.properties.postcode;
-
-    if (postcode) {
-      form.setValue("CP", postcode, {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
+  useEffect(() => {
+    if (anio && apiKey) {
+      startTransition(async () => {
+        const respuestaMarcas = await getMarcasPorAnio(apiKey, { Clave: anio, Nombre: anio });
+        if (respuestaMarcas) setMarcas(respuestaMarcas);
       });
-      validateFields();
+    }
+  }, [anio, apiKey]);
+
+  useEffect(() => {
+    if (anio && marca && apiKey) {
+      startTransition(async () => {
+        const respuestaModelos = await getModelosPorAnioMarca(
+          apiKey,
+          anio,
+          { Clave: marca, Nombre: marca }
+        );
+        if (respuestaModelos) setModelos(respuestaModelos);
+      });
+    }
+  }, [anio, marca, apiKey]);
+
+  useEffect(() => {
+    if (anio && marca && submarca && apiKey) {
+      startTransition(async () => {
+        const respuestaVersiones = await getVersionesPorAnioMarcaModelo(
+          apiKey,
+          anio,
+          marca,
+          { Clave: submarca, Nombre: submarca }
+        );
+
+        if (respuestaVersiones) setVersiones(respuestaVersiones);
+      });
+    }
+  }, [anio, marca, submarca, apiKey]);
+
+  useEffect(() => {
+    if (version && apiKey) {
+      startTransition(async () => {
+        const respuestaPrecio = await getPrecioVersionPorClave(apiKey, { Clave: version, Nombre: version });
+        if (respuestaPrecio) {
+          setPrecio(respuestaPrecio);
+          form.setValue("SumaAsegurada", respuestaPrecio.Venta);
+          form.setValue("minSumaAsegurada", respuestaPrecio.Compra);
+          form.setValue("maxSumaAsegurada", respuestaPrecio.Venta);
+        }
+      });
+    }
+  }, [version, apiKey, form]);
+
+  const manejarSeleccionUbicacion = (ubicacion: Feature) => {
+    const codigoPostal = ubicacion.properties.postcode;
+    const estado = ubicacion.properties.state;
+
+    if (codigoPostal) {
+      form.setValue("CP", codigoPostal, { shouldValidate: true });
+      if (estado) form.setValue("Estado", estado);
     }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Campo Año */}
       <FormField
         control={form.control}
         name="Modelo"
@@ -240,16 +149,15 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Año</FormLabel>
             <Select
-              disabled={loading}
-              onValueChange={(value) => {
-                field.onChange(value);
-                handleYearSelect(value);
-              }}
+              disabled={isPending}
+              onValueChange={field.onChange}
               value={field.value}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona año" />
-              </SelectTrigger>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona año" />
+                </SelectTrigger>
+              </FormControl>
               <SelectContent>
                 {years?.map((year) => (
                   <SelectItem key={year.Clave} value={year.Clave}>
@@ -263,7 +171,6 @@ export const VehicleDataStep = ({
         )}
       />
 
-      {/* Campo Marca */}
       <FormField
         control={form.control}
         name="Marca"
@@ -271,20 +178,23 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Marca</FormLabel>
             <Select
-              disabled={loading || brands.length === 0}
-              onValueChange={(value) => {
-                field.onChange(value);
-                handleBrandSelect(value);
+              disabled={isPending || marcas.length === 0}
+              onValueChange={(valor) => {
+                const marca = marcas.find(m => m.Clave === valor);
+                field.onChange(valor);
+                if (marca) form.setValue("marcaNombre", marca.Nombre);
               }}
               value={field.value}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona marca" />
-              </SelectTrigger>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona marca" />
+                </SelectTrigger>
+              </FormControl>
               <SelectContent>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.Clave} value={brand.Clave}>
-                    {brand.Nombre}
+                {marcas.map((marca) => (
+                  <SelectItem key={marca.Clave} value={marca.Clave}>
+                    {marca.Nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -294,7 +204,6 @@ export const VehicleDataStep = ({
         )}
       />
 
-      {/* Campo Modelo (Submarca) */}
       <FormField
         control={form.control}
         name="Submarca"
@@ -302,20 +211,23 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Modelo</FormLabel>
             <Select
-              disabled={loading || models.length === 0}
-              onValueChange={(value) => {
-                field.onChange(value);
-                handleModelSelect(value);
+              disabled={isPending || modelos.length === 0}
+              onValueChange={(valor) => {
+                const modelo = modelos.find(m => m.Clave === valor);
+                field.onChange(valor);
+                if (modelo) form.setValue("modeloNombre", modelo.Nombre);
               }}
               value={field.value}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona modelo" />
-              </SelectTrigger>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona modelo" />
+                </SelectTrigger>
+              </FormControl>
               <SelectContent>
-                {models.map((model) => (
-                  <SelectItem key={model.Clave} value={model.Clave}>
-                    {model.Nombre}
+                {modelos.map((modelo) => (
+                  <SelectItem key={modelo.Clave} value={modelo.Clave}>
+                    {modelo.Nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -325,7 +237,6 @@ export const VehicleDataStep = ({
         )}
       />
 
-      {/* Campo Versión */}
       <FormField
         control={form.control}
         name="Version"
@@ -333,18 +244,21 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Versión</FormLabel>
             <Select
-              disabled={loading || versions.length === 0}
-              onValueChange={(value) => {
-                field.onChange(value);
-                handleVersionSelect(value);
+              disabled={isPending || versiones.length === 0}
+              onValueChange={(valor) => {
+                const version = versiones.find(v => v.Clave === valor);
+                field.onChange(valor);
+                if (version) form.setValue("versionNombre", version.Nombre);
               }}
               value={field.value}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona versión" />
-              </SelectTrigger>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona versión" />
+                </SelectTrigger>
+              </FormControl>
               <SelectContent>
-                {versions.map((version) => (
+                {versiones.map((version) => (
                   <SelectItem key={version.Clave} value={version.Clave}>
                     {version.Nombre}
                   </SelectItem>
@@ -356,7 +270,6 @@ export const VehicleDataStep = ({
         )}
       />
 
-      {/* Campo VIN */}
       <FormField
         control={form.control}
         name="VIN"
@@ -364,22 +277,13 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Número de Serie (VIN)</FormLabel>
             <FormControl>
-              <Input
-                {...field}
-                placeholder="Ingresa el número de serie"
-                onChange={(e) => {
-                  field.onChange(e);
-                  validateFields();
-                }}
-                onBlur={() => form.trigger("VIN")}
-              />
+              <Input {...field} placeholder="Ingresa el número de serie" />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Campo Placa */}
       <FormField
         control={form.control}
         name="Placa"
@@ -387,22 +291,13 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Placa (opcional)</FormLabel>
             <FormControl>
-              <Input
-                {...field}
-                placeholder="Ingresa la placa del vehículo..."
-                onChange={(e) => {
-                  field.onChange(e);
-                  validateFields();
-                }}
-                onBlur={() => form.trigger("Placa")}
-              />
+              <Input {...field} placeholder="Ingresa la placa del vehículo..." />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Campo Número Motor */}
       <FormField
         control={form.control}
         name="NoMotor"
@@ -410,28 +305,18 @@ export const VehicleDataStep = ({
           <FormItem>
             <FormLabel>Número de motor (opcional)</FormLabel>
             <FormControl>
-              <Input
-                {...field}
-                placeholder="Ingresa el número de motor del vehículo..."
-                onChange={(e) => {
-                  field.onChange(e);
-                  validateFields();
-                }}
-                onBlur={() => form.trigger("NoMotor")}
-              />
+              <Input {...field} placeholder="Ingresa el número de motor del vehículo..." />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Campo de búsqueda de ubicación */}
       <div className="col-span-2">
-        <LocationCombobox form={form} onLocationSelect={handleLocationSelect} />
+        <LocationCombobox form={form} onLocationSelect={manejarSeleccionUbicacion} />
       </div>
 
-      {/* Indicador de carga */}
-      {loading && (
+      {isPending && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -441,8 +326,7 @@ export const VehicleDataStep = ({
         </motion.div>
       )}
 
-      {/* Mostrar precio cuando esté disponible */}
-      {price && (
+      {precio && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -452,15 +336,11 @@ export const VehicleDataStep = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Valor venta</p>
-              <p className="text-lg font-medium">
-                {formatCurrency(price.Venta)}
-              </p>
+              <p className="text-lg font-medium">{formatCurrency(precio.Venta)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Valor compra</p>
-              <p className="text-lg font-medium">
-                {formatCurrency(price.Compra)}
-              </p>
+              <p className="text-lg font-medium">{formatCurrency(precio.Compra)}</p>
             </div>
           </div>
         </motion.div>

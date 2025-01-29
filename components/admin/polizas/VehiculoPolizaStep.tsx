@@ -64,6 +64,7 @@ const vehiculoSchema = z.object({
     NoMotor: z.string().min(1, { message: "Requerido" }),
     Placas: z.string().min(1, { message: "Requerido" }),
     VIN: z.string().min(1, { message: "Requerido" }),
+    NumOcupantes: z.coerce.number(),
 });
 
 interface VehiculoPolizaStepProps {
@@ -96,8 +97,8 @@ export const VehiculoPolizaStep = ({
             Version: cotizacion.Version,
             Modelo: Number(cotizacion.Modelo),
             TipoVehiculo: cotizacion.TipoVehiculo.toString(),
-            ValorVehiculo: 0,
-            ValorFactura: 0,
+            ValorVehiculo: Number(cotizacion.SumaAsegurada),
+            ValorFactura: Number(cotizacion.SumaAsegurada),
             FechaRegistro: new Date().toISOString(),
             UsoVehiculo: cotizacion.UsoVehiculo.toString(),
             ZonaResidencia: zona,
@@ -105,6 +106,7 @@ export const VehiculoPolizaStep = ({
             NoMotor: cotizacion.NoMotor ?? "",
             Placas: cotizacion.Placa ?? "",
             VIN: cotizacion.VIN ?? "",
+            NumOcupantes: 5,
         },
     });
 
@@ -397,6 +399,23 @@ export const VehiculoPolizaStep = ({
 
                             <FormField
                                 control={form.control}
+                                name="NumOcupantes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Número de Ocupantes</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                {...field}
+                                                onChange={e => field.onChange(Number(e.target.value))}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {/* <FormField
+                                control={form.control}
                                 name="ValorVehiculo"
                                 render={({ field }) => (
                                     <FormItem>
@@ -415,9 +434,9 @@ export const VehiculoPolizaStep = ({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
 
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="ValorFactura"
                                 render={({ field }) => (
@@ -437,7 +456,7 @@ export const VehiculoPolizaStep = ({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
 
                             <FormField
                                 control={form.control}

@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     Select,
@@ -31,17 +33,12 @@ export const QuoteDataStep = ({
     tiposSumas,
     setIsStepValid,
 }: StepProps) => {
-    const [sumaAsegurada, setSumaAsegurada] = useState({
-        min: -1,
-        max: -1,
-    });
-    const [mensajeSuma, setMensajeSuma] = useState<string | null>(null);
-    const [isSumaAseguradaDisabled, setIsSumaAseguradaDisabled] = useState(true);
-    const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
-
     const vigencia = form.watch("vigencia");
     const meses = form.watch("meses");
     const inicioVigencia = form.watch("inicioVigencia");
+    const modelo = form.watch("Modelo");
+    const tipoSumaAsegurada = form.watch("TipoSumaAseguradaID");
+    const sumaAsegurada = form.watch("SumaAsegurada");
 
     const getNextMonthDate = (date: Date, monthsToAdd: number) => {
         const newDate = new Date(date);
@@ -50,10 +47,6 @@ export const QuoteDataStep = ({
     };
 
     const updateFinVigencia = () => {
-        const inicioVigencia = form.watch("inicioVigencia");
-        const vigencia = form.watch("vigencia");
-        const meses = form.watch("meses");
-
         if (!inicioVigencia) return;
 
         const monthsToAdd = vigencia === "Anual" ? 12 : (meses || 1);
@@ -65,75 +58,53 @@ export const QuoteDataStep = ({
         });
     };
 
-    const validateFields = async () => {
+    const validarSumaAsegurada = () => {
+        const tipoSuma = tiposSumas?.find(t => t.TipoSumaAseguradaID === tipoSumaAsegurada);
+        const valorSumaAsegurada = Number(sumaAsegurada);
+        const minSumaAsegurada = Number(form.getValues("minSumaAsegurada"));
+        const maxSumaAsegurada = Number(form.getValues("maxSumaAsegurada"));
+
+        // Si no hay tipo de suma seleccionado o es valor factura, la validación pasa
+        if (!tipoSuma || tipoSuma.NombreTipo === "Valor Factura") {
+            return true;
+        }
+
+        // Para valor comercial
+        if (tipoSuma.NombreTipo === "Valor Comercial") {
+            return true; // Siempre pasa porque el campo está disabled
+        }
+
+        // Solo validamos rango para valor convenido
+        if (tipoSuma.NombreTipo.toLowerCase() === "valor convenido") {
+            const minPermitido = maxSumaAsegurada * 0.5;
+            const maxPermitido = maxSumaAsegurada * 1.5;
+
+            return valorSumaAsegurada >= minPermitido && valorSumaAsegurada <= maxPermitido;
+        }
+
+        return true;
+    };
+
+    const validarCampos = async () => {
         const fieldsToValidate = [
             "inicioVigencia",
             "vigencia",
             "meses",
+            "TipoSumaAseguradaID",
+            "SumaAsegurada",
+            "PeriodoGracia",
         ] as const;
 
         const results = await Promise.all(
-            fieldsToValidate.map(async field => {
-                const isValid = await form.trigger(field);
-                setValidationErrors(prev => ({
-                    ...prev,
-                    [field]: !isValid
-                }));
-                return isValid;
-            })
+            fieldsToValidate.map(field => form.trigger(field))
         );
 
-        const values = form.getValues();
-        const sumaAseguradaValid = !isSumaAseguradaDisabled ?
-            (values.SumaAsegurada >= sumaAsegurada.min &&
-                values.SumaAsegurada <= sumaAsegurada.max) :
-            true;
+        const isValid = results.every(Boolean) && validarSumaAsegurada();
 
-        const isValid = results.every(Boolean) && sumaAseguradaValid;
         setIsStepValid?.(isValid);
-
-        return isValid;
     };
 
     useEffect(() => {
-        const initialValidation = async () => {
-            const fieldsToValidate = [
-                "TipoSumaAseguradaID",
-                "SumaAsegurada",
-                "PeriodoGracia",
-                "inicioVigencia",
-                "vigencia",
-                "meses",
-            ] as const;
-
-            const results = await Promise.all(
-                fieldsToValidate.map(async field => {
-                    const isValid = await form.trigger(field);
-                    setValidationErrors(prev => ({
-                        ...prev,
-                        [field]: !isValid
-                    }));
-                    return isValid;
-                })
-            );
-
-            const values = form.getValues();
-            const sumaAseguradaValid = !isSumaAseguradaDisabled ?
-                (values.SumaAsegurada >= sumaAsegurada.min &&
-                    values.SumaAsegurada <= sumaAsegurada.max) :
-                true;
-
-            const isValid = results.every(Boolean) && sumaAseguradaValid;
-            setIsStepValid?.(isValid);
-
-            const tipoSumaId = form.getValues("TipoSumaAseguradaID");
-            if (tipoSumaId) {
-                handleSumaAsegurada(tipoSumaId);
-            }
-        };
-
-        initialValidation();
-
         if (!inicioVigencia) {
             const today = new Date();
             form.setValue("inicioVigencia", today, { shouldValidate: true });
@@ -145,6 +116,8 @@ export const QuoteDataStep = ({
                 shouldValidate: true
             });
         }
+
+        validarCampos();
     }, []);
 
     useEffect(() => {
@@ -152,46 +125,42 @@ export const QuoteDataStep = ({
     }, [inicioVigencia, vigencia, meses]);
 
     useEffect(() => {
-        const subscription = form.watch((_, { name }) => {
-            if (name) {
-                validateFields();
-            }
+        const subscription = form.watch(() => {
+            validarCampos();
         });
 
         return () => subscription.unsubscribe();
     }, [form.watch]);
 
-    const handleSumaAsegurada = (tipoID: number) => {
-        const tipo = tiposSumas?.find(
-            tipo => tipo.TipoSumaAseguradaID === tipoID
-        )?.NombreTipo;
+    useEffect(() => {
+        if (tipoSumaAsegurada === 2) {
+            const minSumaAsegurada = Number(form.getValues("minSumaAsegurada"));
+            form.setValue("SumaAsegurada", minSumaAsegurada, { shouldValidate: true });
+        }
+    }, [tipoSumaAsegurada]);
 
-        const maxSumaAsegurada = form.getValues("maxSumaAsegurada");
-        const minSumaAsegurada = form.getValues("minSumaAsegurada");
-        let mensaje: string | null = null;
-        let disableSumaAsegurada = false;
+    const tiposSumasDisponibles = tiposSumas?.filter(tipo => {
+        if (tipo.NombreTipo === "Valor Factura") {
+            const modeloAnio = Number(modelo);
+            const anioActual = new Date().getFullYear();
+            return modeloAnio >= anioActual - 1;
+        }
+        return true;
+    });
 
-        if (tipo?.toLowerCase().includes("convenido")) {
-            setSumaAsegurada({
-                min: maxSumaAsegurada * 0.5,
-                max: maxSumaAsegurada * 1.5
-            });
-            mensaje = `Rango permitido ${formatCurrency(maxSumaAsegurada * 0.5)} - ${formatCurrency(maxSumaAsegurada * 1.5)}`;
-            disableSumaAsegurada = false;
-        } else if (tipo?.toLowerCase().includes("comercial")) {
-            setSumaAsegurada({ min: maxSumaAsegurada, max: maxSumaAsegurada });
-            disableSumaAsegurada = true;
-            form.setValue("SumaAsegurada", minSumaAsegurada);
-        } else {
-            // Valor libre
-            setSumaAsegurada({ min: minSumaAsegurada, max: maxSumaAsegurada });
-            mensaje = "Valor libre";
-            disableSumaAsegurada = false;
+    const obtenerMensajeSumaAsegurada = () => {
+        const tipoSuma = tiposSumas?.find(t => t.TipoSumaAseguradaID === tipoSumaAsegurada);
+        const maxSumaAsegurada = Number(form.getValues("maxSumaAsegurada"));
+
+        if (!tipoSuma || tipoSuma.NombreTipo === "Valor Factura") {
+            return null;
         }
 
-        setMensajeSuma(mensaje);
-        setIsSumaAseguradaDisabled(disableSumaAsegurada);
-        validateFields();
+        if (tipoSuma.NombreTipo === "Valor convenido") {
+            return `Rango permitido ${formatCurrency(maxSumaAsegurada * 0.5)} - ${formatCurrency(maxSumaAsegurada * 1.5)}`;
+        }
+
+        return null;
     };
 
     return (
@@ -224,7 +193,6 @@ export const QuoteDataStep = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
-                {/* Derecho de Póliza */}
                 <FormField
                     control={form.control}
                     name="DerechoPoliza"
@@ -243,8 +211,6 @@ export const QuoteDataStep = ({
                     )}
                 />
 
-
-                {/* Vigencia */}
                 <FormField
                     control={form.control}
                     name="vigencia"
@@ -275,7 +241,6 @@ export const QuoteDataStep = ({
                     )}
                 />
 
-                {/* Meses (condicional) */}
                 {vigencia === "Por meses" && (
                     <FormField
                         control={form.control}
@@ -310,7 +275,6 @@ export const QuoteDataStep = ({
                     />
                 )}
 
-                {/* Inicio de Vigencia */}
                 <FormField
                     control={form.control}
                     name="inicioVigencia"
@@ -357,7 +321,6 @@ export const QuoteDataStep = ({
                     )}
                 />
 
-                {/* Fin de Vigencia */}
                 <FormField
                     control={form.control}
                     name="finVigencia"
@@ -372,44 +335,39 @@ export const QuoteDataStep = ({
                     )}
                 />
 
-                {/* Tipo de Suma Asegurada */}
                 <FormField
                     control={form.control}
                     name="TipoSumaAseguradaID"
-                    render={({ field }) => {
-                        return (
-                            <FormItem>
-                                <FormLabel>Tipo de suma asegurada</FormLabel>
-                                <Select
-                                    onValueChange={(value) => {
-                                        field.onChange(Number(value));
-                                        handleSumaAsegurada(Number(value));
-                                    }}
-                                    value={field.value?.toString()}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona tipo de suma" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {tiposSumas?.map((tipo) => (
-                                            <SelectItem
-                                                key={tipo.TipoSumaAseguradaID}
-                                                value={tipo.TipoSumaAseguradaID.toString()}
-                                            >
-                                                {tipo.NombreTipo}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )
-                    }}
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Tipo de suma asegurada</FormLabel>
+                            <Select
+                                onValueChange={(value) => {
+                                    field.onChange(Number(value));
+                                }}
+                                value={field.value?.toString()}
+                            >
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona tipo de suma" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {tiposSumasDisponibles?.map((tipo) => (
+                                        <SelectItem
+                                            key={tipo.TipoSumaAseguradaID}
+                                            value={tipo.TipoSumaAseguradaID.toString()}
+                                        >
+                                            {tipo.NombreTipo}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
                 />
 
-                {/* Suma Asegurada */}
                 <FormField
                     control={form.control}
                     name="SumaAsegurada"
@@ -419,27 +377,25 @@ export const QuoteDataStep = ({
                             <FormControl>
                                 <Input
                                     {...field}
-                                    value={formatCurrency(field.value)}
-                                    disabled={isSumaAseguradaDisabled}
+                                    value={formatCurrency(Number(field.value))}
                                     onChange={(e) => {
-                                        const rawValue = e.target.value.replace(/[^0-9]/g, "");
-                                        const value = parseFloat(rawValue) / 100;
-                                        if (!isNaN(value)) {
-                                            field.onChange(value);
-                                            validateFields();
-                                        }
+                                        const valor = e.target.value.replace(/[^0-9]/g, "");
+                                        const valorNumerico = Number(valor) / 100;
+                                        field.onChange(valorNumerico);
                                     }}
+                                    disabled={tipoSumaAsegurada === 2}
                                 />
                             </FormControl>
-                            {mensajeSuma && (
-                                <div className="text-sm text-muted-foreground">{mensajeSuma}</div>
+                            {obtenerMensajeSumaAsegurada() && (
+                                <div className="text-sm text-muted-foreground">
+                                    {obtenerMensajeSumaAsegurada()}
+                                </div>
                             )}
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
-                {/* Período de Gracia */}
                 <FormField
                     control={form.control}
                     name="PeriodoGracia"
@@ -469,31 +425,16 @@ export const QuoteDataStep = ({
                 />
             </motion.div>
 
-            {/* Validación de suma asegurada */}
-            {!isSumaAseguradaDisabled && sumaAsegurada.min >= 0 && sumaAsegurada.max > 0 && (
-                <Alert variant={
-                    form.getValues("SumaAsegurada") >= sumaAsegurada.min &&
-                        form.getValues("SumaAsegurada") <= sumaAsegurada.max
-                        ? "default"
-                        : "destructive"
-                }>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                        La suma asegurada debe estar entre {formatCurrency(sumaAsegurada.min)} y {formatCurrency(sumaAsegurada.max)}
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {/* Mensajes de validación */}
-            {Object.keys(validationErrors).map(field =>
-                validationErrors[field] && (
-                    <Alert key={field} variant="destructive">
+            {!validarSumaAsegurada() &&
+                tipoSumaAsegurada === 4 &&
+                obtenerMensajeSumaAsegurada() && (
+                    <Alert variant="destructive">
+                        <Info className="h-4 w-4" />
                         <AlertDescription>
-                            Por favor complete el campo {field} correctamente
+                            {obtenerMensajeSumaAsegurada()}
                         </AlertDescription>
                     </Alert>
-                )
-            )}
+                )}
         </div>
     );
 };

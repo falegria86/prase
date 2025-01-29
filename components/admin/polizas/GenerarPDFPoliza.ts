@@ -114,7 +114,8 @@ export const generarPDFPoliza = async ({
             [`Version: ${respuestaPoliza.vehiculo.Version}`],
             [`Placas: ${respuestaPoliza.vehiculo.Placas}`],
             [`Número de motor: ${respuestaPoliza.vehiculo.NoMotor}`],
-            [`VIN: ${respuestaPoliza.vehiculo.VIN || "---"}`]
+            [`VIN: ${respuestaPoliza.vehiculo.VIN || "---"}`],
+            [`Número de ocupantes: ${respuestaPoliza.NumOcupantes || "---"}`],
         ],
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 1 },
@@ -142,7 +143,7 @@ export const generarPDFPoliza = async ({
     posicionY = Math.max(
         (doc as any).lastAutoTable.finalY,
         (doc as any).previousAutoTable.finalY
-    ) + 30;
+    ) + 36;
 
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
@@ -213,33 +214,33 @@ export const generarPDFPoliza = async ({
         }
     });
 
-    if (esquemaPago) {
-        posicionY = (doc as any).lastAutoTable.finalY + 4;
+    // if (esquemaPago) {
+    //     posicionY = (doc as any).lastAutoTable.finalY + 4;
 
-        const datosPagos = esquemaPago.esquemaPagos.map(pago => [
-            `Pago ${pago.numeroPago}:`,
-            formatCurrency(pago.montoPorPagar),
-            formatearFecha(pago.fechaPago)
-        ]);
+    //     const datosPagos = esquemaPago.esquemaPagos.map(pago => [
+    //         `Pago ${pago.numeroPago}:`,
+    //         formatCurrency(pago.montoPorPagar),
+    //         formatearFecha(pago.fechaPago)
+    //     ]);
 
-        autoTable(doc, {
-            startY: posicionY,
-            head: [["ESQUEMA DE PAGOS", "MONTO", "FECHA LÍMITE"]],
-            body: [
-                ...datosPagos,
-                [`Descuento por pronto pago:`, formatCurrency(esquemaPago.descuentoProntoPago), ""],
-                ["Total a pagar:", formatCurrency(esquemaPago.totalPrima), ""]
-            ],
-            theme: "grid",
-            styles: { fontSize: 8, cellPadding: 1 },
-            headStyles: { fillColor: [0, 51, 102] },
-            columnStyles: {
-                0: { cellWidth: ANCHO_PAGINA * 0.5 },
-                1: { cellWidth: ANCHO_PAGINA * 0.25, halign: "right" },
-                2: { cellWidth: ANCHO_PAGINA * 0.25, halign: "center" }
-            }
-        });
-    }
+    //     autoTable(doc, {
+    //         startY: posicionY,
+    //         head: [["ESQUEMA DE PAGOS", "MONTO", "FECHA LÍMITE"]],
+    //         body: [
+    //             ...datosPagos,
+    //             [`Descuento por pronto pago:`, formatCurrency(esquemaPago.descuentoProntoPago), ""],
+    //             ["Total a pagar:", formatCurrency(esquemaPago.totalPrima), ""]
+    //         ],
+    //         theme: "grid",
+    //         styles: { fontSize: 8, cellPadding: 1 },
+    //         headStyles: { fillColor: [0, 51, 102] },
+    //         columnStyles: {
+    //             0: { cellWidth: ANCHO_PAGINA * 0.5 },
+    //             1: { cellWidth: ANCHO_PAGINA * 0.25, halign: "right" },
+    //             2: { cellWidth: ANCHO_PAGINA * 0.25, halign: "center" }
+    //         }
+    //     });
+    // }
 
     const textoLegalPie = [
         "Atención a siniestros en México 800-772-73-10",

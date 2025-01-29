@@ -58,6 +58,7 @@ export const ActivarPolizaForm = ({
     const [modalDocumentosAbierto, setModalDocumentosAbierto] = useState(false);
     const [polizaId, setPolizaId] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
+    const [numOcupantes, setNumOcupantes] = useState(5);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -132,7 +133,6 @@ export const ActivarPolizaForm = ({
         descuentoProntoPago: number;
         tieneReclamos: boolean;
         tipoPagoID: number;
-        NumOcupantes: number;
     }) => {
         if (!clienteId || !vehiculoId) return;
         const numeroPagos = tiposPago.find(tipo => tipo.TipoPagoID === datosResumen.tipoPagoID)?.Divisor ?? 12;
@@ -155,40 +155,41 @@ export const ActivarPolizaForm = ({
                     VersionActual: 1,
                     DerechoPolizaAplicado: Number(cotizacion.DerechoPoliza),
                     TotalSinIVA: cotizacion.CostoNeto,
-                    NumOcupantes: datosResumen.NumOcupantes,
+                    NumOcupantes: 5, //TODO: Cambiar número de ocupantes por lo que venga del vehículo
                 };
+                console.log("cotizacion: ", cotizacion)
+                console.log("datos resumen: ", datosResumen)
+                // const respuesta = await postPoliza(datosPoliza);
 
-                const respuesta = await postPoliza(datosPoliza);
+                // if (respuesta) {
+                //     setPolizaId(respuesta.PolizaID);
 
-                if (respuesta) {
-                    setPolizaId(respuesta.PolizaID);
+                //     await patchCotizacion(cotizacion.CotizacionID, {
+                //         EstadoCotizacion: "EMITIDA",
+                //     });
 
-                    await patchCotizacion(cotizacion.CotizacionID, {
-                        EstadoCotizacion: "EMITIDA",
-                    });
+                //     const esquemaPago = await getEsquemaPago(respuesta.NumeroPoliza);
 
-                    const esquemaPago = await getEsquemaPago(respuesta.NumeroPoliza);
+                //     const doc = await generarPDFPoliza({
+                //         respuestaPoliza: respuesta,
+                //         cotizacion,
+                //         coberturas,
+                //         esquemaPago,
+                //         tiposVehiculo,
+                //         usosVehiculo
+                //     });
 
-                    const doc = await generarPDFPoliza({
-                        respuestaPoliza: respuesta,
-                        cotizacion,
-                        coberturas,
-                        esquemaPago,
-                        tiposVehiculo,
-                        usosVehiculo
-                    });
+                //     doc.save(`poliza_${respuesta.NumeroPoliza}.pdf`);
 
-                    doc.save(`poliza_${respuesta.NumeroPoliza}.pdf`);
+                //     toast({
+                //         title: "Póliza activada",
+                //         description: "La póliza se ha activado correctamente",
+                //     });
 
-                    toast({
-                        title: "Póliza activada",
-                        description: "La póliza se ha activado correctamente",
-                    });
-
-                    setModalDocumentosAbierto(true);
-                } else {
-                    throw new Error("Error al activar póliza");
-                }
+                //     setModalDocumentosAbierto(true);
+                // } else {
+                //     throw new Error("Error al activar póliza");
+                // }
             } catch (error) {
                 toast({
                     title: "Error",
@@ -201,7 +202,7 @@ export const ActivarPolizaForm = ({
 
     if (isPending) {
         return (
-            <LoaderModales texto="Activando Póliza..."/>
+            <LoaderModales texto="Activando Póliza..." />
         );
     }
 

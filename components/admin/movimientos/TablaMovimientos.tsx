@@ -38,6 +38,7 @@ import { iGetMovimientos } from "@/interfaces/MovimientosInterface"
 import { deleteMovimiento } from "@/actions/MovimientosActions"
 import { eliminarMovimientoSchema } from "@/schemas/admin/movimientos/movimientosSchema"
 import { LoaderModales } from "@/components/LoaderModales"
+import { useRouter } from "next/navigation"
 
 interface PropiedadesTabla {
     movimientos: iGetMovimientos[]
@@ -46,7 +47,8 @@ interface PropiedadesTabla {
 export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
     const [movimientoSeleccionado, setMovimientoSeleccionado] = useState<iGetMovimientos | null>(null)
     const [isPending, startTransition] = useTransition();
-    const { toast } = useToast()
+    const { toast } = useToast();
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof eliminarMovimientoSchema>>({
         resolver: zodResolver(eliminarMovimientoSchema),
@@ -57,9 +59,11 @@ export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
     })
 
     const onSubmit = async (valores: z.infer<typeof eliminarMovimientoSchema>) => {
+        if (!movimientoSeleccionado) return
+        // console.log(movimientoSeleccionado)
         startTransition(async () => {
             try {
-                const respuesta = await deleteMovimiento(valores)
+                const respuesta = await deleteMovimiento(movimientoSeleccionado.TransaccionID, valores)
 
                 if (!respuesta || respuesta.error) {
                     toast({
@@ -74,8 +78,9 @@ export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
                     title: "Éxito",
                     description: "Movimiento eliminado correctamente"
                 })
-                setMovimientoSeleccionado(null)
-                form.reset()
+                setMovimientoSeleccionado(null);
+                form.reset();
+                router.refresh();
             } catch (error) {
                 toast({
                     title: "Error",

@@ -25,6 +25,7 @@ export const {
                     aplicaciones: token.aplicaciones || [],
                     usuario: token.usuario,
                     empleado: token.empleado,
+                    grupo: token.grupo,
 
                 };
             }
@@ -37,6 +38,7 @@ export const {
                 token.aplicaciones = user.aplicaciones;
                 token.usuario = user.usuario;
                 token.empleado = user.empleado;
+                token.grupo = user.grupo
             }
 
             return token;

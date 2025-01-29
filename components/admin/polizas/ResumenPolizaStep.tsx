@@ -53,7 +53,6 @@ const resumenSchema = z.object({
     tieneReclamos: z.boolean(),
     tipoPagoID: z.coerce.number().min(1, { message: "El tipo de pago es requerido" }),
     primaTotal: z.number(),
-    NumOcupantes: z.coerce.number().min(1, { message: "Número de ocupantes requerido" }),
 });
 
 interface ResumenPolizaStepProps {
@@ -108,7 +107,6 @@ export const ResumenPolizaStep = ({
             tieneReclamos: false,
             tipoPagoID: 7,
             primaTotal: ((Number(cotizacion.CostoBase) + Number(cotizacion.DerechoPoliza)) * 0.16) + Number(cotizacion.CostoBase),
-            NumOcupantes: 5
         },
     });
 
@@ -165,6 +163,7 @@ export const ResumenPolizaStep = ({
             ...datos,
             primaTotal: resultadosCalculo.total
         };
+
         alConfirmar(datosCompletos);
     };
 
@@ -211,24 +210,6 @@ export const ResumenPolizaStep = ({
                                             value={field.value ? field.value.toISOString().split('T')[0] : ''}
                                             onChange={e => field.onChange(new Date(e.target.value))}
                                             min={form.getValues("fechaInicio").toISOString().split('T')[0]}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="NumOcupantes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Número de Ocupantes</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={e => field.onChange(Number(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormMessage />

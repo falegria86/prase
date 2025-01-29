@@ -72,16 +72,21 @@ export const patchInicioCaja = async (id: number, body: iPatchInicioCaja) => {
     }
 }
 
-export const deleteInicioCaja = async (id: number) => {
+export const deleteInicioCaja = async (id: number, usuario: number, body: { motivo: string }) => {
     try {
-        const resp = await fetch(`${url}/inicios-caja/${id}`, {
+        const resp = await fetch(`${url}/inicios-caja/${id}/${usuario}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify(body),
         });
 
-        if (!resp.ok) return { error: 'Error al eliminar inicio de caja' }
+        if (!resp.ok) {
+            const respuesta = await resp.json();
+            console.log(respuesta)
+            return { error: 'Error al eliminar inicio de caja' }
+        }
 
         return { msg: 'Inicio de caja eliminado correctamente' }
     } catch (error) {
@@ -141,9 +146,9 @@ export const postGenerarCodigo = async (idTransaccion: number) => {
     }
 }
 
-export const deleteMovimiento = async (body: iDeleteMovimiento) => {
+export const deleteMovimiento = async (idTransaccion: number, body: iDeleteMovimiento) => {
     try {
-        const resp = await fetch(`${url}/transacciones`, {
+        const resp = await fetch(`${url}/transacciones/${idTransaccion}/admin`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

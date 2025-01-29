@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Edit, Eye, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -23,6 +25,14 @@ import {
     DialogHeader,
 } from "@/components/ui/dialog"
 import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import {
     Table,
     TableBody,
     TableCell,
@@ -41,130 +51,144 @@ import { deleteInicioCaja } from "@/actions/MovimientosActions"
 import { EditarInicioCajaForm } from "./EditarInicioCajaForm"
 import { VisualizarFirma } from "./VisualizarFirma"
 import { formatearFecha } from "@/lib/format-date"
+import { Textarea } from "@/components/ui/textarea"
+import { useState, useTransition } from "react"
+import { LoaderModales } from "@/components/LoaderModales"
+import { Button } from "@/components/ui/button"
+
+const eliminarInicioCajaSchema = z.object({
+    motivo: z.string().min(1, "El motivo es requerido"),
+})
 
 interface TableIniciosCajaProps {
     iniciosCaja: iGetIniciosCaja[]
 }
 
 export const TableIniciosCaja = ({ iniciosCaja }: TableIniciosCajaProps) => {
+    const [isPending, startTransition] = useTransition()
     const [inicioCajaSeleccionado, setInicioCajaSeleccionado] = useState<iGetIniciosCaja | null>(null)
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
     const [modalFirmaAbierto, setModalFirmaAbierto] = useState(false)
+    const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false)
     const { toast } = useToast()
     const router = useRouter()
 
-    const manejarEliminar = async () => {
+    const form = useForm<z.infer<typeof eliminarInicioCajaSchema>>({
+        resolver: zodResolver(eliminarInicioCajaSchema),
+        defaultValues: {
+            motivo: "",
+        },
+    })
+
+    const manejarEliminar = async (valores: z.infer<typeof eliminarInicioCajaSchema>) => {
         if (!inicioCajaSeleccionado) return
 
-        try {
-            const respuesta = await deleteInicioCaja(inicioCajaSeleccionado.InicioCajaID)
+        startTransition(async () => {
+            try {
+                const respuesta = await deleteInicioCaja(
+                    inicioCajaSeleccionado.InicioCajaID,
+                    inicioCajaSeleccionado.Usuario.UsuarioID,
+                    valores
+                )
 
-            if (respuesta?.error) {
+                if (respuesta?.error) {
+                    toast({
+                        title: "Error",
+                        description: "Ocurrió un error al eliminar el inicio de caja",
+                        variant: "destructive",
+                    })
+                    return
+                }
+
+                toast({
+                    title: "Éxito",
+                    description: "Inicio de caja eliminado correctamente",
+                })
+                setModalEliminarAbierto(false)
+                setInicioCajaSeleccionado(null)
+                form.reset()
+                router.refresh()
+            } catch (error) {
                 toast({
                     title: "Error",
                     description: "Ocurrió un error al eliminar el inicio de caja",
                     variant: "destructive",
                 })
-                return
             }
+        })
+    }
 
-            toast({
-                title: "Éxito",
-                description: "Inicio de caja eliminado correctamente",
-            })
-            router.refresh()
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Ocurrió un error al eliminar el inicio de caja",
-                variant: "destructive",
-            })
-        }
+    if (isPending) {
+        return <LoaderModales />
     }
 
     return (
         <>
-            <AlertDialog>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará el inicio de caja permanentemente.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" onClick={manejarEliminar}>
-                            Eliminar
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Fecha de Inicio</TableHead>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Monto Inicial</TableHead>
+                        <TableHead>Total Efectivo</TableHead>
+                        <TableHead>Total Transferencia</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Acciones</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {iniciosCaja.map((inicio) => (
+                        <TableRow key={inicio.InicioCajaID}>
+                            <TableCell>{formatearFecha(inicio.FechaInicio)}</TableCell>
+                            <TableCell>{inicio.Usuario.NombreUsuario}</TableCell>
+                            <TableCell>{formatCurrency(Number(inicio.MontoInicial))}</TableCell>
+                            <TableCell>{formatCurrency(Number(inicio.TotalEfectivo))}</TableCell>
+                            <TableCell>{formatCurrency(Number(inicio.TotalTransferencia))}</TableCell>
+                            <TableCell>{inicio.Estatus}</TableCell>
+                            <TableCell className="flex items-center gap-3">
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Edit
+                                            className="h-4 w-4 cursor-pointer text-gray-600"
+                                            onClick={() => {
+                                                setInicioCajaSeleccionado(inicio)
+                                                setModalEditarAbierto(true)
+                                            }}
+                                        />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Editar</TooltipContent>
+                                </Tooltip>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Fecha de Inicio</TableHead>
-                            <TableHead>Usuario</TableHead>
-                            <TableHead>Monto Inicial</TableHead>
-                            <TableHead>Total Efectivo</TableHead>
-                            <TableHead>Total Transferencia</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>Acciones</TableHead>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Eye
+                                            className="h-4 w-4 cursor-pointer text-gray-600"
+                                            onClick={() => {
+                                                setInicioCajaSeleccionado(inicio)
+                                                setModalFirmaAbierto(true)
+                                            }}
+                                        />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Ver firma</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Trash2
+                                            className="h-4 w-4 cursor-pointer text-gray-600"
+                                            onClick={() => {
+                                                setInicioCajaSeleccionado(inicio)
+                                                setModalEliminarAbierto(true)
+                                            }}
+                                        />
+                                    </TooltipTrigger>
+                                    <TooltipContent>Eliminar</TooltipContent>
+                                </Tooltip>
+                            </TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {iniciosCaja.map((inicio) => (
-                            <TableRow key={inicio.InicioCajaID}>
-                                <TableCell>{formatearFecha(inicio.FechaInicio)}</TableCell>
-                                <TableCell>{inicio.Usuario.NombreUsuario}</TableCell>
-                                <TableCell>{formatCurrency(Number(inicio.MontoInicial))}</TableCell>
-                                <TableCell>{formatCurrency(Number(inicio.TotalEfectivo))}</TableCell>
-                                <TableCell>{formatCurrency(Number(inicio.TotalTransferencia))}</TableCell>
-                                <TableCell>{inicio.Estatus}</TableCell>
-                                <TableCell className="flex items-center gap-3">
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Edit
-                                                className="h-4 w-4 cursor-pointer text-gray-600"
-                                                onClick={() => {
-                                                    setInicioCajaSeleccionado(inicio)
-                                                    setModalEditarAbierto(true)
-                                                }}
-                                            />
-                                        </TooltipTrigger>
-                                        <TooltipContent>Editar</TooltipContent>
-                                    </Tooltip>
-
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Eye
-                                                className="h-4 w-4 cursor-pointer text-gray-600"
-                                                onClick={() => {
-                                                    setInicioCajaSeleccionado(inicio)
-                                                    setModalFirmaAbierto(true)
-                                                }}
-                                            />
-                                        </TooltipTrigger>
-                                        <TooltipContent>Ver firma</TooltipContent>
-                                    </Tooltip>
-
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <AlertDialogTrigger asChild>
-                                                <Trash2
-                                                    className="h-4 w-4 cursor-pointer text-gray-600"
-                                                    onClick={() => setInicioCajaSeleccionado(inicio)}
-                                                />
-                                            </AlertDialogTrigger>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Eliminar</TooltipContent>
-                                    </Tooltip>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </AlertDialog>
+                    ))}
+                </TableBody>
+            </Table>
 
             <Dialog
                 open={modalEditarAbierto}
@@ -206,6 +230,62 @@ export const TableIniciosCaja = ({ iniciosCaja }: TableIniciosCajaProps) => {
                             usuario={inicioCajaSeleccionado.Usuario.NombreUsuario}
                         />
                     )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={modalEliminarAbierto}
+                onOpenChange={() => {
+                    setModalEliminarAbierto(false)
+                    setInicioCajaSeleccionado(null)
+                    form.reset()
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Eliminar Inicio de Caja</DialogTitle>
+                        <DialogDescription>
+                            Esta acción no se puede deshacer. Por favor, proporciona un motivo para la eliminación.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(manejarEliminar)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="motivo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Motivo de eliminación</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                {...field}
+                                                placeholder="Explica el motivo de la eliminación..."
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="flex justify-end gap-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setModalEliminarAbierto(false)
+                                        setInicioCajaSeleccionado(null)
+                                        form.reset()
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button type="submit" variant="destructive">
+                                    Eliminar
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
                 </DialogContent>
             </Dialog>
         </>

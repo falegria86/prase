@@ -16,6 +16,8 @@ import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
 import { iAjustesCP } from "@/interfaces/AjustesCPInterace";
 import { getAjustesCP } from "@/actions/AjustesCP";
 import { useCalculosPrima } from "@/hooks/useCalculoPrima";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 interface PropiedadesPlanPago {
   form: UseFormReturn<FormData>;
@@ -31,6 +33,7 @@ export const PlanPago = ({
   derechoPoliza,
 }: PropiedadesPlanPago) => {
   const [ajustes, setAjustes] = useState<iAjustesCP>();
+  const [showMensual, setShowMensual] = useState(false);
   const { calcularAjustes, obtenerPagos } = useCalculosPrima();
   const codigoPostal = form.watch("CP");
 
@@ -49,31 +52,38 @@ export const PlanPago = ({
   }, [codigoPostal]);
 
   const formData = form.getValues();
-  const tipoPagoSeleccionado = form.watch("TipoPagoID");
   const bonificacion = form.watch("PorcentajeDescuento") || 0;
   const tipoPagoAnual = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('anual'));
   const tipoPagoSemestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
   const tipoPagoTrimestral = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
+  const tipoPagoMensual = tiposPagos.find((t) => t.Descripcion.toLowerCase().includes('mensual'));
 
   const resultadosAnual = calcularAjustes({
     form,
     costoBase,
     ajustesCP: ajustes,
-    tipoPago: tipoPagoAnual
+    tipoPago: tipoPagoAnual,
   });
 
   const resultadosSemestral = calcularAjustes({
     form,
     costoBase,
     ajustesCP: ajustes,
-    tipoPago: tipoPagoSemestral
+    tipoPago: tipoPagoSemestral,
   });
 
   const resultadosTrimestral = calcularAjustes({
     form,
     costoBase,
     ajustesCP: ajustes,
-    tipoPago: tipoPagoTrimestral
+    tipoPago: tipoPagoTrimestral,
+  });
+
+  const resultadosMensual = calcularAjustes({
+    form,
+    costoBase,
+    ajustesCP: ajustes,
+    tipoPago: tipoPagoMensual,
   });
 
   const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
@@ -88,6 +98,12 @@ export const PlanPago = ({
     derechoPoliza
   ) : null;
 
+  const detallesPagoMensual = tipoPagoMensual ? obtenerPagos(
+    formData.CostoNeto,
+    tipoPagoMensual,
+    derechoPoliza
+  ) : null;
+
   const validarBonificacion = (valor: string): number => {
     if (valor === "") return 0;
     const numero = Math.min(Math.max(Number(valor), 0), 35);
@@ -97,6 +113,7 @@ export const PlanPago = ({
   form.setValue('costoTotalAnual', resultadosAnual.total);
   form.setValue('costoTotalSemestral', resultadosSemestral.total);
   form.setValue('costoTotalTrimestral', resultadosTrimestral.total);
+  form.setValue('costoTotalMensual', resultadosMensual.total);
 
   return (
     <Card className="mt-6">
@@ -243,6 +260,50 @@ export const PlanPago = ({
               </div>
             </>
           )}
+
+          {/* Costo Mensual */}
+          {showMensual && (
+            <>
+              <div className="flex justify-end gap-4 items-center pt-2 border-t">
+                <span className="text-lg font-semibold">Costo Total Pago Mensual:</span>
+                <span className="text-lg font-bold text-primary">
+                  {formatCurrency(resultadosMensual.total)}
+                </span>
+              </div>
+
+              {detallesPagoMensual && (
+                <>
+                  <div className="flex justify-end gap-4 items-center pt-2 border-t">
+                    <span className="font-medium">Primer pago:</span>
+                    <span>{formatCurrency(detallesPagoMensual.primerPago)}</span>
+                  </div>
+
+                  <div className="flex justify-end gap-4 items-center">
+                    <span className="font-medium">
+                      {detallesPagoMensual.numeroPagosSubsecuentes}{" "}
+                      {detallesPagoMensual.numeroPagosSubsecuentes === 1 ? "pago" : "pagos"}{" "}
+                      subsecuentes:
+                    </span>
+                    <span>{formatCurrency(detallesPagoMensual.pagoSubsecuente)}</span>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-mensual"
+              onCheckedChange={() => {
+                setShowMensual(prevState => {
+                  const nuevoEstado = !prevState;
+                  form.setValue('showMensual', nuevoEstado);
+                  return nuevoEstado;
+                });
+              }}
+            />
+            <Label htmlFor="show-mensual">Añadir opción mensual</Label>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -52,7 +52,10 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             tipoMoneda: 0,
             tipoDeducible: 0,
             CoberturaAmparada: false,
-            sumaAseguradaPorPasajero: false
+            sumaAseguradaPorPasajero: false,
+            primaMinima: 0,
+            primaMaxima: 0,
+            factorDecrecimiento: 0,
         },
     });
 
@@ -111,7 +114,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                 TipoMonedaID: values.tipoMoneda,
             }
         };
-  
+
         startTransition(async () => {
             try {
                 const resp = await postCobertura(formattedData);
@@ -271,22 +274,40 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     />
 
                                     {!isAmparada && (
-                                        <FormField
-                                            control={form.control}
-                                            name="PorcentajePrima"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Tasa Base</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Tasa base sobre la cual se va a calcular el costo de la cobertura..."
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <>
+                                            <FormField
+                                                control={form.control}
+                                                name="primaMinima"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Tasa Base Mínima(%)</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Tasa base mínima..."
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="primaMaxima"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Tasa Base Máxima(%)</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Tasa base máxima..."
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </>
                                     )}
                                 </>
                             )}

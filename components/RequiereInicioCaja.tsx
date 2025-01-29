@@ -1,4 +1,3 @@
-// components/RequiereInicioCaja.tsx
 "use client";
 
 import { useEffect, useState } from "react";

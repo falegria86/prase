@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useRouter } from "next/navigation"
-import SignatureCanvas from 'react-signature-canvas'
-import { useRef, useTransition } from "react"
+import { useTransition } from "react"
 import { SaveIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -28,10 +27,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { nuevoInicioCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema"
 import { iGetUsers } from "@/interfaces/SeguridadInterface"
 
-type ReactSignatureCanvas = SignatureCanvas
+const nuevoInicioCajaSchema = z.object({
+    TotalEfectivo: z.number().min(1, { message: "El total de efectivo es requerido" }),
+    TotalTransferencia: z.number().min(1, { message: "El total de transferencia es requerido" }),
+    UsuarioID: z.number().min(1, { message: "El usuario es requerido" }),
+    UsuarioAutorizoID: z.number(),
+})
 
 interface NuevoInicioCajaFormProps {
     usuarios: iGetUsers[]
@@ -49,7 +52,6 @@ export const NuevoInicioCajaForm = ({
     const form = useForm<z.infer<typeof nuevoInicioCajaSchema>>({
         resolver: zodResolver(nuevoInicioCajaSchema),
         defaultValues: {
-            MontoInicial: 0,
             TotalEfectivo: 0,
             TotalTransferencia: 0,
             UsuarioID: 24,
@@ -57,11 +59,19 @@ export const NuevoInicioCajaForm = ({
         },
     })
 
+    const totalEfectivo = form.watch("TotalEfectivo")
+    const totalTransferencia = form.watch("TotalTransferencia")
+    const montoInicial = totalEfectivo + totalTransferencia
+
     const onSubmit = async (values: z.infer<typeof nuevoInicioCajaSchema>) => {
-        // console.log(values)
+        const datosConMontoInicial = {
+            ...values,
+            MontoInicial: montoInicial
+        }
+
         startTransition(async () => {
             try {
-                const respuesta = await postInicioCaja(values)
+                const respuesta = await postInicioCaja(datosConMontoInicial)
 
                 if (respuesta?.error) {
                     toast({
@@ -88,9 +98,7 @@ export const NuevoInicioCajaForm = ({
     }
 
     if (isPending) {
-        return (
-            <LoaderModales texto="Creando inicio de caja..." />
-        )
+        return <LoaderModales texto="Creando inicio de caja..." />
     }
 
     return (
@@ -127,26 +135,13 @@ export const NuevoInicioCajaForm = ({
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="MontoInicial"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Monto Inicial</FormLabel>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    value={formatCurrency(field.value)}
-                                    onChange={(e) => {
-                                        const valor = e.target.value.replace(/[^0-9]/g, "")
-                                        field.onChange(Number(valor) / 100)
-                                    }}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <FormItem>
+                    <FormLabel>Monto Inicial</FormLabel>
+                    <Input
+                        value={formatCurrency(montoInicial)}
+                        disabled
+                    />
+                </FormItem>
 
                 <FormField
                     control={form.control}
@@ -189,31 +184,6 @@ export const NuevoInicioCajaForm = ({
                         </FormItem>
                     )}
                 />
-
-                {/* <div className="space-y-4">
-                    <FormLabel>Firma Electrónica</FormLabel>
-                    <div className="space-y-2">
-                        <div className="border rounded-lg w-fit">
-                            <SignatureCanvas
-                                ref={signatureRef}
-                                canvasProps={{
-                                    className: "w-full h-40",
-                                    style: { width: "100%", height: "160px" }
-                                }}
-                                backgroundColor="rgb(255, 255, 255)"
-                            />
-                        </div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={limpiarFirma}
-                            size="sm"
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Limpiar
-                        </Button>
-                    </div>
-                </div> */}
 
                 <Button type="submit" disabled={isPending}>
                     <SaveIcon className="w-4 h-4 mr-2" />

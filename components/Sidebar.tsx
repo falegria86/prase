@@ -242,7 +242,8 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                 </AnimatePresence>
               </div>
             ))}
-            {/* {inicioCajaActivo && (
+
+            {inicioCajaActivo && user?.grupo.nombre !== 'Administrador' && (
               <div className="px-4 py-2">
                 <Button
                   variant="outline"
@@ -253,7 +254,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
                   Inicio de Caja Activo
                 </Button>
               </div>
-            )} */}
+            )}
           </nav>
 
           <div className="mt-auto">

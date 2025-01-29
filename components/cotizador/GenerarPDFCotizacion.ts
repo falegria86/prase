@@ -19,6 +19,7 @@ interface GenerarPDFProps {
   usosVehiculo: iGetUsosVehiculo[];
   tiposPago: iGetTipoPagos[];
   isSave: boolean;
+  showMensual?: boolean;
 }
 
 export const generarPDFCotizacion = async ({
@@ -27,6 +28,7 @@ export const generarPDFCotizacion = async ({
   usosVehiculo,
   tiposPago,
   isSave,
+  showMensual,
 }: GenerarPDFProps) => {
   const doc = new jsPDF({
     format: 'letter'
@@ -57,6 +59,7 @@ export const generarPDFCotizacion = async ({
   const tipoPagoAnual = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('anual'));
   const tipoPagoSemestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('semestral'));
   const tipoPagoTrimestral = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('trimestral'));
+  const tipoPagoMensual = tiposPago.find((t) => t.Descripcion.toLowerCase().includes('mensual'));
 
   const ajustesCP = await getAjustesCP(datos.CP);
   const { obtenerPagos } = useCalculosPrima();
@@ -85,6 +88,14 @@ export const generarPDFCotizacion = async ({
     derechoPoliza: Number(datos.DerechoPoliza)
   });
 
+  const resultadosMensual = calcularPrima({
+    costoBase: datos.CostoBase,
+    ajustes: ajustesCP,
+    tipoPago: tipoPagoMensual,
+    bonificacion: Number(datos.PorcentajeDescuento),
+    derechoPoliza: Number(datos.DerechoPoliza)
+  });
+
   const detallesPagoSemestral = tipoPagoSemestral ? obtenerPagos(
     datos.CostoNeto,
     tipoPagoSemestral,
@@ -94,6 +105,12 @@ export const generarPDFCotizacion = async ({
   const detallesPagoTrimestral = tipoPagoTrimestral ? obtenerPagos(
     datos.CostoNeto,
     tipoPagoTrimestral,
+    Number(datos.DerechoPoliza)
+  ) : null;
+
+  const detallesPagoMensual = tipoPagoMensual ? obtenerPagos(
+    datos.CostoNeto,
+    tipoPagoMensual,
     Number(datos.DerechoPoliza)
   ) : null;
 
@@ -202,8 +219,13 @@ export const generarPDFCotizacion = async ({
     [
       `TOTAL PAGO TRIMESTRAL: ${formatearMoneda(resultadosTrimestral.total)}`,
       detallesPagoTrimestral ? `Primer pago: ${formatearMoneda(detallesPagoTrimestral.primerPago)}` : "",
-      detallesPagoTrimestral ? `Pagos subscuentes: ${formatearMoneda(detallesPagoTrimestral.pagoSubsecuente)}` : ""
-    ]
+      detallesPagoTrimestral ? `Pagos subsecuentes: ${formatearMoneda(detallesPagoTrimestral.pagoSubsecuente)}` : ""
+    ],
+    ...(showMensual ? [[
+      `TOTAL PAGO MENSUAL: ${formatearMoneda(resultadosMensual.total)}`,
+      detallesPagoMensual ? `Primer pago: ${formatearMoneda(detallesPagoMensual.primerPago)}` : "",
+      detallesPagoMensual ? `Pagos subsecuentes: ${formatearMoneda(detallesPagoMensual.pagoSubsecuente)}` : ""
+    ]] : [])
   ];
 
   autoTable(doc, {

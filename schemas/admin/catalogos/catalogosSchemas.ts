@@ -64,6 +64,9 @@ export const nuevaCoberturaSchema = z.object({
     SinValor: z.boolean(),
     IndiceSiniestralidad: z.boolean(),
     AplicaSumaAsegurada: z.boolean(),
+    primaMinima: z.number(),
+    primaMaxima: z.number(),
+    factorDecrecimiento: z.number(),
     tipoMoneda: z.coerce.number().min(1, {
         message: 'El tipo de moneda es requerido'
     }),
@@ -85,6 +88,9 @@ export const editCoberturaSchema = z.object({
     DeducibleMax: z.string(),
     PorcentajePrima: z.string(),
     RangoSeleccion: z.string(),
+    primaMinima: z.string(),
+    primaMaxima: z.string(),
+    factorDecrecimiento: z.string(),
     EsCoberturaEspecial: z.boolean(),
     Variable: z.boolean(),
     SinValor: z.boolean(),

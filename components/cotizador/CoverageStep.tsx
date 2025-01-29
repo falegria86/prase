@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
+import { Shield, Info, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -30,7 +31,6 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Shield, Info, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,7 @@ import { formatCurrency } from "@/lib/format";
 import { PlanPago } from "./PlanPago";
 import { aplicarReglasPorCobertura } from "../../lib/ManejadorReglasCobertura";
 import { Switch } from "../ui/switch";
+import { CalculadoraPrimaUniversal } from "./CalculadoraPrimaUniversal";
 
 type TipoCalculo = "fijo" | "cobertura";
 
@@ -79,6 +80,9 @@ interface CoberturaExtendida {
   deducibleSeleccionado?: number;
   sumaAseguradaPersonalizada?: number;
   valorSeleccionado?: number;
+  primaMinima: string;
+  primaMaxima: string;
+  factorDecrecimiento: string;
 }
 
 export const CoverageStep = ({
@@ -95,7 +99,9 @@ export const CoverageStep = ({
   const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<
     CoberturaExtendida[]
   >([]);
+  const [costoBaseAnual, setCostoBaseAnual] = useState("");
   const [montoFijo, setMontoFijo] = useState("");
+  const calculadoraPrima = new CalculadoraPrimaUniversal();
 
   const obtenerSumaAsegurada = useCallback(
     (cobertura: CoberturaExtendida): number => {
@@ -129,9 +135,7 @@ export const CoverageStep = ({
     return (
       cobertura.deducibleSeleccionado || parseFloat(cobertura.DeducibleMin)
     );
-  },
-    []
-  );
+  }, []);
 
   const calcularPrima = useCallback(
     (cobertura: CoberturaExtendida, tipo: TipoCalculo): number => {
@@ -144,8 +148,16 @@ export const CoverageStep = ({
         return parseFloat(cobertura.PrimaBase);
       }
 
-      const primaPorcentaje = parseFloat(cobertura.PorcentajePrima) / 100;
-      const primaBase = sumaAsegurada * primaPorcentaje;
+      const config = {
+        // Convertimos los porcentajes a decimales (ej: 0.84% -> 0.0084)
+        primaMinima: parseFloat(cobertura.primaMinima) / 100,
+        primaMaxima: parseFloat(cobertura.primaMaxima) / 100,
+        sumaAseguradaMinima: parseFloat(cobertura.SumaAseguradaMin),
+        sumaAseguradaMaxima: parseFloat(cobertura.SumaAseguradaMax),
+        factorDecrecimiento: parseFloat(cobertura.factorDecrecimiento)
+      };
+
+      const primaBase = calculadoraPrima.calcularPrima(sumaAsegurada, config);
 
       if (cobertura.CoberturaAmparada) {
         return primaBase;
@@ -153,7 +165,6 @@ export const CoverageStep = ({
 
       if (cobertura.tipoDeducible.Nombre === "UMA") {
         const deduciblePesos = deducible * 108.57;
-
         return Math.max(0, primaBase - deduciblePesos);
       }
 
@@ -161,7 +172,6 @@ export const CoverageStep = ({
     },
     [obtenerSumaAsegurada, obtenerDeducible]
   );
-
   const actualizarDetalles = useCallback(
     (coberturas: CoberturaExtendida[]) => {
       const detalles = coberturas.map((cobertura) => {
@@ -328,9 +338,14 @@ export const CoverageStep = ({
 
   const manejarCambioMontoFijo = useCallback(
     (valor: string) => {
-      const numeroLimpio = valor.replace(/[^0-9.]/g, "");
-      setMontoFijo(numeroLimpio);
-      form.setValue("PrimaTotal", parseFloat(numeroLimpio) || 0);
+
+      //Obtenemos el pago anual ya con iba y derecho de póliza
+      const costoDerecho = form.getValues('DerechoPoliza');
+      const costoAnual = ((Number(valor) * 100) / 116) - costoDerecho;
+
+      setCostoBaseAnual(costoAnual.toString())
+      setMontoFijo(valor.toString());
+      form.setValue("PrimaTotal", costoAnual || 0);
     },
     [form]
   );
@@ -453,7 +468,7 @@ export const CoverageStep = ({
   const generarRangosSumaAsegurada = useCallback(
     (sumaBase: number, limiteInferior: number, limiteSuperior: number): number[] => {
       const rangos: number[] = [];
-      const esMayorA500k = sumaBase > 500000;
+      const esMayorA500k = sumaBase > 1000000;
       const incremento = esMayorA500k ? 100000 : 10000;
       // const limiteInferior = Math.floor(sumaBase * 0.5);
       // const limiteSuperior = sumaBase;
@@ -539,7 +554,7 @@ export const CoverageStep = ({
           Number(cobertura.SumaAseguradaMin),
           Number(cobertura.SumaAseguradaMax)
         );
-        const valorSelect = cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
+        const valorSelect = cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMin;
 
         return (
           <>
@@ -550,7 +565,7 @@ export const CoverageStep = ({
                   onValueChange={(valor) =>
                     manejarCambioSumaAsegurada(cobertura.CoberturaID, valor)
                   }
-                  disabled={cobertura.tipoMoneda.Abreviacion === 'UMA'}
+                // disabled={cobertura.tipoMoneda.Abreviacion === 'UMA'}
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue>
@@ -560,7 +575,7 @@ export const CoverageStep = ({
                   <SelectContent>
                     {rangosMax.map((valor) => (
                       <SelectItem key={valor} value={valor.toString()}>
-                        {formatCurrency(valor)}
+                        {cobertura.tipoMoneda.Abreviacion === 'UMA' ? `${valor.toString()} UMAS` : formatCurrency(valor)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -603,8 +618,11 @@ export const CoverageStep = ({
         Number(cobertura.SumaAseguradaMin),
         Number(cobertura.SumaAseguradaMax)
       );
+
+      const rangoMedio = rangosMax.length / 2;
+
       const valorSelect =
-        cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMax;
+        cobertura.sumaAseguradaPersonalizada || rangosMax[rangoMedio];
 
       return (
         <Select
@@ -913,7 +931,7 @@ export const CoverageStep = ({
             tiposPagos={tiposPagos}
             costoBase={
               tipoCalculo === "fijo"
-                ? parseFloat(montoFijo) || 0
+                ? parseFloat(costoBaseAnual) || 0
                 : coberturasSeleccionadas.reduce(
                   (total, cobertura) =>
                     total + calcularPrima(cobertura, "cobertura"),

@@ -31,11 +31,18 @@ export interface EmpleadoLogin {
   TipoEmpleado: null | number;
 }
 
+export interface GrupoLogin {
+  id: number;
+  nombre: string;
+  descripcion: string;
+}
+
 export interface CustomUser extends DefaultUser {
   jwt: string;
   aplicaciones: Aplicaciones[];
   usuario: UsuarioLogin;
   empleado: EmpleadoLogin;
+  grupo: GrupoLogin;
 }
 
 declare module "next-auth" {
@@ -52,5 +59,6 @@ declare module "next-auth/jwt" {
     aplicaciones: Aplicaciones[];
     usuario: UsuarioLogin,
     empleado: EmpleadoLogin,
+    grupo: GrupoLogin,
   }
 }

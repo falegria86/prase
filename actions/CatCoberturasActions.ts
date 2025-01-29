@@ -68,6 +68,7 @@ export const patchCobertura = async (id: number, body: iPatchCobertura) => {
         if (!resp.ok) return null;
 
         const data: iPostCoberturaResp = await resp.json();
+        console.log(data)
         return data;
     } catch (error) {
         console.log('Error al modificar paquete: ', error);

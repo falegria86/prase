@@ -1,3 +1,5 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Dialog,
@@ -16,6 +18,7 @@ import type {
 import { RegistroPagoPoliza } from "./RegistroPagoPoliza";
 import { EditarPagosPoliza } from "./EditarPagosPoliza";
 import { HistorialPagosPoliza } from "./HistorialPagosPoliza";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface PropiedadesGestionPagos {
     abierto: boolean;
@@ -38,6 +41,8 @@ export const GestionPagosPoliza = ({
     statusPago,
     metodosPago,
 }: PropiedadesGestionPagos) => {
+    const user = useCurrentUser();
+
     return (
         <Dialog open={abierto} onOpenChange={alCerrar}>
             <DialogContent className="max-w-4xl h-[600px] overflow-y-auto">
@@ -54,7 +59,7 @@ export const GestionPagosPoliza = ({
                     <TabsList className="w-full">
                         <TabsTrigger value="registrar">Registrar Pago</TabsTrigger>
                         <TabsTrigger value="historial">Historial</TabsTrigger>
-                        <TabsTrigger value="editar">Editar Pagos</TabsTrigger>
+                        {user?.grupo.nombre === 'Administrador' && <TabsTrigger value="editar">Editar Pagos</TabsTrigger>}
                     </TabsList>
 
                     <TabsContent value="registrar">
@@ -74,14 +79,17 @@ export const GestionPagosPoliza = ({
                         />
                     </TabsContent>
 
-                    <TabsContent value="editar">
-                        <EditarPagosPoliza
-                            polizaId={poliza.PolizaID}
-                            statusPago={statusPago}
-                            metodosPago={metodosPago}
-                            usuarioId={usuarioId}
-                        />
-                    </TabsContent>
+                    {user?.grupo.nombre === 'Administrador' && (
+                        <TabsContent value="editar">
+                            <EditarPagosPoliza
+                                polizaId={poliza.PolizaID}
+                                statusPago={statusPago}
+                                metodosPago={metodosPago}
+                                usuarioId={usuarioId}
+                            />
+                        </TabsContent>
+                    )}
+
                 </Tabs>
             </DialogContent>
         </Dialog>

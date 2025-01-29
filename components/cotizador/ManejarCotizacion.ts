@@ -189,6 +189,7 @@ export const manejarCotizacion = async ({
             usosVehiculo,
             tiposPago,
             isSave: guardarCotizacion,
+            showMensual: datosFormulario.showMensual,
         });
 
         if (datosFormulario.Correo) {

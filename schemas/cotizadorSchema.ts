@@ -92,19 +92,9 @@ export const nuevaCotizacionSchema = z.object({
     costoTotalAnual: z.number(),
     costoTotalSemestral: z.number(),
     costoTotalTrimestral: z.number(),
+    costoTotalMensual: z.number(),
+    showMensual: z.boolean(),
 }).refine(
-    (data) => {
-        if (data.minSumaAsegurada > 0 && data.maxSumaAsegurada > 0) {
-            return data.SumaAsegurada >= data.minSumaAsegurada &&
-                data.SumaAsegurada <= data.maxSumaAsegurada;
-        }
-        return true;
-    },
-    {
-        message: "La suma asegurada debe estar dentro del rango permitido",
-        path: ["SumaAsegurada"],
-    }
-).refine(
     (data) => {
         const inicio = new Date(data.inicioVigencia);
         const fin = new Date(data.finVigencia);

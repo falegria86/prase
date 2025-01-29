@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { SaveIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -15,12 +16,12 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SaveIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { patchCobertura } from "@/actions/CatCoberturasActions";
 import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
 import { editCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { formatCurrency } from "@/lib/format";
 
 interface EditarCoberturaFormProps {
     cobertura: iGetCoberturas;
@@ -49,7 +50,10 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
             SinValor: cobertura.SinValor,
             AplicaSumaAsegurada: cobertura.AplicaSumaAsegurada,
             CoberturaAmparada: cobertura.CoberturaAmparada,
-            sumaAseguradaPorPasajero: cobertura.sumaAseguradaPorPasajero
+            sumaAseguradaPorPasajero: cobertura.sumaAseguradaPorPasajero,
+            primaMinima: cobertura.primaMinima || "",
+            primaMaxima: cobertura.primaMaxima || "",
+            factorDecrecimiento: cobertura.factorDecrecimiento || ""
         },
     });
 
@@ -134,12 +138,20 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                             <FormItem>
                                 <FormLabel>Suma Asegurada Mínima</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Suma asegurada mínima..." {...field} />
+                                    <Input
+                                        placeholder="Suma asegurada mínima..."
+                                        value={formatCurrency(Number(field.value))}
+                                        onChange={(e) => {
+                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                            field.onChange((Number(valor) / 100).toString());
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+
                     <FormField
                         control={form.control}
                         name="SumaAseguradaMax"
@@ -147,7 +159,14 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                             <FormItem>
                                 <FormLabel>Suma Asegurada Máxima</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Suma asegurada máxima..." {...field} />
+                                    <Input
+                                        placeholder="Suma asegurada máxima..."
+                                        value={formatCurrency(Number(field.value))}
+                                        onChange={(e) => {
+                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                            field.onChange((Number(valor) / 100).toString());
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -181,19 +200,6 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                     />
                     <FormField
                         control={form.control}
-                        name="PorcentajePrima"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Porcentaje Prima</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Porcentaje de la prima..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
                         name="RangoSeleccion"
                         render={({ field }) => (
                             <FormItem>
@@ -205,7 +211,60 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                             </FormItem>
                         )}
                     />
-                    {/* Selects para los campos booleanos */}
+                    <FormField
+                        control={form.control}
+                        name="PorcentajePrima"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Porcentaje Prima (%)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Porcentaje de la prima..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="primaMinima"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Prima Mínima (%)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Prima mínima..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="primaMaxima"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Prima Máxima (%)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Prima máxima..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="factorDecrecimiento"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Factor de crecimiento</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Factor de crecimiento..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
                     <FormField
                         control={form.control}
                         name="EsCoberturaEspecial"

@@ -387,7 +387,7 @@ const AccionesMenu = ({
       <TooltipContent>Descargar PDF</TooltipContent>
     </Tooltip>
 
-    <Tooltip>
+    {/* <Tooltip>
       <TooltipTrigger>
         <Edit
           size={16}
@@ -396,7 +396,7 @@ const AccionesMenu = ({
         />
       </TooltipTrigger>
       <TooltipContent>Editar</TooltipContent>
-    </Tooltip>
+    </Tooltip> */}
 
     <Tooltip>
       <TooltipTrigger>
