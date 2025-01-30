@@ -125,7 +125,14 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                             <FormItem>
                                 <FormLabel>Prima Base</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Prima base de la cobertura..." {...field} />
+                                    <Input
+                                        placeholder="Prima base de la cobertura..."
+                                        value={formatCurrency(Number(field.value))}
+                                        onChange={(e) => {
+                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                            field.onChange((Number(valor) / 100).toString());
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -213,23 +220,10 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                     />
                     <FormField
                         control={form.control}
-                        name="PorcentajePrima"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Porcentaje Prima (%)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Porcentaje de la prima..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
                         name="primaMinima"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Prima Mínima (%)</FormLabel>
+                                <FormLabel>Tasa Base Mínima (%)</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Prima mínima..." {...field} />
                                 </FormControl>
@@ -243,7 +237,7 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                         name="primaMaxima"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Prima Máxima (%)</FormLabel>
+                                <FormLabel>Tasa Base Máxima (%)</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Prima máxima..." {...field} />
                                 </FormControl>

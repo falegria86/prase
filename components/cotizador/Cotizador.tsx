@@ -115,6 +115,7 @@ export const Cotizador = ({
             modeloNombre: "",
             Estado: "",
             showMensual: false,
+            tipoCalculo: undefined,
         },
     });
 

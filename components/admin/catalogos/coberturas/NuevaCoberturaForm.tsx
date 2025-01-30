@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
 import { Textarea } from "@/components/ui/textarea";
+import { formatCurrency } from "@/lib/format";
 
 export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoneda: iGetTiposMoneda[], tiposDeducible: iGetTiposDeducible[] }) => {
     const [isPending, startTransition] = useTransition();
@@ -249,8 +250,12 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                                 <FormLabel>Prima Base</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="Prima base de la cobertura..."
-                                                        {...field}
+                                                        placeholder="Prima base de la cobertura.."
+                                                        value={formatCurrency(Number(field.value))}
+                                                        onChange={(e) => {
+                                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                            field.onChange((Number(valor) / 100).toString());
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -427,7 +432,11 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                                 <FormControl>
                                                     <Input
                                                         placeholder="Suma asegurada mínima..."
-                                                        {...field}
+                                                        value={formatCurrency(Number(field.value))}
+                                                        onChange={(e) => {
+                                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                            field.onChange((Number(valor) / 100).toString());
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -443,7 +452,11 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                                 <FormControl>
                                                     <Input
                                                         placeholder="Suma asegurada máxima..."
-                                                        {...field}
+                                                        value={formatCurrency(Number(field.value))}
+                                                        onChange={(e) => {
+                                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                            field.onChange((Number(valor) / 100).toString());
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Info, Trash2 } from "lucide-react";
 import {
@@ -95,13 +95,32 @@ export const CoverageStep = ({
   reglasNegocio,
   tiposMoneda,
 }: StepProps) => {
-  const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo | null>(null);
   const [coberturasSeleccionadas, setCoberturasSeleccionadas] = useState<
     CoberturaExtendida[]
   >([]);
   const [costoBaseAnual, setCostoBaseAnual] = useState("");
   const [montoFijo, setMontoFijo] = useState("");
+
+  const tipoCalculo = form.watch("tipoCalculo");
+  const paqueteId = form.watch("PaqueteCoberturaID");
   const calculadoraPrima = new CalculadoraPrimaUniversal();
+
+  useEffect(() => {
+    if (paqueteId && tipoCalculo) {
+      manejarSeleccionPaquete(paqueteId.toString());
+
+      if (tipoCalculo === "fijo") {
+        const paqueteSeleccionado = paquetesCobertura?.find(
+          (p) => p.PaqueteCoberturaID === paqueteId
+        );
+        if (paqueteSeleccionado?.PrecioTotalFijo) {
+          setMontoFijo(paqueteSeleccionado.PrecioTotalFijo);
+          const costoAnual = ((Number(paqueteSeleccionado.PrecioTotalFijo) * 100) / 116) - form.getValues('DerechoPoliza');
+          setCostoBaseAnual(costoAnual.toString());
+        }
+      }
+    }
+  }, []);
 
   const obtenerSumaAsegurada = useCallback(
     (cobertura: CoberturaExtendida): number => {
@@ -116,10 +135,10 @@ export const CoverageStep = ({
       }
 
       if (cobertura.tipoMoneda.Abreviacion === "UMA") {
-        return parseFloat(cobertura.SumaAseguradaMax) * 108.57;
+        return parseFloat(cobertura.SumaAseguradaMin) * 108.57;
       }
 
-      return parseFloat(cobertura.SumaAseguradaMax);
+      return parseFloat(cobertura.SumaAseguradaMin);
     },
     [form]
   );
@@ -211,9 +230,8 @@ export const CoverageStep = ({
 
   const manejarCambioTipoCalculo = useCallback(
     (valor: TipoCalculo) => {
-      setTipoCalculo(valor as TipoCalculo);
+      form.setValue("tipoCalculo", valor);
       form.setValue("PaqueteCoberturaID", 0);
-      form.setValue("tipoCalculo", valor)
       setCoberturasSeleccionadas([]);
       setMontoFijo("");
       setIsStepValid?.(false);
@@ -258,7 +276,6 @@ export const CoverageStep = ({
         SumaAsegurada: form.getValues("SumaAsegurada"),
       };
 
-      // Aplicar reglas a cada cobertura
       const coberturasDelPaquete = asociacionesPaquete
         .map((asociacion) => {
           const cobertura = coberturas?.find(
@@ -266,17 +283,14 @@ export const CoverageStep = ({
           );
           if (!cobertura) return null;
 
-          // Aplicar reglas con los valores actualizados
           const valoresAjustados = aplicarReglasPorCobertura(
             cobertura,
             reglasNegocio || [],
             valoresFormulario
           );
 
-          // Crear una copia de la cobertura original
           const coberturaNueva = { ...cobertura };
 
-          // Si hay un nuevo tipo de moneda, actualizar
           if (valoresAjustados.tipoMonedaID) {
             const tipoMonedaNuevo = tiposMoneda?.find(
               (tipo) => tipo.TipoMonedaID === valoresAjustados.tipoMonedaID
@@ -286,7 +300,6 @@ export const CoverageStep = ({
             }
           }
 
-          // Actualizar valores ajustados
           return {
             ...coberturaNueva,
             sumaAseguradaPorPasajeroOriginal: cobertura.sumaAseguradaPorPasajero,
@@ -304,13 +317,11 @@ export const CoverageStep = ({
       setCoberturasSeleccionadas(coberturasDelPaquete);
       actualizarDetalles(coberturasDelPaquete);
 
-      // Actualizar prima total según el tipo de cálculo
       if (tipoCalculo === "fijo" && paqueteSeleccionado?.PrecioTotalFijo) {
         setMontoFijo(paqueteSeleccionado.PrecioTotalFijo);
-        form.setValue(
-          "PrimaTotal",
-          parseFloat(paqueteSeleccionado.PrecioTotalFijo)
-        );
+        const costoAnual = ((Number(paqueteSeleccionado.PrecioTotalFijo) * 100) / 116) - form.getValues('DerechoPoliza');
+        setCostoBaseAnual(costoAnual.toString());
+        form.setValue("PrimaTotal", costoAnual);
       } else {
         const primaTotal = coberturasDelPaquete.reduce(
           (total, cobertura) => total + calcularPrima(cobertura, "cobertura"),
@@ -320,20 +331,9 @@ export const CoverageStep = ({
       }
 
       if (coberturasDelPaquete.length > 0) setIsStepValid?.(true);
-      else setIsStepValid?.(false)
+      else setIsStepValid?.(false);
     },
-    [
-      form,
-      paquetesCobertura,
-      asociaciones,
-      coberturas,
-      reglasNegocio,
-      tipoCalculo,
-      tiposMoneda,
-      actualizarDetalles,
-      calcularPrima,
-      setIsStepValid,
-    ]
+    [form, paquetesCobertura, asociaciones, coberturas, reglasNegocio, tipoCalculo, tiposMoneda, actualizarDetalles, calcularPrima, setIsStepValid]
   );
 
   const manejarCambioMontoFijo = useCallback(
@@ -758,28 +758,32 @@ export const CoverageStep = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <FormItem>
-            <FormLabel>Tipo de Cálculo</FormLabel>
-            <Select
-              onValueChange={manejarCambioTipoCalculo}
-              value={tipoCalculo || ""}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el tipo de cálculo" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="fijo">Monto Fijo</SelectItem>
-                <SelectItem value="cobertura">
-                  Cálculo por Coberturas
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Elige cómo quieres que se calcule el costo de tu seguro
-            </FormDescription>
-          </FormItem>
+          <FormField
+            control={form.control}
+            name="tipoCalculo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Cálculo</FormLabel>
+                <Select
+                  onValueChange={manejarCambioTipoCalculo}
+                  value={field.value || ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el tipo de cálculo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="fijo">Monto Fijo</SelectItem>
+                    <SelectItem value="cobertura">Cálculo por Coberturas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Elige cómo quieres que se calcule el costo de tu seguro
+                </FormDescription>
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -799,14 +803,15 @@ export const CoverageStep = ({
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">Ninguno</SelectItem>
-                    {paquetesCobertura?.map((paquete) => (
-                      <SelectItem
-                        key={paquete.PaqueteCoberturaID}
-                        value={paquete.PaqueteCoberturaID.toString()}
-                      >
-                        {paquete.NombrePaquete}
-                      </SelectItem>
-                    ))}
+                    {paquetesCobertura?.sort((a, b) => a.NombrePaquete.localeCompare(b.NombrePaquete))
+                      .map((paquete) => (
+                        <SelectItem
+                          key={paquete.PaqueteCoberturaID}
+                          value={paquete.PaqueteCoberturaID.toString()}
+                        >
+                          {paquete.NombrePaquete}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>

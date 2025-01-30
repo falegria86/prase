@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { postPaqueteCobertura } from "@/actions/CatPaquetesActions"
 import Loading from "@/app/(protected)/loading"
 import { formatCurrency } from "@/lib/format"
+import { Textarea } from "@/components/ui/textarea"
 
 export const NuevoPaqueteForm = () => {
     const [isPending, startTransition] = useTransition()
@@ -102,7 +103,7 @@ export const NuevoPaqueteForm = () => {
                                 <FormItem>
                                     <FormLabel>Descripción del paquete</FormLabel>
                                     <FormControl>
-                                        <Input
+                                        <Textarea
                                             placeholder="Describe lo que incluye el paquete..."
                                             {...field}
                                         />

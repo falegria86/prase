@@ -21,6 +21,7 @@ import { patchPaqueteCobertura } from "@/actions/CatPaquetesActions";
 import { iGetAllPaquetes } from "@/interfaces/CatPaquetesInterface";
 import { editPaqueteSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 import { formatCurrency } from "@/lib/format";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EditarPaqueteFormProps {
     paquete: iGetAllPaquetes;
@@ -99,7 +100,7 @@ export const EditarPaqueteForm = ({ paquete, onSave }: EditarPaqueteFormProps) =
                         <FormItem>
                             <FormLabel>Descripción del paquete</FormLabel>
                             <FormControl>
-                                <Input placeholder="Describe lo que incluye el paquete..." {...field} />
+                                <Textarea placeholder="Describe lo que incluye el paquete..." {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

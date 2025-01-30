@@ -7,9 +7,7 @@ export const nuevoPaqueteSchema = z.object({
     DescripcionPaquete: z.string().min(3, {
         message: "La descripción debe contener al menos 3 caracteres."
     }),
-    PrecioTotalFijo: z.coerce.number().min(1, {
-        message: "El precio total fijo es requerido."
-    })
+    PrecioTotalFijo: z.coerce.number(),
 });
 
 export const editPaqueteSchema = z.object({
@@ -64,9 +62,9 @@ export const nuevaCoberturaSchema = z.object({
     SinValor: z.boolean(),
     IndiceSiniestralidad: z.boolean(),
     AplicaSumaAsegurada: z.boolean(),
-    primaMinima: z.number(),
-    primaMaxima: z.number(),
-    factorDecrecimiento: z.number(),
+    primaMinima: z.coerce.number(),
+    primaMaxima: z.coerce.number(),
+    factorDecrecimiento: z.coerce.number(),
     tipoMoneda: z.coerce.number().min(1, {
         message: 'El tipo de moneda es requerido'
     }),
