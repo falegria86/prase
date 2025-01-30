@@ -619,10 +619,8 @@ export const CoverageStep = ({
         Number(cobertura.SumaAseguradaMax)
       );
 
-      const rangoMedio = rangosMax.length / 2;
-
       const valorSelect =
-        cobertura.sumaAseguradaPersonalizada || rangosMax[rangoMedio];
+        cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMin;
 
       return (
         <Select

@@ -23,6 +23,7 @@ import { nuevaCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
+import { Textarea } from "@/components/ui/textarea";
 
 export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoneda: iGetTiposMoneda[], tiposDeducible: iGetTiposDeducible[] }) => {
     const [isPending, startTransition] = useTransition();
@@ -55,7 +56,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             sumaAseguradaPorPasajero: false,
             primaMinima: 0,
             primaMaxima: 0,
-            factorDecrecimiento: 0,
+            factorDecrecimiento: 3,
         },
     });
 
@@ -160,22 +161,6 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                         <FormControl>
                                             <Input
                                                 placeholder="Cobertura..."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="Descripcion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Descripción de la cobertura</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Describe lo que incluye la cobertura..."
                                                 {...field}
                                             />
                                         </FormControl>
@@ -300,6 +285,22 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                                         <FormControl>
                                                             <Input
                                                                 placeholder="Tasa base máxima..."
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="factorDecrecimiento"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Factor Decrecimiento</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Factor decrecimiento..."
                                                                 {...field}
                                                             />
                                                         </FormControl>
@@ -496,6 +497,24 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                     </FormItem>
                                 )}
                             />
+                            <div className="col-span-2">
+                                <FormField
+                                    control={form.control}
+                                    name="Descripcion"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descripción de la cobertura</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    placeholder="Describe lo que incluye la cobertura..."
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
                         <Button type="submit" disabled={isPending} size="lg" className="mt-8">
                             {isPending ? (
