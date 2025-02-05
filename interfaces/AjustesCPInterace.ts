@@ -10,3 +10,28 @@ export interface Ajuste {
   CantSiniestros: number;
   UltimaActualizacion: Date;
 }
+
+export interface iPostAjustesCP {
+  CodigoPostal: string;
+  IndiceSiniestros: number;
+  AjustePrima: number;
+  CantSiniestros: number;
+}
+
+export interface iPostAjustesResp {
+  message: string;
+  ajuste: AjusteResp;
+}
+
+export interface AjusteResp {
+  CodigoPostal: string;
+  IndiceSiniestros: number;
+  AjustePrima: number;
+  CantSiniestros: number;
+}
+
+export interface iPatchAjustesCP {
+  IndiceSiniestros?: number;
+  AjustePrima?: number;
+  CantSiniestros?: number;
+}

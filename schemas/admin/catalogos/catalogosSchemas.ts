@@ -164,3 +164,16 @@ export const editarTipoPagoSchema = z.object({
     PorcentajeAjuste: z.coerce.number().min(0, "Porcentaje ajuste es requerido"),
     Divisor: z.string().min(0, "Divisor es requerido"),
 });
+
+export const nuevoAjusteCPSchema = z.object({
+    CodigoPostal: z.string().length(5, "El código postal debe tener 5 dígitos"),
+    IndiceSiniestros: z.coerce.number().min(0).max(100),
+    AjustePrima: z.coerce.number().min(0).max(100),
+    CantSiniestros: z.coerce.number().min(0),
+});
+
+export const editarAjusteCPSchema = z.object({
+    IndiceSiniestros: z.coerce.number().min(0).max(100),
+    AjustePrima: z.coerce.number().min(0).max(100),
+    CantSiniestros: z.coerce.number().min(0),
+});

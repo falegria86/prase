@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import events from "next-auth";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,7 +30,6 @@ import {
   Gauge,
   UserPlus,
   Building,
-  DollarSign,
   ScrollText,
   ShieldCheck,
   Coins,
@@ -46,6 +46,10 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
 import { getInicioActivo } from "@/actions/MovimientosActions";
 import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
+import { FaCut } from "react-icons/fa";
+import { ModalCorteCaja } from "./admin/movimientos/ModalCorteCaja";
+import { OpcionesCaja } from "./admin/movimientos/OpcionesCaja";
+import { useSession } from "next-auth/react";
 
 interface SidebarProps {
   aplicaciones: Aplicaciones[];
@@ -83,11 +87,19 @@ const iconosDisponibles: Record<string, LucideIcon> = {
 export default function Sidebar({ aplicaciones }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const user = useCurrentUser();
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
+  const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
+
+  useEffect(() => {
+    if (status === "authenticated" || status === "unauthenticated") {
+      router.refresh();
+    }
+  }, [status, router]);
 
   useEffect(() => {
     const obtenerInicioCaja = async () => {
@@ -243,17 +255,8 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
               </div>
             ))}
 
-            {inicioCajaActivo && user?.grupo.nombre !== 'Administrador' && (
-              <div className="px-4 py-2">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-lg"
-                  onClick={() => setModalInicioCajaAbierto(true)}
-                >
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  Inicio de Caja Activo
-                </Button>
-              </div>
+            {user?.usuario.UsuarioID && user?.grupo.nombre !== 'Administrador' && (
+              <OpcionesCaja usuarioId={user.usuario.UsuarioID} />
             )}
           </nav>
 
@@ -280,6 +283,14 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
           abierto={modalInicioCajaAbierto}
           alCerrar={() => setModalInicioCajaAbierto(false)}
           alAceptar={manejarActualizacionInicioCaja}
+        />
+      )}
+
+      {modalCorteAbierto && user?.usuario.UsuarioID && (
+        <ModalCorteCaja
+          abierto={modalCorteAbierto}
+          alCerrar={() => setModalCorteAbierto(false)}
+          usuarioId={user.usuario.UsuarioID}
         />
       )}
     </>

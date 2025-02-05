@@ -43,3 +43,20 @@ export const eliminarMovimientoSchema = z.object({
     codigo: z.string().min(1, "El código es requerido"),
     motivo: z.string().min(1, "El motivo es requerido")
 })
+
+export const corteCajaSchema = z.object({
+    SaldoReal: z.number().min(0, "El saldo real es requerido"),
+    TotalEfectivoCapturado: z.number().min(0, "El total de efectivo es requerido"),
+    TotalTarjetaCapturado: z.number().min(0, "El total de tarjeta es requerido"),
+    TotalTransferenciaCapturado: z.number().min(0, "El total de transferencia es requerido"),
+    Observaciones: z.string().default(""),
+}).refine((datos) => {
+    const sumaTotales = datos.TotalEfectivoCapturado +
+        datos.TotalTarjetaCapturado +
+        datos.TotalTransferenciaCapturado;
+
+    return Math.abs(sumaTotales - datos.SaldoReal) < 0.01; // Usamos una pequeña tolerancia para evitar problemas con decimales
+}, {
+    message: "La suma de los totales debe ser igual al saldo real",
+    path: ["TotalEfectivoCapturado"] // El error se mostrará en el campo de efectivo
+});

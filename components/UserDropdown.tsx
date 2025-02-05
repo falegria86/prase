@@ -22,11 +22,15 @@ export default function UserDropdown({ user }: { user: CustomUser | null }) {
                             <>
                                 <Avatar className="w-10 h-10">
                                     {/* <AvatarImage src="https://xsgames.co/randomusers/assets/avatars/male/47.jpg" alt="Usuario" /> */}
-                                    <AvatarFallback>{user.empleado.Nombre.toUpperCase().slice(0,1)}{user.empleado.Paterno.toUpperCase().slice(0,1)}</AvatarFallback>
+                                    <AvatarFallback>{user.empleado.Nombre.toUpperCase().slice(0, 1)}{user.empleado.Paterno.toUpperCase().slice(0, 1)}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-sm font-medium">{user.empleado.Nombre} {user.empleado.Paterno} {user.empleado.Materno}</span>
-                                    {/* <span className="text-xs text-muted-foreground">juan@ejemplo.com</span> */}
+                                <div className="flex flex-col items-start overflow-hidden">
+                                    <span className="text-sm font-medium truncate w-44">
+                                        {user.empleado.Nombre} {user.empleado.Paterno} {user.empleado.Materno}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground truncate w-44">
+                                        {user.usuario.NombreUsuario}
+                                    </span>
                                 </div>
                             </>
                         )}
