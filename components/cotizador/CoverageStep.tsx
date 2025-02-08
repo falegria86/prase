@@ -45,6 +45,7 @@ import { PlanPago } from "./PlanPago";
 import { aplicarReglasPorCobertura } from "../../lib/ManejadorReglasCobertura";
 import { Switch } from "../ui/switch";
 import { CalculadoraPrimaUniversal } from "./CalculadoraPrimaUniversal";
+import { valorUMA } from "@/lib/constants";
 
 type TipoCalculo = "fijo" | "cobertura";
 
@@ -83,6 +84,7 @@ interface CoberturaExtendida {
   primaMinima: string;
   primaMaxima: string;
   factorDecrecimiento: string;
+  rangoCobertura: string;
 }
 
 export const CoverageStep = ({
@@ -135,10 +137,10 @@ export const CoverageStep = ({
       }
 
       if (cobertura.tipoMoneda.Abreviacion === "UMA") {
-        return parseFloat(cobertura.SumaAseguradaMin) * 108.57;
+        return parseFloat(cobertura.SumaAseguradaMin) * valorUMA;
       }
 
-      return parseFloat(cobertura.SumaAseguradaMin);
+      return parseFloat(cobertura.rangoCobertura || cobertura.SumaAseguradaMin);
     },
     [form]
   );
@@ -183,8 +185,9 @@ export const CoverageStep = ({
       }
 
       if (cobertura.tipoDeducible.Nombre === "UMA") {
-        const deduciblePesos = deducible * 108.57;
-        return Math.max(0, primaBase - deduciblePesos);
+        const deduciblePesos = deducible * valorUMA;
+        const factorReduccion = deduciblePesos / sumaAsegurada;
+        return primaBase * (1 - factorReduccion);
       }
 
       return primaBase * (1 - deducible / 100);
@@ -619,8 +622,7 @@ export const CoverageStep = ({
         Number(cobertura.SumaAseguradaMax)
       );
 
-      const valorSelect =
-        cobertura.sumaAseguradaPersonalizada || cobertura.SumaAseguradaMin;
+      const valorSelect = cobertura.sumaAseguradaPersonalizada || cobertura.rangoCobertura;
 
       return (
         <Select

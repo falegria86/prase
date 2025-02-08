@@ -25,6 +25,7 @@ import { iGetAllCobertura } from "@/interfaces/ReglasNegocios"
 import { iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface"
 
 export const NuevaReglaForm = ({ coberturas = [], tiposMoneda }: { coberturas: iGetAllCobertura[], tiposMoneda: iGetTiposMoneda[] }) => {
+    console.log(coberturas)
     const [isPending, startTransition] = useTransition()
     const { toast } = useToast();
     const router = useRouter();

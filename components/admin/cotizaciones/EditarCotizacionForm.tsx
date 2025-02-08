@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { iGetTipoPagos } from "@/interfaces/CatTipoPagos";
+import { valorUMA } from "@/lib/constants";
 
 interface Props {
     cotizacion: iGetCotizacion;
@@ -89,7 +90,7 @@ export const EditarCotizacionForm = ({ cotizacion, coberturas, onGuardar, tiposP
         const primaBase = sumaAsegurada * porcentajePrima;
 
         if (cobertura.tipoDeducible.Nombre === "UMA") {
-            const deduciblePesos = deducible * 108.57;
+            const deduciblePesos = deducible * valorUMA;
             return Math.max(0, primaBase - deduciblePesos);
         }
 

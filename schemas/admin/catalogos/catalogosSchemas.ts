@@ -73,6 +73,7 @@ export const nuevaCoberturaSchema = z.object({
     }),
     CoberturaAmparada: z.boolean(),
     sumaAseguradaPorPasajero: z.boolean(),
+    rangoCobertura: z.coerce.number(),
 });
 
 
@@ -89,12 +90,15 @@ export const editCoberturaSchema = z.object({
     primaMinima: z.string(),
     primaMaxima: z.string(),
     factorDecrecimiento: z.string(),
+    rangoCobertura: z.string().nullable(),
     EsCoberturaEspecial: z.boolean(),
     Variable: z.boolean(),
     SinValor: z.boolean(),
     AplicaSumaAsegurada: z.boolean(),
     CoberturaAmparada: z.boolean(),
     sumaAseguradaPorPasajero: z.boolean(),
+    tipoMoneda: z.number(),
+    tipoDeducible: z.number()
 });
 
 export const nuevaAsociacionSchema = z.object({

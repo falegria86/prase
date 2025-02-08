@@ -58,6 +58,7 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
             primaMinima: 0,
             primaMaxima: 0,
             factorDecrecimiento: 3,
+            rangoCobertura: 0,
         },
     });
 
@@ -306,6 +307,22 @@ export const NuevaCoberturaForm = ({ tiposMoneda, tiposDeducible }: { tiposMoned
                                                         <FormControl>
                                                             <Input
                                                                 placeholder="Factor decrecimiento..."
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="rangoCobertura"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Valor default suma asegurada</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="Introduce el valor default para la suma asegurada..."
                                                                 {...field}
                                                             />
                                                         </FormControl>

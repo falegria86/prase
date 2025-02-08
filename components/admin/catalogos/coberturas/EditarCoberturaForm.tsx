@@ -18,17 +18,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { patchCobertura } from "@/actions/CatCoberturasActions";
-import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { editCoberturaSchema } from "@/schemas/admin/catalogos/catalogosSchemas";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format";
+import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
 
 interface EditarCoberturaFormProps {
     cobertura: iGetCoberturas;
     onSave: () => void;
+    tiposMoneda: iGetTiposMoneda[];
+    tiposDeducible: iGetTiposDeducible[];
 }
 
-export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormProps) => {
+export const EditarCoberturaForm = ({ cobertura, onSave, tiposMoneda, tiposDeducible }: EditarCoberturaFormProps) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -53,14 +56,27 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
             sumaAseguradaPorPasajero: cobertura.sumaAseguradaPorPasajero,
             primaMinima: cobertura.primaMinima || "",
             primaMaxima: cobertura.primaMaxima || "",
-            factorDecrecimiento: cobertura.factorDecrecimiento || ""
+            factorDecrecimiento: cobertura.factorDecrecimiento || "",
+            rangoCobertura: cobertura.rangoCobertura || "",
+            tipoMoneda: cobertura.tipoMoneda.TipoMonedaID,
+            tipoDeducible: cobertura.tipoDeducible.TipoDeducibleID
         },
     });
 
     const onSubmit = (values: z.infer<typeof editCoberturaSchema>) => {
+        const formattedData = {
+            ...values,
+            tipoDeducible: {
+                TipoDeducibleID: values.tipoDeducible
+            },
+            tipoMoneda: {
+                TipoMonedaID: values.tipoMoneda
+            }
+        };
+
         startTransition(async () => {
             try {
-                const resp = await patchCobertura(cobertura.CoberturaID, values);
+                const resp = await patchCobertura(cobertura.CoberturaID, formattedData);
 
                 if (!resp) {
                     toast({
@@ -250,9 +266,9 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                         name="factorDecrecimiento"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Factor de crecimiento</FormLabel>
+                                <FormLabel>Factor de decrecimiento</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Factor de crecimiento..." {...field} />
+                                    <Input placeholder="Factor de decrecimiento..." {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -393,6 +409,89 @@ export const EditarCoberturaForm = ({ cobertura, onSave }: EditarCoberturaFormPr
                                         <SelectContent>
                                             <SelectItem value="true">Sí</SelectItem>
                                             <SelectItem value="false">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="rangoCobertura"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Valor default suma asegurada</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Introduce el valor default para la suma asegurada..."
+                                        value={formatCurrency(Number(field.value))}
+                                        onChange={(e) => {
+                                            const valor = e.target.value.replace(/[^0-9]/g, "");
+                                            field.onChange((Number(valor) / 100).toString());
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="tipoMoneda"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Tipo de Moneda</FormLabel>
+                                <FormControl>
+                                    <Select
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value.toString()}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione tipo de moneda" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {tiposMoneda.map((tipo) => (
+                                                <SelectItem
+                                                    key={tipo.TipoMonedaID}
+                                                    value={tipo.TipoMonedaID.toString()}
+                                                >
+                                                    {tipo.Nombre}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="tipoDeducible"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Tipo de Deducible</FormLabel>
+                                <FormControl>
+                                    <Select
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value.toString()}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione tipo de deducible" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {tiposDeducible.map((tipo) => (
+                                                <SelectItem
+                                                    key={tipo.TipoDeducibleID}
+                                                    value={tipo.TipoDeducibleID.toString()}
+                                                >
+                                                    {tipo.Nombre}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </FormControl>

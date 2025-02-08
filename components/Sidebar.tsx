@@ -105,6 +105,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
+        console.log(respuesta)
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
         }
@@ -112,7 +113,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     };
 
     obtenerInicioCaja();
-  }, [user?.usuario.UsuarioID]);
+  }, [user]);
 
   const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
     if (!acc[app.categoria]) {
@@ -255,9 +256,12 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
               </div>
             ))}
 
-            {user?.usuario.UsuarioID && user?.grupo.nombre !== 'Administrador' && (
-              <OpcionesCaja usuarioId={user.usuario.UsuarioID} />
-            )}
+            {user?.usuario.UsuarioID
+              // && user?.grupo.nombre !== 'Administrador'
+              &&
+              (
+                <OpcionesCaja usuarioId={user.usuario.UsuarioID} />
+              )}
           </nav>
 
           <div className="mt-auto">

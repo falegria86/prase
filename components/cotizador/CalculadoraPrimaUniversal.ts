@@ -1,6 +1,6 @@
 interface ConfiguracionPrima {
-    primaMinima: number; // porcentaje en decimal (ej: 0.05 para 0.05%)
-    primaMaxima: number; // porcentaje en decimal (ej: 0.84 para 0.84%)
+    primaMinima: number;
+    primaMaxima: number;
     sumaAseguradaMinima: number;
     sumaAseguradaMaxima: number;
     factorDecrecimiento: number;

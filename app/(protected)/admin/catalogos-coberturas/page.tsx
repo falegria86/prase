@@ -28,6 +28,8 @@ export default async function CatalogoPaquetesPage() {
             {coberturas && coberturas.length > 0 ? (
                 <TableCoberturas
                     coberturas={coberturas}
+                    tiposMoneda={tiposMoneda}
+                    tiposDeducible={tiposDeducible}
                 />
             ) : (
                 <h4 className="text-red-500">Hubo un error al obtener los paquetes.</h4>

@@ -35,16 +35,19 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { iGetCoberturas } from "@/interfaces/CatCoberturasInterface";
+import { iGetCoberturas, iGetTiposMoneda } from "@/interfaces/CatCoberturasInterface";
 import { deletePaqueteCobertura } from "@/actions/CatCoberturasActions";
 import Loading from "@/app/(protected)/loading";
 import { EditarCoberturaForm } from "./EditarCoberturaForm";
+import { iGetTiposDeducible } from "@/interfaces/CatDeduciblesInterface";
 
 interface Props {
     coberturas: iGetCoberturas[];
+    tiposMoneda: iGetTiposMoneda[];
+    tiposDeducible: iGetTiposDeducible[];
 }
 
-export const TableCoberturas = ({ coberturas }: Props) => {
+export const TableCoberturas = ({ coberturas, tiposDeducible, tiposMoneda }: Props) => {
     const [isPending, startTransition] = useTransition();
     const [selectedCobertura, setSelectedCobertura] = useState<iGetCoberturas | null>(null);
     const [editCobertura, setEditCobertura] = useState<iGetCoberturas | null>(null);
@@ -117,7 +120,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                     </TableHeader>
                     <TableBody>
                         {coberturas.map((cobertura) => (
-                            <TableRow key={cobertura.CoberturaID}>
+                            <TableRow key={cobertura.CoberturaID} className="hover:bg-gray-100">
                                 <TableCell>{cobertura.NombreCobertura}</TableCell>
                                 <TableCell>{cobertura.Descripcion}</TableCell>
                                 <TableCell>${cobertura.PrimaBase}</TableCell>
@@ -127,7 +130,7 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                                 <TableCell>{cobertura.CoberturaAmparada ? "Si" : "No"}</TableCell>
                                 <TableCell>{cobertura.SinValor ? "Si" : "No"}</TableCell>
                                 <TableCell>{cobertura.sumaAseguradaPorPasajero ? "Si" : "No"}</TableCell>
-                                <TableCell className="flex items-center gap-3">
+                                <TableCell className="flex items-center gap-3 mt-3">
                                     <Tooltip>
                                         <TooltipTrigger>
                                             <Edit
@@ -169,15 +172,20 @@ export const TableCoberturas = ({ coberturas }: Props) => {
                 setEditCobertura(null);
                 setEditCoberturaModalOpen(false);
             }}>
-                <DialogContent className="max-w-[800px]">
+                <DialogContent className="max-w-[800px] h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Editar Cobertura</DialogTitle>
                     </DialogHeader>
                     {editCobertura && (
-                        <EditarCoberturaForm cobertura={editCobertura} onSave={() => {
-                            setEditCobertura(null);
-                            setEditCoberturaModalOpen(false);
-                        }} />
+                        <EditarCoberturaForm
+                            cobertura={editCobertura}
+                            onSave={() => {
+                                setEditCobertura(null);
+                                setEditCoberturaModalOpen(false);
+                            }}
+                            tiposDeducible={tiposDeducible}
+                            tiposMoneda={tiposMoneda}
+                        />
                     )}
                 </DialogContent>
             </Dialog>

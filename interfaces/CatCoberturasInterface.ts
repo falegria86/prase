@@ -21,6 +21,7 @@ export interface iGetCoberturas {
     factorDecrecimiento: string;
     tipoDeducible: TipoDeducible;
     tipoMoneda: TipoMoneda;
+    rangoCobertura: string;
 }
 
 export interface TipoDeducible {
@@ -61,6 +62,7 @@ export interface iPostCobertura {
     primaMinima: number;
     primaMaxima: number;
     factorDecrecimiento: number;
+    rangoCobertura: number;
 }
 
 export interface TipoDeduciblePost {
@@ -90,6 +92,7 @@ export interface iPostCoberturaResp {
     primaMinima: string;
     primaMaxima: string;
     factorDecrecimiento: string;
+    rangoCobertura: string | null;
 }
 
 export interface iPatchCobertura {
@@ -103,14 +106,16 @@ export interface iPatchCobertura {
     PorcentajePrima?: string;
     RangoSeleccion?: string;
     EsCoberturaEspecial?: boolean;
-    Variable?: boolean;
     SinValor?: boolean;
     AplicaSumaAsegurada?: boolean;
     CoberturaAmparada: boolean;
     sumaAseguradaPorPasajero: boolean;
     primaMinima?: string;
     primaMaxima?: string;
+    tipoMoneda?: TipoMonedaPost;
+    tipoDeducible?: TipoDeduciblePost;
     factorDecrecimiento?: string;
+    rangoCobertura?: string | null;
 }
 
 export interface iGetTiposMoneda {
