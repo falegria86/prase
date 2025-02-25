@@ -24,6 +24,7 @@ export default async function IniciosCajaPage() {
     }
 
     const iniciosCaja = await getIniciosCaja();
+    // console.log("🚀 ~ IniciosCajaPage ~ iniciosCaja:", iniciosCaja)
     if (!iniciosCaja) {
         return (
             <h4 className="text-red-500">Error al obtener inicios caja, intente nuevamente.</h4>

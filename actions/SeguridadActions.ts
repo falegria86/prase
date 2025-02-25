@@ -265,7 +265,7 @@ export const deleteApplicationGroup = async (grupoId: number, aplicacionesIds: i
         if (!resp.ok) return null;
 
         const data = await resp.json();
-        console.log('Data:', data);
+        // console.log('Data:', data);
 
         return data;
     } catch (error) {

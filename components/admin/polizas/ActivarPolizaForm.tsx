@@ -157,8 +157,8 @@ export const ActivarPolizaForm = ({
                     TotalSinIVA: cotizacion.CostoNeto,
                     NumOcupantes: 5, //TODO: Cambiar número de ocupantes por lo que venga del vehículo
                 };
-                console.log("cotizacion: ", cotizacion)
-                console.log("datos resumen: ", datosResumen)
+                // console.log("cotizacion: ", cotizacion)
+                // console.log("datos resumen: ", datosResumen)
                 // const respuesta = await postPoliza(datosPoliza);
 
                 // if (respuesta) {

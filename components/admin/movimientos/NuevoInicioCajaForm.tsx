@@ -164,7 +164,7 @@ export const NuevoInicioCajaForm = ({
                     )}
                 />
 
-                <FormField
+                {/* <FormField
                     control={form.control}
                     name="TotalTransferencia"
                     render={({ field }) => (
@@ -183,7 +183,7 @@ export const NuevoInicioCajaForm = ({
                             <FormMessage />
                         </FormItem>
                     )}
-                />
+                /> */}
 
                 <Button type="submit" disabled={isPending}>
                     <SaveIcon className="w-4 h-4 mr-2" />

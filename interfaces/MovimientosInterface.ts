@@ -25,7 +25,7 @@ export interface iPostInicioCaja {
     MontoInicial: number;
     FirmaElectronica?: string;
     TotalEfectivo: number;
-    TotalTransferencia: number;
+    TotalTransferencia?: number;
 }
 
 export interface iPatchInicioCaja {
