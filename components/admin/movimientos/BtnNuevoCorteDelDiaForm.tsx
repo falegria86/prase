@@ -119,11 +119,11 @@ export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelD
         form.setValue("ResumenGeneral.TotalTransferencia", totalPorTipo.transferencia);
 
         // Calcular saldo esperado
-        const SaldoEsperado = Number(montoInicial) + TotalIngresos - TotalEgresos;
+        const SaldoEsperado = totalPorTipo.efectivo + totalPorTipo.tarjeta + totalPorTipo.transferencia;
         form.setValue("ResumenGeneral.SaldoEsperado", SaldoEsperado);
 
         // Calcular saldo real
-        const SaldoReal = totalPorTipo.efectivo + totalPorTipo.tarjeta + totalPorTipo.transferencia;
+        const SaldoReal = form.getValues("ResumenGeneral.TotalEfectivoCapturado") + totalPorTipo.tarjeta + totalPorTipo.transferencia;
         form.setValue("ResumenGeneral.SaldoReal", SaldoReal);
 
         // Calcular diferencia
@@ -134,8 +134,8 @@ export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelD
         form.setValue("ResumenGeneral.TotalTransferenciaCapturado", totalPorTipo.transferencia);
 
         console.log("--------------------------------------------");
-        console.log("Tarjeta      : ", totalPorTipo.tarjeta);
-        console.log("Efectivo     : ", totalPorTipo.efectivo);
+        console.log("Tarjeta: ", totalPorTipo.tarjeta);
+        console.log("Efectivo: ", totalPorTipo.efectivo);
         console.log("Transferencia: ", totalPorTipo.transferencia);
     }
 
