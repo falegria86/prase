@@ -18,3 +18,19 @@ export const getCortesDelDia = async () => {
         console.log(`Error al obtener inicios de caja: ${error}`);
     }
 }
+
+export const getCorteDelDiaByID = async (id: number) => {
+    try {
+        const resp = await fetch(`${url}/cortes-usuarios/generar/${id}`, {
+            cache: 'no-store'
+        });
+        if (!resp.ok) return null;
+        // const data: 
+    } catch (error) {
+        
+    }
+}
+
+export const postCorteDelDia = async () => {
+
+}

@@ -34,3 +34,12 @@ export interface IGetAllCorteDia {
     Estatus: string;
     InicioCaja: InicioCaja;
 }
+
+export interface IPostCorteDelDia {
+    usuarioID: number;
+    SaldoReal: number;
+    TotalEfectivoCapturado: number;
+    TotalTarjetaCapturado: number;
+    TotalTransferenciaCapturado: number;
+    Observaciones: string | undefined;
+}

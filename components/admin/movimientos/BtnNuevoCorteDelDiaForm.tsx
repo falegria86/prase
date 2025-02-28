@@ -2,6 +2,7 @@
 
 import { LoaderModales } from "@/components/LoaderModales";
 import { Button } from "@/components/ui/button";
+import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
 import {
     Form,
     FormControl,
@@ -23,9 +24,21 @@ import { z } from "zod";
 
 interface NuevoCorteDelDiaFormProps {
     montoInicial: any;
+    usuarioId: number
 }
 
-export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelDiaFormProps, ref) => {
+const transformarDatos = (values: z.infer<typeof cierreCajaSchema>, usuarioID: number): IPostCorteDelDia => {
+    return {
+        usuarioID,
+        SaldoReal: values.ResumenGeneral.SaldoReal,
+        TotalEfectivoCapturado: values.ResumenGeneral.TotalEfectivoCapturado,
+        TotalTarjetaCapturado: values.ResumenGeneral.TotalTarjetaCapturado,
+        TotalTransferenciaCapturado: values.ResumenGeneral.TotalTransferenciaCapturado,
+        Observaciones: values.ResumenGeneral.Observaciones,
+    };
+};
+
+export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial, usuarioId }: NuevoCorteDelDiaFormProps, ref) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -61,17 +74,29 @@ export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelD
         },
     });
 
+    const postJson = {
+        usuarioID: usuarioId,
+        SaldoReal: 0,
+        TotalEfectivoCapturado: 0,
+        TotalTarjetaCapturado: 0,
+        TotalTransferenciaCapturado: 0,
+        Observaciones: "",
+    }
+
     const onSubmit = async (values: z.infer<typeof cierreCajaSchema>) => {
         startTransition(async () => {
             try {
-                // Aquí puedes enviar los datos a tu API o realizar otras acciones
-                // console.log("Datos enviados:", values);
+                const datosTransformados: IPostCorteDelDia = transformarDatos(values, usuarioId);
+                // Aquí puedes enviar los datos transformados a tu API
+                console.log("Datos enviados:", datosTransformados);
+
 
                 toast({
                     title: "Éxito",
                     description: "Cierre de caja guardado correctamente",
+                    duration: 5000,
                 });
-                router.refresh();
+                // router.refresh();
             } catch (error) {
                 toast({
                     title: "Error",
@@ -133,10 +158,6 @@ export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelD
         form.setValue("ResumenGeneral.TotalTarjetaCapturado", totalPorTipo.tarjeta);
         form.setValue("ResumenGeneral.TotalTransferenciaCapturado", totalPorTipo.transferencia);
 
-        console.log("--------------------------------------------");
-        console.log("Tarjeta: ", totalPorTipo.tarjeta);
-        console.log("Efectivo: ", totalPorTipo.efectivo);
-        console.log("Transferencia: ", totalPorTipo.transferencia);
     }
 
 

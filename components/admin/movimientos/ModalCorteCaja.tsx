@@ -318,7 +318,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                     <InicioCajaForm param={statusCaja} />
                 </div>
                 <div>
-                    <NuevoCorteDelDiaForm montoInicial={montoInicial} ref={corteDiaFormRef} />
+                    <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef}  />
                 </div>
                 {/* Agregar botón único en el footer */}
                 <div className="flex justify-end gap-4 mt-4">
