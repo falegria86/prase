@@ -105,7 +105,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
-        // console.log(respuesta)
+        
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
         }
@@ -114,6 +114,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
 
     obtenerInicioCaja();
   }, [user]);
+
 
   const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
     if (!acc[app.categoria]) {

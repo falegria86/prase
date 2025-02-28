@@ -1,32 +1,26 @@
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { postGuardarCorteCaja } from "@/actions/CortesCajaActions";
+import { getInicioActivo } from "@/actions/MovimientosActions";
+import { getUsuarios } from "@/actions/SeguridadActions";
+import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
+import { NuevoInicioCajaForm } from "@/components/admin/movimientos/BtnNuevoInicioCajaForm";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
-    DialogTitle,
+    DialogTitle
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { getCorteUsuario, postGuardarCorteCaja } from "@/actions/CortesCajaActions";
-import { formatCurrency } from "@/lib/format";
 import { corteCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
+import { useEffect, useState, useTransition, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 interface ModalCorteCajaProps {
     abierto: boolean;
     alCerrar: () => void;
@@ -34,10 +28,61 @@ interface ModalCorteCajaProps {
 }
 
 export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaProps) {
+    // Agregar referencias
+    const inicioCajaFormRef = useRef<any>(null);
+    const corteDiaFormRef = useRef<any>(null);
+
+
     const [isPending, startTransition] = useTransition();
     const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
     const [datosCorteCaja, setDatosCorteCaja] = useState<any>(null);
+    const [inicioCajaActivo, setInicioCajaActivo] = useState<any>(null);
+    const [statusCaja, setStatusCaja] = useState<string | null>(null);
+    const [montoInicial, setMontoInicial] = useState<any>(null);
+    const [usuarios, setUsuarios] = useState<any>([]);
     const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const usuarios = await getUsuarios();
+            if (!usuarios || usuarios.length === 0) {
+                toast({
+                    title: "Error",
+                    description: "Error al obtener información de empleados, intente nuevamente.",
+                    variant: "destructive",
+                });
+                alCerrar();
+                return;
+            } else {
+                setUsuarios(usuarios);
+            }
+
+            const respuesta = await getInicioActivo(usuarioId);
+            if (respuesta) {
+                setInicioCajaActivo(respuesta);
+                setStatusCaja(respuesta.Estatus)
+                setMontoInicial(respuesta.MontoInicial)
+            } else {
+                toast({
+                    title: "Error",
+                    description: "No se pudo obtener la información del inicio de caja",
+                    variant: "destructive",
+                });
+                alCerrar();
+            }
+        };
+
+        fetchData();
+    }, [usuarioId, alCerrar]);
+
+
+    const nuevoInicioCajaSchema = z.object({
+        TotalEfectivo: z.number().min(1, { message: "El total de efectivo es requerido" }),
+        TotalTransferencia: z.number().min(1, { message: "El total de transferencia es requerido" }),
+        UsuarioID: z.number().min(1, { message: "El usuario es requerido" }),
+        UsuarioAutorizoID: z.number(),
+    })
+
 
     const form = useForm<z.infer<typeof corteCajaSchema>>({
         resolver: zodResolver(corteCajaSchema),
@@ -50,35 +95,35 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
         },
     });
 
-    const manejarConfirmacion = () => {
-        startTransition(async () => {
-            try {
-                const respuesta = await getCorteUsuario(usuarioId);
-                if (respuesta) {
-                    setDatosCorteCaja(respuesta);
-                    setConfirmacionAbierta(false);
-                    form.setValue("SaldoReal", respuesta.SaldoReal);
-                    form.setValue("TotalEfectivoCapturado", respuesta.TotalEfectivoCapturado);
-                    form.setValue("TotalTarjetaCapturado", respuesta.TotalTarjetaCapturado);
-                    form.setValue("TotalTransferenciaCapturado", respuesta.TotalTransferenciaCapturado);
-                } else {
-                    toast({
-                        title: "Error",
-                        description: "No se pudo obtener la información del corte",
-                        variant: "destructive",
-                    });
-                    alCerrar();
-                }
-            } catch (error) {
-                toast({
-                    title: "Error",
-                    description: "Ocurrió un error al procesar la solicitud",
-                    variant: "destructive",
-                });
-                alCerrar();
-            }
-        });
-    };
+    // const manejarConfirmacion = () => {
+    //     startTransition(async () => {
+    //         try {
+    //             const respuesta = await getCorteUsuario(usuarioId);
+    //             if (respuesta) {
+    //                 setDatosCorteCaja(respuesta);
+    //                 setConfirmacionAbierta(false);
+    //                 form.setValue("SaldoReal", respuesta.SaldoReal);
+    //                 form.setValue("TotalEfectivoCapturado", respuesta.TotalEfectivoCapturado);
+    //                 form.setValue("TotalTarjetaCapturado", respuesta.TotalTarjetaCapturado);
+    //                 form.setValue("TotalTransferenciaCapturado", respuesta.TotalTransferenciaCapturado);
+    //             } else {
+    //                 toast({
+    //                     title: "Error",
+    //                     description: "No se pudo obtener la información del corte",
+    //                     variant: "destructive",
+    //                 });
+    //                 alCerrar();
+    //             }
+    //         } catch (error) {
+    //             toast({
+    //                 title: "Error",
+    //                 description: "Ocurrió un error al procesar la solicitud",
+    //                 variant: "destructive",
+    //             });
+    //             alCerrar();
+    //         }
+    //     });
+    // };
 
     const onSubmit = async (valores: z.infer<typeof corteCajaSchema>) => {
         startTransition(async () => {
@@ -114,180 +159,177 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
 
     if (!abierto) return null;
 
-    if (confirmacionAbierta) {
-        return (
-            <Dialog open={confirmacionAbierta} onOpenChange={() => setConfirmacionAbierta(false)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirmar Corte de Caja</DialogTitle>
-                        <DialogDescription>
-                            ¿Estás seguro de que deseas realizar el corte de caja? Esta acción no se puede deshacer.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-end gap-4 mt-4">
-                        <Button variant="outline" onClick={() => setConfirmacionAbierta(false)}>
-                            Cancelar
-                        </Button>
-                        <Button onClick={manejarConfirmacion} disabled={isPending}>
-                            Confirmar
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
+    // if (confirmacionAbierta) {
+    //     return (
+    //         <Dialog open={confirmacionAbierta} onOpenChange={() => setConfirmacionAbierta(false)}>
+    //             <DialogContent>
+    //                 <DialogHeader>
+    //                     <DialogTitle>Confirmar Corte de Caja</DialogTitle>
+    //                     <DialogDescription>
+    //                         ¿Estás seguro de que deseas realizar el corte de caja? Esta acción no se puede deshacer.
+    //                     </DialogDescription>
+    //                 </DialogHeader>
+    //                 <div className="flex justify-end gap-4 mt-4">
+    //                     <Button variant="outline" onClick={() => setConfirmacionAbierta(false)}>
+    //                         Cancelar
+    //                     </Button>
+    //                     <Button onClick={manejarConfirmacion} disabled={isPending}>
+    //                         Confirmar
+    //                     </Button>
+    //                 </div>
+    //             </DialogContent>
+    //         </Dialog>
+    //     );
+    // }
 
-    if (!datosCorteCaja) {
-        setConfirmacionAbierta(true);
-        return null;
+    // if (!datosCorteCaja) {
+    //     setConfirmacionAbierta(true);
+    //     return null;
+    // }
+
+    // Función para manejar el guardado
+    const handleGuardarTodo = async () => {
+        try {
+            // Si hay un inicio de caja activo, solo guardar el corte
+            if (statusCaja === "Activo") {
+                await corteDiaFormRef.current?.submitForm();
+            }
+            // Si no hay inicio activo, guardar ambos formularios
+            else {
+                await inicioCajaFormRef.current?.submitForm();
+                await corteDiaFormRef.current?.submitForm();
+            }
+
+            toast({
+                title: "Éxito",
+                description: "Operación realizada correctamente",
+            });
+            alCerrar();
+            window.location.reload();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Ocurrió un error al guardar",
+                variant: "destructive",
+            });
+        }
+    };
+
+
+    const InicioCajaForm: React.FC<{ param: string | null }> = ({ param }) => {
+        const formatearMoneda = (monto: string) => {
+            return new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency: "MXN",
+            }).format(Number.parseFloat(monto))
+        }
+
+        // // Formatear fechas
+        // const fechaInicioFormateada = format(new Date(inicioCajaActivo?.FechaInicio), "dd/MM/yyyy HH:mm", { locale: es })
+        // const fechaActualizacionFormateada = format(new Date(inicioCajaActivo?.FechaActualizacion), "dd/MM/yyyy HH:mm", { locale: es })
+
+        if (param == "Activo") {
+            return (
+                <Card className="w-full mx-auto rounded-md">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-xl font-bold">Inicio de Caja #{inicioCajaActivo?.InicioCajaID}</CardTitle>
+                        <Badge
+                            variant={inicioCajaActivo.Estatus === "Activo" ? "default" : "secondary"}
+                            className={inicioCajaActivo.Estatus === "Activo" ? "bg-green-500" : ""}
+                        >
+                            {inicioCajaActivo.Estatus}
+                        </Badge>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {/* <div className="flex items-center space-x-3">
+                                <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Fecha de inicio</p>
+                                    <p className="text-sm text-muted-foreground">{fechaInicioFormateada}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                                <Clock className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Última actualización</p>
+                                    <p className="text-sm text-muted-foreground">{fechaActualizacionFormateada}</p>
+                                </div>
+                            </div> */}
+{/* 
+                            <div className="flex items-center space-x-3">
+                                <DollarSign className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Monto inicial</p>
+                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.MontoInicial)}</p>
+                                </div>
+                            </div> */}
+
+                            <div className="flex items-center space-x-3">
+                                <Banknote className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Total efectivo</p>
+                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.TotalEfectivo)}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Total transferencia</p>
+                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.TotalTransferencia)}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                                <DollarSign className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium leading-none">Total</p>
+                                    <p className="text-sm font-bold">
+                                        {formatearMoneda((Number.parseFloat(inicioCajaActivo.TotalEfectivo) + Number.parseFloat(inicioCajaActivo.TotalTransferencia)).toString())}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        } else {
+            return (
+                <>
+                    <NuevoInicioCajaForm
+                        ref={inicioCajaFormRef}
+                        usuarioAutorizoId={usuarioId}
+                        usuarios={usuarios}
+                    />
+                </>
+            )
+        }
     }
 
     return (
         <Dialog open={abierto} onOpenChange={alCerrar}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Corte de Caja</DialogTitle>
+                    <DialogTitle>Corte del dia</DialogTitle>
                 </DialogHeader>
-
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <Alert>
-                                <AlertTitle>
-                                    Saldo Esperado:
-                                </AlertTitle>
-                                <AlertDescription>
-                                    {formatCurrency(datosCorteCaja.SaldoEsperado)}
-                                </AlertDescription>
-                            </Alert>
-
-                            <Alert variant={form.watch("SaldoReal") ===
-                                (form.watch("TotalEfectivoCapturado") +
-                                    form.watch("TotalTarjetaCapturado") +
-                                    form.watch("TotalTransferenciaCapturado"))
-                                ? "default"
-                                : "destructive"}>
-                                <AlertTitle>
-                                    Suma de Totales:
-                                </AlertTitle>
-                                <AlertDescription>
-                                    {formatCurrency(
-                                        form.watch("TotalEfectivoCapturado") +
-                                        form.watch("TotalTarjetaCapturado") +
-                                        form.watch("TotalTransferenciaCapturado")
-                                    )}
-                                </AlertDescription>
-                            </Alert>
-
-                            <FormField
-                                control={form.control}
-                                name="SaldoReal"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Saldo Real</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                value={formatCurrency(field.value)}
-                                                onChange={(e) => {
-                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                    field.onChange(Number(valor) / 100);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="TotalEfectivoCapturado"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Total Efectivo</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                value={formatCurrency(field.value)}
-                                                onChange={(e) => {
-                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                    field.onChange(Number(valor) / 100);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="TotalTarjetaCapturado"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Total Tarjeta</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                value={formatCurrency(field.value)}
-                                                onChange={(e) => {
-                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                    field.onChange(Number(valor) / 100);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="TotalTransferenciaCapturado"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Total Transferencia</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                value={formatCurrency(field.value)}
-                                                onChange={(e) => {
-                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                    field.onChange(Number(valor) / 100);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <FormField
-                            control={form.control}
-                            name="Observaciones"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Observaciones</FormLabel>
-                                    <FormControl>
-                                        <Textarea {...field} placeholder="Observaciones sobre el corte..." />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="flex justify-end gap-4">
-                            <Button type="button" variant="outline" onClick={alCerrar}>
-                                Cancelar
-                            </Button>
-                            <Button type="submit" disabled={isPending}>
-                                Guardar Corte
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
+                <div>
+                    <InicioCajaForm param={statusCaja} />
+                </div>
+                <div>
+                    <NuevoCorteDelDiaForm montoInicial={montoInicial} ref={corteDiaFormRef} />
+                </div>
+                {/* Agregar botón único en el footer */}
+                <div className="flex justify-end gap-4 mt-4">
+                    <Button variant="outline" onClick={alCerrar}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleGuardarTodo} disabled={isPending}>
+                        <SaveIcon className="w-4 h-4 mr-2" />
+                        Guardar Todo
+                    </Button>
+                </div>
             </DialogContent>
         </Dialog>
     );

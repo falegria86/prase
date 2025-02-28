@@ -17,11 +17,15 @@ import { cierreCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SaveIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, forwardRef, useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-export const NuevoCorteDelDiaForm = () => {
+interface NuevoCorteDelDiaFormProps {
+    montoInicial: any;
+}
+
+export const NuevoCorteDelDiaForm = forwardRef(({ montoInicial }: NuevoCorteDelDiaFormProps, ref) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
@@ -83,44 +87,65 @@ export const NuevoCorteDelDiaForm = () => {
     }
 
     const calcularTotales = () => {
-        // Ingresos
-        const TotalIngresosEfectivo = form.getValues("Ingresos.TotalIngresosEfectivo");
-        const TotalIngresosTarjeta = form.getValues("Ingresos.TotalIngresosTarjeta");
-        const TotalIngresosTransferencia = form.getValues("Ingresos.TotalIngresosTransferencia");
-        const TotalIngresos = TotalIngresosEfectivo + TotalIngresosTarjeta + TotalIngresosTransferencia;
-        form.setValue("Ingresos.TotalIngresos", TotalIngresos);
+        // Obtener valores de ingresos y egresos
+        const ingresos = {
+            efectivo: Number(form.getValues("Ingresos.TotalIngresosEfectivo")) || 0,
+            tarjeta: Number(form.getValues("Ingresos.TotalIngresosTarjeta")) || 0,
+            transferencia: Number(form.getValues("Ingresos.TotalIngresosTransferencia")) || 0
+        };
 
-        // Egresos
-        const TotalEgresosEfectivo = form.getValues("Egresos.TotalEgresosEfectivo");
-        const TotalEgresosTarjeta = form.getValues("Egresos.TotalEgresosTarjeta");
-        const TotalEgresosTransferencia = form.getValues("Egresos.TotalEgresosTransferencia");
-        const TotalEgresos = TotalEgresosEfectivo + TotalEgresosTarjeta + TotalEgresosTransferencia;
+        const egresos = {
+            efectivo: Number(form.getValues("Egresos.TotalEgresosEfectivo")) || 0,
+            tarjeta: Number(form.getValues("Egresos.TotalEgresosTarjeta")) || 0,
+            transferencia: Number(form.getValues("Egresos.TotalEgresosTransferencia")) || 0
+        };
+
+        // Calcular totales de ingresos y egresos
+        const TotalIngresos = ingresos.efectivo + ingresos.tarjeta + ingresos.transferencia;
+        const TotalEgresos = egresos.efectivo + egresos.tarjeta + egresos.transferencia;
+
+        form.setValue("Ingresos.TotalIngresos", TotalIngresos);
         form.setValue("Egresos.TotalEgresos", TotalEgresos);
 
-        // Resumen General
-        const SaldoEsperado = form.getValues("ResumenGeneral.SaldoEsperado");
+        // Calcular totales por tipo de pago
+        const totalPorTipo = {
+            efectivo: ingresos.efectivo - egresos.efectivo,
+            tarjeta: ingresos.tarjeta - egresos.tarjeta,
+            transferencia: ingresos.transferencia - egresos.transferencia
+        };
 
-        // Total Efectivo
-        form.setValue("ResumenGeneral.TotalEfectivo", TotalIngresosEfectivo - TotalEgresosEfectivo);
+        form.setValue("ResumenGeneral.TotalEfectivo", totalPorTipo.efectivo);
+        form.setValue("ResumenGeneral.TotalPagoConTarjeta", totalPorTipo.tarjeta);
+        form.setValue("ResumenGeneral.TotalTransferencia", totalPorTipo.transferencia);
 
-        // Total Pago Con Tarjeta
-        form.setValue("ResumenGeneral.TotalPagoConTarjeta", TotalIngresosTarjeta - TotalEgresosTarjeta);
+        // Calcular saldo esperado
+        const SaldoEsperado = Number(montoInicial) + TotalIngresos - TotalEgresos;
+        form.setValue("ResumenGeneral.SaldoEsperado", SaldoEsperado);
 
-        // Total Transferencia
-        form.setValue("ResumenGeneral.TotalTransferencia", TotalIngresosTransferencia - TotalEgresosTransferencia);
-
-        // Saldo Real
-        const SaldoReal = SaldoEsperado - TotalEgresos + TotalIngresos;
+        // Calcular saldo real
+        const SaldoReal = totalPorTipo.efectivo + totalPorTipo.tarjeta + totalPorTipo.transferencia;
         form.setValue("ResumenGeneral.SaldoReal", SaldoReal);
 
-        // Diferencia
-        const Diferencia = SaldoEsperado - SaldoReal;
-        form.setValue("ResumenGeneral.Diferencia", Diferencia);
+        // Calcular diferencia
+        form.setValue("ResumenGeneral.Diferencia", SaldoEsperado - SaldoReal);
 
-        form.setValue("ResumenGeneral.TotalTarjetaCapturado", TotalIngresosTarjeta);
-        form.setValue("ResumenGeneral.TotalTransferenciaCapturado", TotalIngresosTransferencia);
+        // Guardar los valores de captura
+        form.setValue("ResumenGeneral.TotalTarjetaCapturado", totalPorTipo.tarjeta);
+        form.setValue("ResumenGeneral.TotalTransferenciaCapturado", totalPorTipo.transferencia);
+
+        console.log("--------------------------------------------");
+        console.log("Tarjeta      : ", totalPorTipo.tarjeta);
+        console.log("Efectivo     : ", totalPorTipo.efectivo);
+        console.log("Transferencia: ", totalPorTipo.transferencia);
     }
-    console.log(form.getValues());
+
+
+    useImperativeHandle(ref, () => ({
+        submitForm: () => {
+            console.log(form.getValues());
+            // form.handleSubmit(onSubmit)();
+        }
+    }));
 
     return (
         <Form {...form}>
@@ -370,7 +395,7 @@ export const NuevoCorteDelDiaForm = () => {
                             )}
                         />
                         <FormField
-                            name="ResumenGeneral.SaldoEsperado"
+                            name="ResumenGeneral.SaldoEsperado" disabled={true}
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
@@ -432,52 +457,38 @@ export const NuevoCorteDelDiaForm = () => {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            name="ResumenGeneral.TotalTarjetaCapturado"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Total Tarjeta en este Usuario</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            value={formatCurrency(field.value)}
-                                            onChange={(e) => {
-                                                const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                field.onChange(Number(valor) / 100);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            name="ResumenGeneral.TotalTransferenciaCapturado"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Total Transferencia en este Usuario</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            value={formatCurrency(field.value)}
-                                            onChange={(e) => {
-                                                const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                field.onChange(Number(valor) / 100);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
+                    </div>
+                    {/* Totales Capturados */}
+                    <h3 className="text-lg font-semibold mb-2 py-3">Totales en este usuario</h3>
+                    <div className="grid gap-4">
                         <FormField
                             name="ResumenGeneral.TotalEfectivoCapturado"
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Total Efectivo en este Usuario</FormLabel>
+                                    <FormLabel>Efectivo</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            value={formatCurrency(field.value)}
+                                            onChange={(e) => {
+                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                field.onChange(Number(valor) / 100);
+                                                calcularTotales();
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {/* <FormField
+                            name="ResumenGeneral.TotalTarjetaCapturado" disabled={true}
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tarjeta</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
@@ -493,29 +504,49 @@ export const NuevoCorteDelDiaForm = () => {
                             )}
                         />
                         <FormField
-                            name="ResumenGeneral.Observaciones"
+                            name="ResumenGeneral.TotalTransferenciaCapturado" disabled={true}
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Observaciones</FormLabel>
+                                    <FormLabel>Transferencia</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
-                                            value={field.value}
+                                            value={formatCurrency(field.value)}
+                                            onChange={(e) => {
+                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                field.onChange(Number(valor) / 100);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />
+                        /> */}
+
+                        <div className="">
+                            <FormField
+                                name="ResumenGeneral.Observaciones"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Observaciones</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                value={field.value}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
                 </div>
-
-                <Button type="submit" disabled={isPending}>
-                    <SaveIcon className="w-4 h-4 mr-2" />
-                    Guardar
-                </Button>
             </form>
         </Form>
     );
-}
+})
+
+NuevoCorteDelDiaForm.displayName = "NuevoCorteDelDiaForm";
