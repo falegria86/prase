@@ -3,6 +3,7 @@ import { getInicioActivo } from "@/actions/MovimientosActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
 import { NuevoInicioCajaForm } from "@/components/admin/movimientos/BtnNuevoInicioCajaForm";
+import { LoaderModales } from "@/components/LoaderModales";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +41,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
     const [statusCaja, setStatusCaja] = useState<string | null>(null);
     const [montoInicial, setMontoInicial] = useState<any>(null);
     const [usuarios, setUsuarios] = useState<any>([]);
+    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
 
     useEffect(() => {
@@ -56,7 +58,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
             } else {
                 setUsuarios(usuarios);
             }
-
+            setIsLoading(true)
             const respuesta = await getInicioActivo(usuarioId);
             if (respuesta) {
                 setInicioCajaActivo(respuesta);
@@ -70,6 +72,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                 });
                 alCerrar();
             }
+            setIsLoading(false)
         };
 
         fetchData();
@@ -257,7 +260,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                                     <p className="text-sm text-muted-foreground">{fechaActualizacionFormateada}</p>
                                 </div>
                             </div> */}
-{/* 
+                            {/* 
                             <div className="flex items-center space-x-3">
                                 <DollarSign className="h-5 w-5 text-muted-foreground" />
                                 <div>
@@ -315,10 +318,14 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                     <DialogTitle>Corte del dia</DialogTitle>
                 </DialogHeader>
                 <div>
-                    <InicioCajaForm param={statusCaja} />
+                    {isLoading ? (
+                        <LoaderModales texto="Cargando inicio de caja" />
+                    ) : (
+                        <InicioCajaForm param={statusCaja} />
+                    )}
                 </div>
                 <div>
-                    <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef}  />
+                    <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef} />
                 </div>
                 {/* Agregar botón único en el footer */}
                 <div className="flex justify-end gap-4 mt-4">

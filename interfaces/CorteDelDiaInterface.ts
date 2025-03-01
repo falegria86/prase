@@ -43,3 +43,25 @@ export interface IPostCorteDelDia {
     TotalTransferenciaCapturado: number;
     Observaciones: string | undefined;
 }
+
+export interface IGetCorteDelDia {
+    TotalIngresos: number;
+    TotalIngresosEfectivo: number;
+    TotalIngresosTarjeta: number;
+    TotalIngresosTransferencia: number;
+    TotalEgresos: number;
+    TotalEgresosEfectivo: number;
+    TotalEgresosTarjeta: number;
+    TotalEgresosTransferencia: number;
+    TotalEfectivo: number;
+    TotalPagoConTarjeta: number;
+    TotalTransferencia: number;
+    SaldoEsperado: number;
+    SaldoReal: number;
+    TotalEfectivoCapturado: number;
+    TotalTarjetaCapturado: number;
+    TotalTransferenciaCapturado: number;
+    Diferencia: number;
+    Observaciones: string;
+    Estatus: string;
+}

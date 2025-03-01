@@ -87,7 +87,7 @@ export const resumenGeneralSchema = z.object({
     TotalTarjetaCapturado: z.number().min(0, { message: "El total de tarjeta capturado no puede ser negativo" }),
     TotalTransferenciaCapturado: z.number().min(0, { message: "El total de transferencia capturado no puede ser negativo" }),
     // Diferencia: (Fórmula: SaldoEsperado - SaldoReal) usando refines
-    Diferencia: z.number(), 
+    Diferencia: z.number(),
     Observaciones: z.string().optional(),
     Estatus: z.string().min(1, { message: "El estatus es requerido" }),
 });
@@ -96,6 +96,29 @@ export const cierreCajaSchema = z.object({
     Ingresos: ingresosSchema,
     Egresos: egresosSchema,
     ResumenGeneral: resumenGeneralSchema,
+});
+
+
+export const CorteDelDiaSchema = z.object({
+    TotalIngresos: z.number(),
+    TotalIngresosEfectivo: z.number(),
+    TotalIngresosTarjeta: z.number(),
+    TotalIngresosTransferencia: z.number(),
+    TotalEgresos: z.number(),
+    TotalEgresosEfectivo: z.number(),
+    TotalEgresosTarjeta: z.number(),
+    TotalEgresosTransferencia: z.number(),
+    TotalEfectivo: z.number(),
+    TotalPagoConTarjeta: z.number(),
+    TotalTransferencia: z.number(),
+    SaldoEsperado: z.number(),
+    SaldoReal: z.number(),
+    TotalEfectivoCapturado: z.number(),
+    TotalTarjetaCapturado: z.number(),
+    TotalTransferenciaCapturado: z.number(),
+    Diferencia: z.number(),
+    Observaciones: z.string(),
+    Estatus: z.string(),
 });
 
 // fin cortes del dia

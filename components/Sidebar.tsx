@@ -89,9 +89,11 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const user = useCurrentUser();
+  // console.log("🚀 ~ Sidebar ~ user:", user)
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
+  // console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
   const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
 
@@ -104,8 +106,11 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   useEffect(() => {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
-        const respuesta = await getInicioActivo(user.usuario.UsuarioID);
+        console.log("🚀 ~ obtenerInicioCaja ~ user?.usuario.UsuarioID:", user?.usuario.UsuarioID)
         
+        const respuesta = await getInicioActivo(user.usuario.UsuarioID);
+        // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
+
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
         }
