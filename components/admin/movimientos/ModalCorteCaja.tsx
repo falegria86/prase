@@ -15,12 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { corteCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
-import { useEffect, useState, useTransition, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { z } from "zod";
 interface ModalCorteCajaProps {
     abierto: boolean;
@@ -79,118 +77,8 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
     }, [usuarioId, alCerrar]);
 
 
-    const nuevoInicioCajaSchema = z.object({
-        TotalEfectivo: z.number().min(1, { message: "El total de efectivo es requerido" }),
-        TotalTransferencia: z.number().min(1, { message: "El total de transferencia es requerido" }),
-        UsuarioID: z.number().min(1, { message: "El usuario es requerido" }),
-        UsuarioAutorizoID: z.number(),
-    })
-
-
-    const form = useForm<z.infer<typeof corteCajaSchema>>({
-        resolver: zodResolver(corteCajaSchema),
-        defaultValues: {
-            SaldoReal: 0,
-            TotalEfectivoCapturado: 0,
-            TotalTarjetaCapturado: 0,
-            TotalTransferenciaCapturado: 0,
-            Observaciones: "",
-        },
-    });
-
-    // const manejarConfirmacion = () => {
-    //     startTransition(async () => {
-    //         try {
-    //             const respuesta = await getCorteUsuario(usuarioId);
-    //             if (respuesta) {
-    //                 setDatosCorteCaja(respuesta);
-    //                 setConfirmacionAbierta(false);
-    //                 form.setValue("SaldoReal", respuesta.SaldoReal);
-    //                 form.setValue("TotalEfectivoCapturado", respuesta.TotalEfectivoCapturado);
-    //                 form.setValue("TotalTarjetaCapturado", respuesta.TotalTarjetaCapturado);
-    //                 form.setValue("TotalTransferenciaCapturado", respuesta.TotalTransferenciaCapturado);
-    //             } else {
-    //                 toast({
-    //                     title: "Error",
-    //                     description: "No se pudo obtener la información del corte",
-    //                     variant: "destructive",
-    //                 });
-    //                 alCerrar();
-    //             }
-    //         } catch (error) {
-    //             toast({
-    //                 title: "Error",
-    //                 description: "Ocurrió un error al procesar la solicitud",
-    //                 variant: "destructive",
-    //             });
-    //             alCerrar();
-    //         }
-    //     });
-    // };
-
-    const onSubmit = async (valores: z.infer<typeof corteCajaSchema>) => {
-        startTransition(async () => {
-            try {
-                const respuesta = await postGuardarCorteCaja({
-                    ...valores,
-                    usuarioID: usuarioId,
-                });
-
-                if (respuesta) {
-                    toast({
-                        title: "Corte guardado",
-                        description: "El corte de caja se ha guardado exitosamente",
-                    });
-                    alCerrar();
-                    window.location.reload();
-                } else {
-                    toast({
-                        title: "Error",
-                        description: "No se pudo guardar el corte de caja",
-                        variant: "destructive",
-                    });
-                }
-            } catch (error) {
-                toast({
-                    title: "Error",
-                    description: "Ocurrió un error al guardar el corte",
-                    variant: "destructive",
-                });
-            }
-        });
-    };
-
     if (!abierto) return null;
 
-    // if (confirmacionAbierta) {
-    //     return (
-    //         <Dialog open={confirmacionAbierta} onOpenChange={() => setConfirmacionAbierta(false)}>
-    //             <DialogContent>
-    //                 <DialogHeader>
-    //                     <DialogTitle>Confirmar Corte de Caja</DialogTitle>
-    //                     <DialogDescription>
-    //                         ¿Estás seguro de que deseas realizar el corte de caja? Esta acción no se puede deshacer.
-    //                     </DialogDescription>
-    //                 </DialogHeader>
-    //                 <div className="flex justify-end gap-4 mt-4">
-    //                     <Button variant="outline" onClick={() => setConfirmacionAbierta(false)}>
-    //                         Cancelar
-    //                     </Button>
-    //                     <Button onClick={manejarConfirmacion} disabled={isPending}>
-    //                         Confirmar
-    //                     </Button>
-    //                 </div>
-    //             </DialogContent>
-    //         </Dialog>
-    //     );
-    // }
-
-    // if (!datosCorteCaja) {
-    //     setConfirmacionAbierta(true);
-    //     return null;
-    // }
-
-    // Función para manejar el guardado
     const handleGuardarTodo = async () => {
         try {
             // Si hay un inicio de caja activo, solo guardar el corte
@@ -218,7 +106,6 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
         }
     };
 
-
     const InicioCajaForm: React.FC<{ param: string | null }> = ({ param }) => {
         const formatearMoneda = (monto: string) => {
             return new Intl.NumberFormat("es-MX", {
@@ -227,9 +114,14 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
             }).format(Number.parseFloat(monto))
         }
 
-        // // Formatear fechas
-        // const fechaInicioFormateada = format(new Date(inicioCajaActivo?.FechaInicio), "dd/MM/yyyy HH:mm", { locale: es })
-        // const fechaActualizacionFormateada = format(new Date(inicioCajaActivo?.FechaActualizacion), "dd/MM/yyyy HH:mm", { locale: es })
+        // Formatear fechas
+        const fechaInicioFormateada = inicioCajaActivo?.FechaInicio
+            ? format(new Date(inicioCajaActivo.FechaInicio), "dd/MM/yyyy HH:mm", { locale: es })
+            : "Fecha no disponible";
+
+        const fechaActualizacionFormateada = inicioCajaActivo?.FechaActualizacion
+            ? format(new Date(inicioCajaActivo.FechaActualizacion), "dd/MM/yyyy HH:mm", { locale: es })
+            : "Fecha no disponible";
 
         if (param == "Activo") {
             return (
@@ -245,7 +137,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                     </CardHeader>
                     <CardContent className="pt-4">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            {/* <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3">
                                 <CalendarClock className="h-5 w-5 text-muted-foreground" />
                                 <div>
                                     <p className="text-sm font-medium leading-none">Fecha de inicio</p>
@@ -259,7 +151,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                                     <p className="text-sm font-medium leading-none">Última actualización</p>
                                     <p className="text-sm text-muted-foreground">{fechaActualizacionFormateada}</p>
                                 </div>
-                            </div> */}
+                            </div>
                             {/* 
                             <div className="flex items-center space-x-3">
                                 <DollarSign className="h-5 w-5 text-muted-foreground" />

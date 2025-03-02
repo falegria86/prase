@@ -106,7 +106,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   useEffect(() => {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
-        console.log("🚀 ~ obtenerInicioCaja ~ user?.usuario.UsuarioID:", user?.usuario.UsuarioID)
         
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
         // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)

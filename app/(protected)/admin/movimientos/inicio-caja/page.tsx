@@ -1,5 +1,4 @@
-import { getEmpleados } from "@/actions/EmpleadosActionts";
-import { getIniciosCaja } from "@/actions/MovimientosActions"
+import { getIniciosCaja } from "@/actions/MovimientosActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoInicioCajaForm } from "@/components/admin/movimientos/NuevoInicioCajaForm";
 import { TableIniciosCaja } from "@/components/admin/movimientos/TableIniciosCaja";

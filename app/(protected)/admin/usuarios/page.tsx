@@ -19,7 +19,7 @@ export default async function UsuariosPage() {
         sucursales: { data: sucursales, mensaje: "No se encontraron sucursales registradas, no se puede continuar." }
     };
 
-    for (const [key, value] of Object.entries(validaciones)) {
+    for (const [, value] of Object.entries(validaciones)) {
         if (!value.data || value.data.length === 0) {
             return <MensajeError mensaje={value.mensaje} />;
         }
