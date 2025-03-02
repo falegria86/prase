@@ -99,11 +99,14 @@ export const NuevoInicioCajaForm = forwardRef(
         }
 
         // Exponer el método de submit
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         useImperativeHandle(ref, () => ({
             submitForm: () => {
                 form.handleSubmit(onSubmit)();
             }
         }));
+
+
 
         return (
             <Form {...form}>

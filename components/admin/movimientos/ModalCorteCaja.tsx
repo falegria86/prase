@@ -1,4 +1,3 @@
-import { postGuardarCorteCaja } from "@/actions/CortesCajaActions";
 import { getInicioActivo } from "@/actions/MovimientosActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
@@ -14,12 +13,10 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { corteCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { z } from "zod";
 interface ModalCorteCajaProps {
     abierto: boolean;
     alCerrar: () => void;
@@ -32,9 +29,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
     const corteDiaFormRef = useRef<any>(null);
 
 
-    const [isPending, startTransition] = useTransition();
-    const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
-    const [datosCorteCaja, setDatosCorteCaja] = useState<any>(null);
+    const [isPending] = useTransition();
     const [inicioCajaActivo, setInicioCajaActivo] = useState<any>(null);
     const [statusCaja, setStatusCaja] = useState<string | null>(null);
     const [montoInicial, setMontoInicial] = useState<any>(null);
