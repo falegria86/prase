@@ -21,9 +21,11 @@ interface ModalCorteCajaProps {
     abierto: boolean;
     alCerrar: () => void;
     usuarioId: number;
+    inicioCajaActivoID: number;
 }
 
-export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaProps) {
+export function ModalCorteCaja({ abierto, alCerrar, usuarioId, inicioCajaActivoID }: ModalCorteCajaProps) {
+    console.log("🚀 ~ ModalCorteCaja ~ inicioCajaActivoID:", inicioCajaActivoID)
     // Agregar referencias
     const inicioCajaFormRef = useRef<any>(null);
     const corteDiaFormRef = useRef<any>(null);
@@ -36,6 +38,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
     const [usuarios, setUsuarios] = useState<any>([]);
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -69,7 +72,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
         };
 
         fetchData();
-    }, [usuarioId, alCerrar]);
+    }, []);
 
 
     if (!abierto) return null;
@@ -91,7 +94,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                 description: "Operación realizada correctamente",
             });
             alCerrar();
-            window.location.reload();
+            // window.location.reload();
         } catch (error) {
             toast({
                 title: "Error",
@@ -212,7 +215,7 @@ export function ModalCorteCaja({ abierto, alCerrar, usuarioId }: ModalCorteCajaP
                     )}
                 </div>
                 <div>
-                    <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef} />
+                    {!isLoading && <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef} />}
                 </div>
                 {/* Agregar botón único en el footer */}
                 <div className="flex justify-end gap-4 mt-4">

@@ -30,18 +30,17 @@ export default async function IniciosCajaPage() {
         )
     }
 
-    if (iniciosCaja.length === 0) {
-        return (
-            <h4 className="text-red-500">No existen inicios de caja registrados.</h4>
-        )
-    }
-
     return (
         <>
             <h2 className="text-3xl font-bold mb-6">Inicios de caja</h2>
-            <TableIniciosCaja
-                iniciosCaja={iniciosCaja}
-            />
+
+            {iniciosCaja.length === 0 ? (
+                <h4 className="text-yellow-500">No existen inicios de caja registrados.</h4>
+            ) : (
+                <TableIniciosCaja
+                    iniciosCaja={iniciosCaja}
+                />
+            )}
 
             <h2 className="text-3xl font-bold mt-8 mb-6">Crear un nuevo inicio de caja</h2>
             <NuevoInicioCajaForm
