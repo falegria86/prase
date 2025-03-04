@@ -65,7 +65,7 @@ export function OpcionesCaja({ usuarioId }: OpcionesCajaProps) {
                         onClick={() => setModalCorteAbierto(true)}
                     >
                         <FaCut className="mr-2 h-4 w-4" />
-                        Corte de caja
+                        Corte del dia
                     </Button>
                 </div>
             )}

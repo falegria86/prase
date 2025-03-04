@@ -1,55 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import events from "next-auth";
-import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Home,
-  FileText,
-  ChevronDown,
-  Plus,
-  List,
-  Shield,
-  LockKeyhole,
-  User2,
-  Merge,
-  Scale,
-  Bolt,
-  BookOpenCheck,
-  Car,
-  User,
-  Menu,
-  X,
-  LucideIcon,
-  UserCog,
-  Receipt,
-  FileCheck,
-  Gauge,
-  UserPlus,
-  Building,
-  ScrollText,
-  ShieldCheck,
-  Coins,
-  Truck,
-  Wallet,
-  PercentSquare,
-  Landmark,
-} from "lucide-react";
+import { getInicioActivo } from "@/actions/MovimientosActions";
 import { Button } from "@/components/ui/button";
-import UserDropdown from "./UserDropdown";
-import { Aplicaciones } from "@/next-auth";
-import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
-import { getInicioActivo } from "@/actions/MovimientosActions";
-import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
-import { FaCut } from "react-icons/fa";
+import { cn } from "@/lib/utils";
+import { Aplicaciones } from "@/next-auth";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Bolt,
+  BookOpenCheck,
+  Building,
+  Car,
+  ChevronDown,
+  Coins,
+  FileCheck,
+  FileText,
+  Gauge,
+  Home,
+  Landmark,
+  List,
+  LockKeyhole,
+  LucideIcon,
+  Menu,
+  Merge,
+  PercentSquare,
+  Plus,
+  Receipt,
+  Scale,
+  ScrollText,
+  Shield,
+  ShieldCheck,
+  Truck,
+  User,
+  User2,
+  UserCog,
+  UserPlus,
+  Wallet,
+  X,
+} from "lucide-react";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ModalCorteCaja } from "./admin/movimientos/ModalCorteCaja";
 import { OpcionesCaja } from "./admin/movimientos/OpcionesCaja";
-import { useSession } from "next-auth/react";
+import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
+import UserDropdown from "./UserDropdown";
 
 interface SidebarProps {
   aplicaciones: Aplicaciones[];
@@ -87,11 +85,13 @@ const iconosDisponibles: Record<string, LucideIcon> = {
 export default function Sidebar({ aplicaciones }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const user = useCurrentUser();
+  // console.log("🚀 ~ Sidebar ~ user:", user)
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
+  console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
   const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
 
@@ -104,8 +104,10 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   useEffect(() => {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
+        
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
-        console.log(respuesta)
+        // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
+
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
         }
@@ -114,6 +116,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
 
     obtenerInicioCaja();
   }, [user]);
+
 
   const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
     if (!acc[app.categoria]) {
@@ -290,11 +293,12 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         />
       )}
 
-      {modalCorteAbierto && user?.usuario.UsuarioID && (
+      {modalCorteAbierto && user?.usuario.UsuarioID && inicioCajaActivo && (
         <ModalCorteCaja
           abierto={modalCorteAbierto}
           alCerrar={() => setModalCorteAbierto(false)}
           usuarioId={user.usuario.UsuarioID}
+          inicioCajaActivoID={inicioCajaActivo.InicioCajaID}
         />
       )}
     </>

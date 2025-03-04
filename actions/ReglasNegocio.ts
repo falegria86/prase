@@ -74,7 +74,7 @@ export const patchReglaNegocio = async (id: number, body: iPatchReglaNegocio) =>
             },
             body: JSON.stringify(body)
         });
-        console.log("🚀 ~ patchReglaNegocio ~ resp:", resp)
+        // console.log("🚀 ~ patchReglaNegocio ~ resp:", resp)
 
         if (!resp.ok) return null;
 
@@ -95,7 +95,7 @@ export const postReglaNegocio = async (body: iPostReglaNegocio) => {
             body: JSON.stringify(body)
         });
 
-        console.log("🚀 ~ postReglaNegocio ~ resp:", resp)
+        // console.log("🚀 ~ postReglaNegocio ~ resp:", resp)
 
         if (!resp.ok) return resp;
 

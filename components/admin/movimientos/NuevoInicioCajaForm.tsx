@@ -64,10 +64,13 @@ export const NuevoInicioCajaForm = ({
     const montoInicial = totalEfectivo + totalTransferencia
 
     const onSubmit = async (values: z.infer<typeof nuevoInicioCajaSchema>) => {
+        console.log("Hola")
         const datosConMontoInicial = {
             ...values,
             MontoInicial: montoInicial
         }
+
+        console.log("🚀 ~ startTransition ~ datosConMontoInicial:", datosConMontoInicial)
 
         startTransition(async () => {
             try {

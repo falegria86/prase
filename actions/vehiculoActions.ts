@@ -71,7 +71,7 @@ export const patchVehiculo = async (id: number, data: iPatchVehiculo) => {
             },
             body: JSON.stringify(data)
         });
-        console.log('resp', resp);
+        // console.log('resp', resp);
 
         if (!resp.ok) {
             console.log(`Error al actualizar vehiculo`);

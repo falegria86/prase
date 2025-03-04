@@ -41,8 +41,8 @@ export const EditarAjusteCP = ({ ajuste, alGuardar }: Props) => {
     });
 
     const onSubmit = (valores: z.infer<typeof editarAjusteCPSchema>) => {
-        console.log(valores)
-        console.log(ajuste.CodigoPostal)
+        // console.log(valores)
+        // console.log(ajuste.CodigoPostal)
         startTransition(async () => {
             try {
                 const respuesta = await patchCobertura(valores, ajuste.CodigoPostal);
