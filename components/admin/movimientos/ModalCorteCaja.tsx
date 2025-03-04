@@ -13,6 +13,7 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
@@ -21,7 +22,7 @@ interface ModalCorteCajaProps {
     abierto: boolean;
     alCerrar: () => void;
     usuarioId: number;
-    inicioCajaActivoID: number;
+    inicioCajaActivoID: iGetInicioActivo;
 }
 
 export function ModalCorteCaja({ abierto, alCerrar, usuarioId, inicioCajaActivoID }: ModalCorteCajaProps) {

@@ -104,7 +104,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   useEffect(() => {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
-        
+
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
         // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
 
@@ -298,7 +298,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
           abierto={modalCorteAbierto}
           alCerrar={() => setModalCorteAbierto(false)}
           usuarioId={user.usuario.UsuarioID}
-          inicioCajaActivoID={inicioCajaActivo.InicioCajaID}
+          inicioCajaActivoID={inicioCajaActivo}
         />
       )}
     </>
