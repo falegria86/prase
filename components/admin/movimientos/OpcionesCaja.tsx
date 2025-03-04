@@ -42,46 +42,48 @@ export function OpcionesCaja({ usuarioId }: OpcionesCajaProps) {
         router.refresh();
     };
 
-    if (!inicioCajaActivo) return null;
-
     return (
         <>
-            <div className="px-4 py-2">
-                <Button
-                    variant="outline"
-                    className="w-full rounded-lg"
-                    onClick={() => setModalInicioCajaAbierto(true)}
-                >
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Inicio de Caja Activo
-                </Button>
-            </div>
-
-            {inicioCajaActivo.FirmaElectronica && (
+            {inicioCajaActivo && (
                 <div className="px-4 py-2">
                     <Button
                         variant="outline"
                         className="w-full rounded-lg"
-                        onClick={() => setModalCorteAbierto(true)}
+                        onClick={() => {
+                            setModalInicioCajaAbierto(true);
+                            console.log("Inicio de caja abierto")
+                        }}
                     >
-                        <FaCut className="mr-2 h-4 w-4" />
-                        Corte del dia
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        {inicioCajaActivo ? "Inicio de Caja Activo" : "Iniciar Caja"}
                     </Button>
                 </div>
             )}
+            <div className="px-4 py-2">
+                <Button
+                    variant="outline"
+                    className="w-full rounded-lg"
+                    onClick={() => setModalCorteAbierto(true)}
+                >
+                    <FaCut className="mr-2 h-4 w-4" />
+                    Corte del Día
+                </Button>
+            </div>
 
-            <InicioCajaActivoModal
-                inicioCaja={inicioCajaActivo}
-                abierto={modalInicioCajaAbierto}
-                alCerrar={() => setModalInicioCajaAbierto(false)}
-                alAceptar={manejarActualizacionInicioCaja}
-            />
+
+            {inicioCajaActivo && (
+                <InicioCajaActivoModal
+                    inicioCaja={inicioCajaActivo}
+                    abierto={modalInicioCajaAbierto}
+                    alCerrar={() => setModalInicioCajaAbierto(false)}
+                    alAceptar={manejarActualizacionInicioCaja}
+                />
+            )}
 
             <ModalCorteCaja
                 abierto={modalCorteAbierto}
                 alCerrar={() => setModalCorteAbierto(false)}
                 usuarioId={usuarioId}
-                inicioCajaActivoID={0}
             />
         </>
     );

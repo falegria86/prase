@@ -91,7 +91,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
-  console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
+  // console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
   const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
 
@@ -104,7 +104,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   useEffect(() => {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
-        
+
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
         // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
 
@@ -284,7 +284,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         />
       )}
 
-      {inicioCajaActivo && (
+      {/* {inicioCajaActivo && (
         <InicioCajaActivoModal
           inicioCaja={inicioCajaActivo}
           abierto={modalInicioCajaAbierto}
@@ -293,14 +293,14 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         />
       )}
 
-      {modalCorteAbierto && user?.usuario.UsuarioID && inicioCajaActivo && (
+      {modalCorteAbierto && user?.usuario.UsuarioID && (
         <ModalCorteCaja
           abierto={modalCorteAbierto}
           alCerrar={() => setModalCorteAbierto(false)}
           usuarioId={user.usuario.UsuarioID}
-          inicioCajaActivoID={inicioCajaActivo.InicioCajaID}
+          inicioCajaActivoID={inicioCajaActivo.InicioCajaID || 0}
         />
-      )}
+      )} */}
     </>
   );
 }
