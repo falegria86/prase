@@ -81,6 +81,7 @@ export function OpcionesCaja({ usuarioId }: OpcionesCajaProps) {
                 abierto={modalCorteAbierto}
                 alCerrar={() => setModalCorteAbierto(false)}
                 usuarioId={usuarioId}
+                inicioCajaActivoID={0}
             />
         </>
     );
