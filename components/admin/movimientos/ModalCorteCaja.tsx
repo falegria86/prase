@@ -1,5 +1,5 @@
 import { cancelarCorteDelDia, generarCorteDelDiaByID, getCorteCerradoByUserByDay, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
-import { getInicioActivo, postInicioCaja } from "@/actions/MovimientosActions";
+import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
 import { NuevoInicioCajaForm } from "@/components/admin/movimientos/BtnNuevoInicioCajaForm";
@@ -84,6 +84,7 @@ interface ModalCorteCajaProps {
 export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaProps) => {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
+    console.log("🚀 ~ ModalCorteCaja ~ corteUsuario:", corteUsuario)
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
@@ -128,17 +129,31 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
         const obtenerInicioCaja = async () => {
             setIsLoading(true);
             const respuesta = await getInicioActivo(usuarioId);
-            if (respuesta && !('statusCode' in respuesta)) {
+
+            if (respuesta) {
                 setInicioCajaActivo(respuesta);
+                return manejarGenerarCorte();
+            }
+            setInicioCajaActivo(null);
+
+            const iniciosCaja = await getIniciosCaja();
+            if (!iniciosCaja?.length) return;
+
+            const hoy = new Date().toDateString();
+            const inicioCajaHoy = iniciosCaja.find(({ FechaInicio }) => new Date(FechaInicio).toDateString() === hoy);
+
+            if (inicioCajaHoy) {
+                setInicioCajaActivo(inicioCajaHoy);
                 manejarGenerarCorte();
             }
+
             setIsLoading(false);
         };
 
         const obtenerCorteCerradoHoy = async () => {
             setIsLoading(true);
             const respuesta = await getCorteCerradoByUserByDay(usuarioId);
-            if (respuesta && !('statusCode' in respuesta)) {
+            if (respuesta && respuesta !== null) {
                 setCorteUsuario(respuesta);
                 form.reset(respuesta);
             }
@@ -170,7 +185,6 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
             setIsLoading(false);;
             return;
         }
-        manejarGenerarCorte();
 
         toast({
             title: "Éxito",
@@ -182,6 +196,7 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
     };
 
     const manejarGenerarCorte = async () => {
+        if(corteUsuario?.Estatus === "Cerrado") return;
         setIsLoading(true);
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta?.error) {
