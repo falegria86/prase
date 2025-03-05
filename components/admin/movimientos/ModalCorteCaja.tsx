@@ -253,10 +253,10 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         const respuesta = await postCorteDelDia(datosCorte);
 
-        if (respuesta?.error) {
+        if (respuesta.statusCode) {
             toast({
                 title: "Error",
-                description: "Error al guardar el corte de caja",
+                description: "Error al guardar el corte de caja: " + respuesta.message,
                 variant: "destructive",
             });
             setIsLoading(false);
@@ -270,6 +270,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         alCerrar();
         setIsLoading(false);
+        // setTimeout(() => {
+        //     window.location.reload();
+        // }, 2000);
     };
 
     const manejarCancelarCorte = async () => {
@@ -414,7 +417,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                                     <div>
                                         <p className="text-sm font-medium leading-none">Total</p>
                                         <p className="text-sm font-bold">
-                                            {formatCurrency(Number(inicioCajaActivo.TotalTransferencia) + Number(inicioCajaActivo.TotalEfectivo))}
+                                            {formatCurrency(Number(inicioCajaActivo.TotalTransferencia) + Number(inicioCajaActivo.MontoInicial))}
                                         </p>
                                     </div>
                                 </div>
