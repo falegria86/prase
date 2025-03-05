@@ -83,9 +83,6 @@ export const postCorteDelDia = async (body: IPostCorteDelDia) => {
             body: JSON.stringify(body)
         });
 
-        console.log("🚀 ~ postCorteDelDia ~ resp:", resp)
-        if (!resp.ok) return null;
-
         const data = await resp.json();
         return data;
     } catch (error) {
