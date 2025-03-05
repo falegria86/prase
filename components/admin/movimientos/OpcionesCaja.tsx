@@ -12,9 +12,10 @@ import { InicioCajaActivoModal } from "@/components/inicios-caja/InicioCajaActiv
 
 interface OpcionesCajaProps {
     usuarioId: number;
+    NombreUsuario: string;
 }
 
-export function OpcionesCaja({ usuarioId }: OpcionesCajaProps) {
+export function OpcionesCaja({ usuarioId, NombreUsuario }: OpcionesCajaProps) {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
     const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
@@ -84,6 +85,7 @@ export function OpcionesCaja({ usuarioId }: OpcionesCajaProps) {
                 abierto={modalCorteAbierto}
                 alCerrar={() => setModalCorteAbierto(false)}
                 usuarioId={usuarioId}
+                NombreUsuario={NombreUsuario}
             />
         </>
     );

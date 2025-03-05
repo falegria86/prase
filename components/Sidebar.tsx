@@ -44,9 +44,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ModalCorteCaja } from "./admin/movimientos/ModalCorteCaja";
 import { OpcionesCaja } from "./admin/movimientos/OpcionesCaja";
-import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
 import UserDropdown from "./UserDropdown";
 
 interface SidebarProps {
@@ -87,11 +85,9 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   const router = useRouter();
   const { status } = useSession();
   const user = useCurrentUser();
-  // console.log("🚀 ~ Sidebar ~ user:", user)
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
-  // console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
   const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
 
@@ -263,7 +259,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
               // && user?.grupo.nombre !== 'Administrador'
               &&
               (
-                <OpcionesCaja usuarioId={user.usuario.UsuarioID} />
+                <OpcionesCaja usuarioId={user.usuario.UsuarioID} NombreUsuario={user.usuario.NombreUsuario} />
               )}
           </nav>
 

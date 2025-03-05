@@ -20,12 +20,12 @@ export const getCortesDelDia = async () => {
 }
 
 export const getCorteDelDiaByID = async (id: number) => {
-    console.log("🚀 ~ getCorteDelDiaByID ~ id:", id)
+    // console.log("🚀 ~ getCorteDelDiaByID ~ id:", id)
     try {
         const resp = await fetch(`${url}/cortes-usuarios/usuario/${id}`, {
             cache: 'no-store'
         });
-        
+
         if (!resp.ok) return null;
 
         const data = await resp.json();
@@ -93,14 +93,34 @@ export const postCorteDelDia = async (body: IPostCorteDelDia) => {
     }
 }
 
-export const cancelarCorteDelDia = async (id: number) => {
+export const cancelarCorteDelDia = async (id: number, usuario: string) => {
     try {
-        const resp = await fetch(`${url}/cortes-usuarios/${id}/admin`, {
+        const resp = await fetch(`${url}/cortes-usuarios/${id}/${usuario}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ Estatus: "Cancelado" }),
+        });
+
+        console.log("🚀 ~ patchCorteDelDia ~ resp:", resp);
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        return data;
+    } catch (error) {
+        console.log('Error al actualizar corte: ', error);
+    }
+};
+
+export const editarCorteDelDia = async (id: number, usuario: string, body: object) => {
+    try {
+        const resp = await fetch(`${url}/cortes-usuarios/${id}/${usuario}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
         });
 
         console.log("🚀 ~ patchCorteDelDia ~ resp:", resp);

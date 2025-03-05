@@ -1,4 +1,4 @@
-import { cancelarCorteDelDia, generarCorteDelDiaByID, getCorteCerradoByUserByDay, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
+import { cancelarCorteDelDia, generarCorteDelDiaByID, editarCorteDelDia, getCorteCerradoByUserByDay, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
 import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
@@ -29,7 +29,7 @@ import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
 import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
 import { formatCurrency } from "@/lib/format";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, set } from "date-fns";
+import { format, isSameDay, parseISO, set } from "date-fns";
 import { es } from "date-fns/locale";
 import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -65,27 +65,35 @@ const NuevoInicioCajaSchema = z.object({
 });
 
 // Componente CustomValue
-const CustomValue: React.FC<{ label: string; value: string; className?: string }> = ({ label, value, className }) => {
+const CustomValue: React.FC<{ label: string; value: string; className?: string, type?: String }> = ({ label, value, className, type = "number" }) => {
     const { getValues } = useFormContext();
     return (
         <div>
             <FormLabel>{label}</FormLabel>
-            <p className={className}>{formatCurrency(getValues(value))}</p>
+            {type === "number" ? (
+                <p className={className}>{formatCurrency(getValues(value))}</p>
+            ) : (
+                <p className={className}>{getValues(value)}</p>
+            )}
+
         </div>
     );
 };
 
 interface ModalCorteCajaProps {
     usuarioId: number;
+    NombreUsuario: string;
     abierto: boolean;
     alCerrar: () => void;
 }
 
-export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaProps) => {
+export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: ModalCorteCajaProps) => {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
     const [corteObtenido, setCorteObtenido] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [corteUsuarioID, setCorteUsuarioID] = useState(null);
+
     const { toast } = useToast();
 
     const form = useForm<z.infer<typeof CorteDelDiaSchema>>({
@@ -151,13 +159,26 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
 
         const obtenerCorteCerradoHoy = async () => {
             setIsLoading(true);
-            const respuesta = await getCorteCerradoByUserByDay(usuarioId);
-            if (respuesta && respuesta !== null) {
-                setCorteUsuario(respuesta);
-                form.reset(respuesta);
-                setCorteObtenido(true)
+            const respuesta = await getCorteDelDiaByID(usuarioId);
+            if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
+                const hoy = new Date();
+
+                // Buscar el corte con la misma fecha del día actual
+                const corteDelDia = respuesta.find(corte =>
+                    isSameDay(parseISO(corte.FechaCorte), hoy)
+                );
+
+                if (corteDelDia) {
+                    setCorteUsuarioID(corteDelDia.CorteUsuarioID)
+                    setCorteUsuario(corteDelDia);
+                    form.reset(corteDelDia);
+                    setCorteObtenido(true);
+                } else {
+                    manejarGenerarCorte();
+                }
             }
             else {
+                console.log("No hay cortes para el usuario")
                 manejarGenerarCorte();
             }
             setIsLoading(false);
@@ -201,7 +222,6 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
     const manejarGenerarCorte = async () => {
         setIsLoading(true);
         const respuesta = await generarCorteDelDiaByID(usuarioId);
-        console.log("🚀 ~ manejarGenerarCorte ~ respuesta:", respuesta)
         if (respuesta === null) {
             toast({
                 title: "Error",
@@ -255,30 +275,74 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
 
     const manejarCancelarCorte = async () => {
         setIsLoading(true);
-        const respuesta = await cancelarCorteDelDia(usuarioId);
+        if (corteUsuarioID) {
+            const respuesta = await cancelarCorteDelDia(corteUsuarioID, NombreUsuario);
+            if (respuesta?.error) {
+                toast({
+                    title: "Error",
+                    description: "Error al cancelar el corte de caja",
+                    variant: "destructive",
+                });
+                setIsLoading(false);
+                return;
+            }
 
-        if (respuesta?.error) {
             toast({
-                title: "Error",
-                description: "Error al cancelar el corte de caja",
-                variant: "destructive",
+                title: "Éxito",
+                description: "Corte de caja cancelado correctamente",
             });
-            setIsLoading(false);
-            return;
+            alCerrar();
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
+            // espera de 3 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         }
-
-        toast({
-            title: "Éxito",
-            description: "Corte de caja cancelado correctamente",
-        });
-
-        setCorteUsuario(respuesta);
-        form.reset(respuesta);
         setIsLoading(false);
     };
 
+    const manejarEditarCorte = async () => {
+        setIsLoading(true);
+        const body = {
+            usuarioID: usuarioId,
+            SaldoReal: form.getValues("SaldoReal"),
+            TotalEfectivoCapturado: form.getValues("TotalEfectivoCapturado"),
+            TotalTarjetaCapturado: form.getValues("TotalTarjetaCapturado"),
+            TotalTransferenciaCapturado: form.getValues("TotalTransferenciaCapturado"),
+            Observaciones: form.getValues("Observaciones"),
+            Estatus: "Cerrado"
+        };
+
+        if (corteUsuarioID && NombreUsuario) {
+            const respuesta = await editarCorteDelDia(corteUsuarioID, NombreUsuario, body);
+            if (respuesta?.error) {
+                toast({
+                    title: "Error",
+                    description: "Error al cancelar el corte de caja",
+                    variant: "destructive",
+                });
+                setIsLoading(false);
+                return;
+            }
+            alCerrar();
+            toast({
+                title: "Éxito",
+                description: "Corte de caja cancelado correctamente",
+            });
+
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
+        }
+
+        setIsLoading(false);
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    };
+
     const calcularTotales = () => {
-        const SaldoReal = form.getValues("TotalEfectivoCapturado") + form.getValues("TotalPagoConTarjeta") + form.getValues("TotalTransferencia");
+        const SaldoReal = Number(form.getValues("TotalEfectivoCapturado")) + Number(form.getValues("TotalPagoConTarjeta")) + Number(form.getValues("TotalTransferencia"));
         form.setValue("SaldoReal", SaldoReal);
         form.setValue("Diferencia", form.getValues("SaldoEsperado") - SaldoReal);
         form.setValue("TotalTarjetaCapturado", form.getValues("TotalPagoConTarjeta"));
@@ -290,7 +354,14 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
         <Dialog open={abierto} onOpenChange={alCerrar}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Corte del dia</DialogTitle>
+                    <DialogTitle>
+                        <div className="flex items-center justify-between pr-10">
+                            <span>Corte del dia</span>
+                            <span className={`px-2 py-1 rounded-md ${corteUsuario?.Estatus === "Pendiente" ? "bg-yellow-500 text-black" : corteUsuario?.Estatus === "Cancelado" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
+                                {corteUsuario?.Estatus}
+                            </span>
+                        </div>
+                    </DialogTitle>
                 </DialogHeader>
                 {isLoading && <LoaderModales texto="Cargando información..." />}
 
@@ -312,6 +383,14 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
                                     <div>
                                         <p className="text-sm font-medium leading-none">Fecha de inicio</p>
                                         <p className="text-sm text-muted-foreground">{formatDateTimeFull(inicioCajaActivo.FechaInicio)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Ultima actualizacion</p>
+                                        <p className="text-sm text-muted-foreground">{formatDateTimeFull(inicioCajaActivo.FechaActualizacion)}</p>
                                     </div>
                                 </div>
 
@@ -426,7 +505,7 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
                                 </div>
                             </div>
                             <div className="border p-3 rounded-md">
-                                <h3 className="text-lg font-semibold mb-2">Resumen General</h3>
+                                <h3 className="text-lg font-semibold mb-2">Resumen General </h3>
                                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <CustomValue label="Total Efectivo" value="TotalEfectivo" />
                                     <CustomValue label="Total Pago Con Tarjeta" value="TotalPagoConTarjeta" />
@@ -436,7 +515,51 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
                                     <CustomValue label="Diferencia" value="Diferencia" />
                                 </div>
                                 <h3 className="text-lg font-semibold mb-2 py-3">Totales en este usuario</h3>
-                                <div className="grid gap-4">
+
+                                {corteUsuario.Estatus === "Cerrado" ? (
+                                    <div className="grid gap-4 grid-cols-2">
+                                        <CustomValue label="Saldo Real" value="TotalEfectivoCapturado" />
+                                        <CustomValue label="Diferencia" type={"string"} value="Observaciones" />
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-4">
+                                        <FormField
+                                            name="TotalEfectivoCapturado"
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Efectivo</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            value={formatCurrency(field.value)}
+                                                            onChange={(e) => {
+                                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                                field.onChange(Number(valor) / 100);
+                                                                calcularTotales();
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            name="Observaciones"
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Observaciones</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} value={field.value} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                )}
+                                {/* <div className="grid gap-4">
                                     <FormField
                                         name="TotalEfectivoCapturado"
                                         control={form.control}
@@ -471,7 +594,7 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
                                             </FormItem>
                                         )}
                                     />
-                                </div>
+                                </div> */}
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                                 <Button variant="outline" onClick={alCerrar}>Cerrar</Button>
@@ -479,7 +602,10 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
                                     <Button type="submit">Guardar Corte</Button>
                                 )}
                                 {corteUsuario.Estatus === "Cerrado" && (
-                                    <Button onClick={manejarCancelarCorte}>Editar Corte</Button>
+                                    <Button onClick={() => manejarCancelarCorte()}>Cancelar Corte</Button>
+                                )}
+                                {corteUsuario.Estatus === "Cancelado" && (
+                                    <Button onClick={() => manejarEditarCorte()}>Guardar Corte</Button>
                                 )}
                             </div>
                         </form>
