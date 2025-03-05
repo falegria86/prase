@@ -102,7 +102,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
       if (user?.usuario.UsuarioID) {
 
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
-        // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
 
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
@@ -271,24 +270,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
           onClick={() => setSidebarAbierta(false)}
         />
       )}
-
-      {/* {inicioCajaActivo && (
-        <InicioCajaActivoModal
-          inicioCaja={inicioCajaActivo}
-          abierto={modalInicioCajaAbierto}
-          alCerrar={() => setModalInicioCajaAbierto(false)}
-          alAceptar={manejarActualizacionInicioCaja}
-        />
-      )}
-
-      {modalCorteAbierto && user?.usuario.UsuarioID && (
-        <ModalCorteCaja
-          abierto={modalCorteAbierto}
-          alCerrar={() => setModalCorteAbierto(false)}
-          usuarioId={user.usuario.UsuarioID}
-          inicioCajaActivoID={inicioCajaActivo.InicioCajaID || 0}
-        />
-      )} */}
     </>
   );
 }
