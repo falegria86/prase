@@ -84,7 +84,7 @@ interface ModalCorteCajaProps {
 export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaProps) => {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
-    console.log("🚀 ~ ModalCorteCaja ~ corteUsuario:", corteUsuario)
+    const [corteObtenido, setCorteObtenido] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
@@ -132,7 +132,7 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
 
             if (respuesta) {
                 setInicioCajaActivo(respuesta);
-                return manejarGenerarCorte();
+                return;
             }
             setInicioCajaActivo(null);
 
@@ -144,7 +144,6 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
 
             if (inicioCajaHoy) {
                 setInicioCajaActivo(inicioCajaHoy);
-                manejarGenerarCorte();
             }
 
             setIsLoading(false);
@@ -156,6 +155,10 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
             if (respuesta && respuesta !== null) {
                 setCorteUsuario(respuesta);
                 form.reset(respuesta);
+                setCorteObtenido(true)
+            }
+            else {
+                manejarGenerarCorte();
             }
             setIsLoading(false);
         };
@@ -196,21 +199,24 @@ export const ModalCorteCaja = ({ usuarioId, abierto, alCerrar }: ModalCorteCajaP
     };
 
     const manejarGenerarCorte = async () => {
-        if(corteUsuario?.Estatus === "Cerrado") return;
         setIsLoading(true);
         const respuesta = await generarCorteDelDiaByID(usuarioId);
-        if (respuesta?.error) {
+        console.log("🚀 ~ manejarGenerarCorte ~ respuesta:", respuesta)
+        if (respuesta === null) {
             toast({
                 title: "Error",
                 description: "Error al generar el corte de caja",
                 variant: "destructive",
             });
             setIsLoading(false);
+            setCorteObtenido(false);
             return;
+        } else {
+            setCorteObtenido(true);
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
         }
 
-        setCorteUsuario(respuesta);
-        form.reset(respuesta);
         setIsLoading(false);
     };
 
