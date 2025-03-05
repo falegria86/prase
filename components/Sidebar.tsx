@@ -101,6 +101,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     const obtenerInicioCaja = async () => {
       if (user?.usuario.UsuarioID) {
 
+
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
 
         if (respuesta && !('statusCode' in respuesta)) {
@@ -268,6 +269,24 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         <div
           className="fixed inset-0 bg-black/50 z-30 xl:hidden"
           onClick={() => setSidebarAbierta(false)}
+        />
+      )}
+
+      {inicioCajaActivo && (
+        <InicioCajaActivoModal
+          inicioCaja={inicioCajaActivo}
+          abierto={modalInicioCajaAbierto}
+          alCerrar={() => setModalInicioCajaAbierto(false)}
+          alAceptar={manejarActualizacionInicioCaja}
+        />
+      )}
+
+      {modalCorteAbierto && user?.usuario.UsuarioID && inicioCajaActivo && (
+        <ModalCorteCaja
+          abierto={modalCorteAbierto}
+          alCerrar={() => setModalCorteAbierto(false)}
+          usuarioId={user.usuario.UsuarioID}
+          inicioCajaActivoID={inicioCajaActivo}
         />
       )}
     </>

@@ -85,7 +85,11 @@ export function OpcionesCaja({ usuarioId, NombreUsuario }: OpcionesCajaProps) {
                 abierto={modalCorteAbierto}
                 alCerrar={() => setModalCorteAbierto(false)}
                 usuarioId={usuarioId}
+<<<<<<< HEAD
                 NombreUsuario={NombreUsuario}
+=======
+                inicioCajaActivoID={inicioCajaActivo}
+>>>>>>> 5a87507638d6d14ed3c6a5b246b7795cde2edd8a
             />
         </>
     );

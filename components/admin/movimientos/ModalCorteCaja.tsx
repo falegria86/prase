@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+<<<<<<< HEAD
 import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
 import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
 import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
@@ -76,11 +77,23 @@ const CustomValue: React.FC<{ label: string; value: string; className?: string, 
     );
 };
 
+=======
+import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+>>>>>>> 5a87507638d6d14ed3c6a5b246b7795cde2edd8a
 interface ModalCorteCajaProps {
     usuarioId: number;
     NombreUsuario: string;
     abierto: boolean;
     alCerrar: () => void;
+<<<<<<< HEAD
+=======
+    usuarioId: number;
+    inicioCajaActivoID: iGetInicioActivo;
+>>>>>>> 5a87507638d6d14ed3c6a5b246b7795cde2edd8a
 }
 
 export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: ModalCorteCajaProps) => {
