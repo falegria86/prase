@@ -131,14 +131,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     setCategoriaAbierta(categoriaAbierta === categoria ? null : categoria);
   };
 
-  const manejarActualizacionInicioCaja = async () => {
-    setModalInicioCajaAbierto(false);
-    const respuesta = await getInicioActivo(user?.usuario.UsuarioID || 0);
-    if (respuesta && !('statusCode' in respuesta)) {
-      setInicioCajaActivo(respuesta);
-    }
-    router.refresh();
-  };
 
   return (
     <>

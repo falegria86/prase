@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
-import { FaCut } from "react-icons/fa";
 import { getInicioActivo } from "@/actions/MovimientosActions";
-import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
-import { ModalCorteCaja } from "./ModalCorteCaja";
 import { InicioCajaActivoModal } from "@/components/inicios-caja/InicioCajaActivoModal";
+import { Button } from "@/components/ui/button";
+import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
+import { DollarSign } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FaCut } from "react-icons/fa";
+import { ModalCorteCaja } from "./ModalCorteCaja";
 
 interface OpcionesCajaProps {
     usuarioId: number;

@@ -1,13 +1,9 @@
-import { cancelarCorteDelDia, generarCorteDelDiaByID, editarCorteDelDia, getCorteCerradoByUserByDay, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
+import { cancelarCorteDelDia, editarCorteDelDia, generarCorteDelDiaByID, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
 import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
-import { getUsuarios } from "@/actions/SeguridadActions";
-import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
-import { NuevoInicioCajaForm } from "@/components/admin/movimientos/BtnNuevoInicioCajaForm";
 import { LoaderModales } from "@/components/LoaderModales";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTimeFull } from "@/lib/format-date"
 import {
     Dialog,
     DialogContent,
@@ -28,11 +24,11 @@ import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
 import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
 import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
 import { formatCurrency } from "@/lib/format";
+import { formatDateTimeFull } from "@/lib/format-date";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, isSameDay, parseISO, set } from "date-fns";
-import { es } from "date-fns/locale";
-import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { isSameDay, parseISO } from "date-fns";
+import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -90,7 +86,7 @@ interface ModalCorteCajaProps {
 export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: ModalCorteCajaProps) => {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
-    const [corteObtenido, setCorteObtenido] = useState(false);
+    const [, setCorteObtenido] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [corteUsuarioID, setCorteUsuarioID] = useState(null);
 
