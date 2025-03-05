@@ -27,7 +27,7 @@ import { formatCurrency } from "@/lib/format";
 import { formatDateTimeFull } from "@/lib/format-date";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isSameDay, parseISO } from "date-fns";
-import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
+import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -56,8 +56,8 @@ const CorteDelDiaSchema = z.object({
 });
 
 const NuevoInicioCajaSchema = z.object({
-    TotalEfectivo: z.number().min(1, { message: "El total de efectivo es requerido" }),
-    TotalTransferencia: z.number().min(1, { message: "El total de transferencia es requerido" }),
+    TotalEfectivo: z.number().min(0, { message: "El total de efectivo es requerido" }),
+    TotalTransferencia: z.number().min(0, { message: "El total de transferencia es requerido" }),
 });
 
 // Componente CustomValue
@@ -133,6 +133,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         const obtenerInicioCaja = async () => {
             setIsLoading(true);
             const respuesta = await getInicioActivo(usuarioId);
+            console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
 
             if (respuesta) {
                 setInicioCajaActivo(respuesta);
@@ -174,7 +175,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                 }
             }
             else {
-                console.log("No hay cortes para el usuario")
                 manejarGenerarCorte();
             }
             setIsLoading(false);
@@ -213,6 +213,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         setInicioCajaActivo(respuesta);
         setIsLoading(false);
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     };
 
     const manejarGenerarCorte = async () => {
@@ -220,9 +223,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta === null) {
             toast({
-                title: "Error",
-                description: "Error al generar el corte de caja",
-                variant: "destructive",
+                title: "Sin inicio de caja",
+                description: "Genere uno para poder realizar el corte de caja",
+                variant: "info",
             });
             setIsLoading(false);
             setCorteObtenido(false);
@@ -353,9 +356,11 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                     <DialogTitle>
                         <div className="flex items-center justify-between pr-10">
                             <span>Corte del dia</span>
-                            <span className={`px-2 py-1 rounded-md ${corteUsuario?.Estatus === "Pendiente" ? "bg-yellow-500 text-black" : corteUsuario?.Estatus === "Cancelado" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
-                                {corteUsuario?.Estatus}
-                            </span>
+                            {corteUsuario?.Estatus && (
+                                <span className={`px-2 py-1 rounded-md ${corteUsuario?.Estatus === "Pendiente" ? "bg-yellow-500 text-white" : corteUsuario?.Estatus === "Cancelado" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
+                                    {corteUsuario?.Estatus}
+                                </span>
+                            )}
                         </div>
                     </DialogTitle>
                 </DialogHeader>
@@ -469,10 +474,16 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                                 )}
                             />
 
-                            <Button type="submit" disabled={isLoading}>
-                                <SaveIcon className="w-4 h-4 mr-2" />
-                                Crear Inicio de Caja
-                            </Button>
+                            <div className="flex justify-between gap-2">
+                                <p className="flex justify-center items-center gap-2 text-sm text-muted-foreground">
+                                    <Info /> Nota: El total en efectivo y transferencia pueden ser cero.
+                                </p>
+                                <Button type="submit" disabled={isLoading}>
+                                    <SaveIcon className="w-4 h-4 mr-2" />
+                                    Crear Inicio de Caja
+                                </Button>
+
+                            </div>
                         </form>
                     </Form>
                 )}
@@ -555,7 +566,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                                         />
                                     </div>
                                 )}
-                                
+
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                                 <Button variant="outline" onClick={alCerrar}>Cerrar</Button>
