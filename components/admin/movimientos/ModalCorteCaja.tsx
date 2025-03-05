@@ -555,42 +555,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                                         />
                                     </div>
                                 )}
-                                {/* <div className="grid gap-4">
-                                    <FormField
-                                        name="TotalEfectivoCapturado"
-                                        control={form.control}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Efectivo</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        value={formatCurrency(field.value)}
-                                                        onChange={(e) => {
-                                                            const valor = e.target.value.replace(/[^0-9]/g, "");
-                                                            field.onChange(Number(valor) / 100);
-                                                            calcularTotales();
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        name="Observaciones"
-                                        control={form.control}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Observaciones</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} value={field.value} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div> */}
+                                
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                                 <Button variant="outline" onClick={alCerrar}>Cerrar</Button>
