@@ -123,13 +123,13 @@ export const RegistroPagoPoliza = ({
         );
     }
 
-    if (!inicioCaja) {
-        return (
-            <MensajeError
-                mensaje="Para registrar pagos necesitas tener un inicio de caja activo"
-            />
-        );
-    }
+    // if (!inicioCaja) {
+    //     return (
+    //         <MensajeError
+    //             mensaje="Para registrar pagos necesitas tener un inicio de caja activo"
+    //         />
+    //     );
+    // }
 
     return (
         <>

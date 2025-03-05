@@ -44,9 +44,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ModalCorteCaja } from "./admin/movimientos/ModalCorteCaja";
 import { OpcionesCaja } from "./admin/movimientos/OpcionesCaja";
-import { InicioCajaActivoModal } from "./inicios-caja/InicioCajaActivoModal";
 import UserDropdown from "./UserDropdown";
 
 interface SidebarProps {
@@ -87,11 +85,9 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
   const router = useRouter();
   const { status } = useSession();
   const user = useCurrentUser();
-  // console.log("🚀 ~ Sidebar ~ user:", user)
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
-  console.log("🚀 ~ Sidebar ~ inicioCajaActivo:", inicioCajaActivo)
   const [modalInicioCajaAbierto, setModalInicioCajaAbierto] = useState(false);
   const [modalCorteAbierto, setModalCorteAbierto] = useState(false);
 
@@ -106,7 +102,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
       if (user?.usuario.UsuarioID) {
 
         const respuesta = await getInicioActivo(user.usuario.UsuarioID);
-        // console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
 
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
@@ -135,14 +130,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     setCategoriaAbierta(categoriaAbierta === categoria ? null : categoria);
   };
 
-  const manejarActualizacionInicioCaja = async () => {
-    setModalInicioCajaAbierto(false);
-    const respuesta = await getInicioActivo(user?.usuario.UsuarioID || 0);
-    if (respuesta && !('statusCode' in respuesta)) {
-      setInicioCajaActivo(respuesta);
-    }
-    router.refresh();
-  };
 
   return (
     <>
@@ -263,7 +250,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
               // && user?.grupo.nombre !== 'Administrador'
               &&
               (
-                <OpcionesCaja usuarioId={user.usuario.UsuarioID} />
+                <OpcionesCaja usuarioId={user.usuario.UsuarioID} NombreUsuario={user.usuario.NombreUsuario} />
               )}
           </nav>
 
@@ -281,24 +268,6 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
         <div
           className="fixed inset-0 bg-black/50 z-30 xl:hidden"
           onClick={() => setSidebarAbierta(false)}
-        />
-      )}
-
-      {inicioCajaActivo && (
-        <InicioCajaActivoModal
-          inicioCaja={inicioCajaActivo}
-          abierto={modalInicioCajaAbierto}
-          alCerrar={() => setModalInicioCajaAbierto(false)}
-          alAceptar={manejarActualizacionInicioCaja}
-        />
-      )}
-
-      {modalCorteAbierto && user?.usuario.UsuarioID && inicioCajaActivo && (
-        <ModalCorteCaja
-          abierto={modalCorteAbierto}
-          alCerrar={() => setModalCorteAbierto(false)}
-          usuarioId={user.usuario.UsuarioID}
-          inicioCajaActivoID={inicioCajaActivo}
         />
       )}
     </>

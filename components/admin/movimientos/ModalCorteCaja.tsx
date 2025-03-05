@@ -1,7 +1,5 @@
-import { getInicioActivo } from "@/actions/MovimientosActions";
-import { getUsuarios } from "@/actions/SeguridadActions";
-import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/BtnNuevoCorteDelDiaForm";
-import { NuevoInicioCajaForm } from "@/components/admin/movimientos/BtnNuevoInicioCajaForm";
+import { cancelarCorteDelDia, editarCorteDelDia, generarCorteDelDiaByID, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
+import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
 import { LoaderModales } from "@/components/LoaderModales";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,223 +10,569 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { iGetInicioActivo } from "@/interfaces/MovimientosInterface";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Banknote, CalendarClock, Clock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
+import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
+import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
+import { formatCurrency } from "@/lib/format";
+import { formatDateTimeFull } from "@/lib/format-date";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isSameDay, parseISO } from "date-fns";
+import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm, useFormContext } from "react-hook-form";
+import { z } from "zod";
+
+// Definir el esquema de validación con Zod
+const CorteDelDiaSchema = z.object({
+    TotalIngresos: z.number(),
+    TotalIngresosEfectivo: z.number(),
+    TotalIngresosTarjeta: z.number(),
+    TotalIngresosTransferencia: z.number(),
+    TotalEgresos: z.number(),
+    TotalEgresosEfectivo: z.number(),
+    TotalEgresosTarjeta: z.number(),
+    TotalEgresosTransferencia: z.number(),
+    TotalEfectivo: z.number(),
+    TotalPagoConTarjeta: z.number(),
+    TotalTransferencia: z.number(),
+    SaldoEsperado: z.number(),
+    SaldoReal: z.number(),
+    TotalEfectivoCapturado: z.number(),
+    TotalTarjetaCapturado: z.number(),
+    TotalTransferenciaCapturado: z.number(),
+    Diferencia: z.number(),
+    Observaciones: z.string(),
+    Estatus: z.string(),
+});
+
+const NuevoInicioCajaSchema = z.object({
+    TotalEfectivo: z.number().min(1, { message: "El total de efectivo es requerido" }),
+    TotalTransferencia: z.number().min(1, { message: "El total de transferencia es requerido" }),
+});
+
+// Componente CustomValue
+const CustomValue: React.FC<{ label: string; value: string; className?: string, type?: String }> = ({ label, value, className, type = "number" }) => {
+    const { getValues } = useFormContext();
+    return (
+        <div>
+            <FormLabel>{label}</FormLabel>
+            {type === "number" ? (
+                <p className={className}>{formatCurrency(getValues(value))}</p>
+            ) : (
+                <p className={className}>{getValues(value)}</p>
+            )}
+
+        </div>
+    );
+};
+
 interface ModalCorteCajaProps {
+    usuarioId: number;
+    NombreUsuario: string;
     abierto: boolean;
     alCerrar: () => void;
-    usuarioId: number;
-    inicioCajaActivoID: iGetInicioActivo;
 }
 
-export function ModalCorteCaja({ abierto, alCerrar, usuarioId, inicioCajaActivoID }: ModalCorteCajaProps) {
-    console.log("🚀 ~ ModalCorteCaja ~ inicioCajaActivoID:", inicioCajaActivoID)
-    // Agregar referencias
-    const inicioCajaFormRef = useRef<any>(null);
-    const corteDiaFormRef = useRef<any>(null);
+export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: ModalCorteCajaProps) => {
+    const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
+    const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
+    const [, setCorteObtenido] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [corteUsuarioID, setCorteUsuarioID] = useState(null);
 
-
-    const [isPending] = useTransition();
-    const [inicioCajaActivo, setInicioCajaActivo] = useState<any>(null);
-    const [statusCaja, setStatusCaja] = useState<string | null>(null);
-    const [montoInicial, setMontoInicial] = useState<any>(null);
-    const [usuarios, setUsuarios] = useState<any>([]);
-    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
 
+    const form = useForm<z.infer<typeof CorteDelDiaSchema>>({
+        resolver: zodResolver(CorteDelDiaSchema),
+        defaultValues: {
+            TotalIngresos: 0,
+            TotalIngresosEfectivo: 0,
+            TotalIngresosTarjeta: 0,
+            TotalIngresosTransferencia: 0,
+            TotalEgresos: 0,
+            TotalEgresosEfectivo: 0,
+            TotalEgresosTarjeta: 0,
+            TotalEgresosTransferencia: 0,
+            TotalEfectivo: 0,
+            TotalPagoConTarjeta: 0,
+            TotalTransferencia: 0,
+            SaldoEsperado: 0,
+            SaldoReal: 0,
+            TotalEfectivoCapturado: 0,
+            TotalTarjetaCapturado: 0,
+            TotalTransferenciaCapturado: 0,
+            Diferencia: 0,
+            Observaciones: "",
+            Estatus: ""
+        },
+    });
+
+    const nuevoInicioCajaForm = useForm<z.infer<typeof NuevoInicioCajaSchema>>({
+        resolver: zodResolver(NuevoInicioCajaSchema),
+        defaultValues: {
+            TotalEfectivo: 0,
+            TotalTransferencia: 0,
+        },
+    });
+
+    const totalEfectivo = nuevoInicioCajaForm.watch("TotalEfectivo");
+    const totalTransferencia = nuevoInicioCajaForm.watch("TotalTransferencia");
+    const montoInicial = totalEfectivo + totalTransferencia;
 
     useEffect(() => {
-        const fetchData = async () => {
-            const usuarios = await getUsuarios();
-            if (!usuarios || usuarios.length === 0) {
-                toast({
-                    title: "Error",
-                    description: "Error al obtener información de empleados, intente nuevamente.",
-                    variant: "destructive",
-                });
-                alCerrar();
-                return;
-            } else {
-                setUsuarios(usuarios);
-            }
-            setIsLoading(true)
+        const obtenerInicioCaja = async () => {
+            setIsLoading(true);
             const respuesta = await getInicioActivo(usuarioId);
+
             if (respuesta) {
                 setInicioCajaActivo(respuesta);
-                setStatusCaja(respuesta.Estatus)
-                setMontoInicial(respuesta.MontoInicial)
-            } else {
-                toast({
-                    title: "Error",
-                    description: "No se pudo obtener la información del inicio de caja",
-                    variant: "destructive",
-                });
-                alCerrar();
+                return;
             }
-            setIsLoading(false)
+            setInicioCajaActivo(null);
+
+            const iniciosCaja = await getIniciosCaja();
+            if (!iniciosCaja?.length) return;
+
+            const hoy = new Date().toDateString();
+            const inicioCajaHoy = iniciosCaja.find(({ FechaInicio }) => new Date(FechaInicio).toDateString() === hoy);
+
+            if (inicioCajaHoy) {
+                setInicioCajaActivo(inicioCajaHoy);
+            }
+
+            setIsLoading(false);
         };
 
-        fetchData();
-    }, []);
+        const obtenerCorteCerradoHoy = async () => {
+            setIsLoading(true);
+            const respuesta = await getCorteDelDiaByID(usuarioId);
+            if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
+                const hoy = new Date();
 
+                // Buscar el corte con la misma fecha del día actual
+                const corteDelDia = respuesta.find(corte =>
+                    isSameDay(parseISO(corte.FechaCorte), hoy)
+                );
 
-    if (!abierto) return null;
-
-    const handleGuardarTodo = async () => {
-        try {
-            // Si hay un inicio de caja activo, solo guardar el corte
-            if (statusCaja === "Activo") {
-                await corteDiaFormRef.current?.submitForm();
+                if (corteDelDia) {
+                    setCorteUsuarioID(corteDelDia.CorteUsuarioID)
+                    setCorteUsuario(corteDelDia);
+                    form.reset(corteDelDia);
+                    setCorteObtenido(true);
+                } else {
+                    manejarGenerarCorte();
+                }
             }
-            // Si no hay inicio activo, guardar ambos formularios
             else {
-                await inicioCajaFormRef.current?.submitForm();
-                await corteDiaFormRef.current?.submitForm();
+                console.log("No hay cortes para el usuario")
+                manejarGenerarCorte();
+            }
+            setIsLoading(false);
+        };
+
+        if (usuarioId) {
+            obtenerInicioCaja();
+            obtenerCorteCerradoHoy();
+        }
+    }, [usuarioId, form]);
+
+    const manejarCrearInicioCaja = async (values: z.infer<typeof NuevoInicioCajaSchema>) => {
+        setIsLoading(true);
+        const datosConMontoInicial: iPostInicioCaja = {
+            ...values,
+            MontoInicial: montoInicial,
+            UsuarioID: usuarioId,
+            UsuarioAutorizoID: usuarioId, // Asumiendo que el mismo usuario autoriza
+        };
+
+        const respuesta = await postInicioCaja(datosConMontoInicial);
+        if (respuesta?.error) {
+            toast({
+                title: "Error",
+                description: "Error al crear el inicio de caja",
+                variant: "destructive",
+            });
+            setIsLoading(false);;
+            return;
+        }
+
+        toast({
+            title: "Éxito",
+            description: "Inicio de caja creado correctamente",
+        });
+
+        setInicioCajaActivo(respuesta);
+        setIsLoading(false);
+    };
+
+    const manejarGenerarCorte = async () => {
+        setIsLoading(true);
+        const respuesta = await generarCorteDelDiaByID(usuarioId);
+        if (respuesta === null) {
+            toast({
+                title: "Error",
+                description: "Error al generar el corte de caja",
+                variant: "destructive",
+            });
+            setIsLoading(false);
+            setCorteObtenido(false);
+            return;
+        } else {
+            setCorteObtenido(true);
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
+        }
+
+        setIsLoading(false);
+    };
+
+    const manejarGuardarCorte = async (data: z.infer<typeof CorteDelDiaSchema>) => {
+        setIsLoading(true);
+
+        const datosCorte: IPostCorteDelDia = {
+            usuarioID: usuarioId,
+            SaldoReal: data.SaldoReal,
+            TotalEfectivoCapturado: data.TotalEfectivoCapturado,
+            TotalTarjetaCapturado: data.TotalTarjetaCapturado,
+            TotalTransferenciaCapturado: data.TotalTransferenciaCapturado,
+            Observaciones: data.Observaciones,
+        };
+
+        const respuesta = await postCorteDelDia(datosCorte);
+
+        if (respuesta?.error) {
+            toast({
+                title: "Error",
+                description: "Error al guardar el corte de caja",
+                variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+        }
+
+        toast({
+            title: "Éxito",
+            description: "Corte de caja guardado correctamente",
+        });
+
+        alCerrar();
+        setIsLoading(false);
+    };
+
+    const manejarCancelarCorte = async () => {
+        setIsLoading(true);
+        if (corteUsuarioID) {
+            const respuesta = await cancelarCorteDelDia(corteUsuarioID, NombreUsuario);
+            if (respuesta?.error) {
+                toast({
+                    title: "Error",
+                    description: "Error al cancelar el corte de caja",
+                    variant: "destructive",
+                });
+                setIsLoading(false);
+                return;
             }
 
             toast({
                 title: "Éxito",
-                description: "Operación realizada correctamente",
+                description: "Corte de caja cancelado correctamente",
             });
             alCerrar();
-            // window.location.reload();
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Ocurrió un error al guardar",
-                variant: "destructive",
-            });
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
+            // espera de 3 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         }
+        setIsLoading(false);
     };
 
-    const InicioCajaForm: React.FC<{ param: string | null }> = ({ param }) => {
-        const formatearMoneda = (monto: string) => {
-            return new Intl.NumberFormat("es-MX", {
-                style: "currency",
-                currency: "MXN",
-            }).format(Number.parseFloat(monto))
+    const manejarEditarCorte = async () => {
+        setIsLoading(true);
+        const body = {
+            usuarioID: usuarioId,
+            SaldoReal: form.getValues("SaldoReal"),
+            TotalEfectivoCapturado: form.getValues("TotalEfectivoCapturado"),
+            TotalTarjetaCapturado: form.getValues("TotalTarjetaCapturado"),
+            TotalTransferenciaCapturado: form.getValues("TotalTransferenciaCapturado"),
+            Observaciones: form.getValues("Observaciones"),
+            Estatus: "Cerrado"
+        };
+
+        if (corteUsuarioID && NombreUsuario) {
+            const respuesta = await editarCorteDelDia(corteUsuarioID, NombreUsuario, body);
+            if (respuesta?.error) {
+                toast({
+                    title: "Error",
+                    description: "Error al cancelar el corte de caja",
+                    variant: "destructive",
+                });
+                setIsLoading(false);
+                return;
+            }
+            alCerrar();
+            toast({
+                title: "Éxito",
+                description: "Corte de caja cancelado correctamente",
+            });
+
+            setCorteUsuario(respuesta);
+            form.reset(respuesta);
         }
 
-        // Formatear fechas
-        const fechaInicioFormateada = inicioCajaActivo?.FechaInicio
-            ? format(new Date(inicioCajaActivo.FechaInicio), "dd/MM/yyyy HH:mm", { locale: es })
-            : "Fecha no disponible";
+        setIsLoading(false);
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    };
 
-        const fechaActualizacionFormateada = inicioCajaActivo?.FechaActualizacion
-            ? format(new Date(inicioCajaActivo.FechaActualizacion), "dd/MM/yyyy HH:mm", { locale: es })
-            : "Fecha no disponible";
-
-        if (param == "Activo") {
-            return (
-                <Card className="w-full mx-auto rounded-md">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xl font-bold">Inicio de Caja #{inicioCajaActivo?.InicioCajaID}</CardTitle>
-                        <Badge
-                            variant={inicioCajaActivo.Estatus === "Activo" ? "default" : "secondary"}
-                            className={inicioCajaActivo.Estatus === "Activo" ? "bg-green-500" : ""}
-                        >
-                            {inicioCajaActivo.Estatus}
-                        </Badge>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="flex items-center space-x-3">
-                                <CalendarClock className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Fecha de inicio</p>
-                                    <p className="text-sm text-muted-foreground">{fechaInicioFormateada}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <Clock className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Última actualización</p>
-                                    <p className="text-sm text-muted-foreground">{fechaActualizacionFormateada}</p>
-                                </div>
-                            </div>
-                            {/* 
-                            <div className="flex items-center space-x-3">
-                                <DollarSign className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Monto inicial</p>
-                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.MontoInicial)}</p>
-                                </div>
-                            </div> */}
-
-                            <div className="flex items-center space-x-3">
-                                <Banknote className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Total efectivo</p>
-                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.TotalEfectivo)}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <CreditCard className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Total transferencia</p>
-                                    <p className="text-sm text-muted-foreground">{formatearMoneda(inicioCajaActivo.TotalTransferencia)}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <DollarSign className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm font-medium leading-none">Total</p>
-                                    <p className="text-sm font-bold">
-                                        {formatearMoneda((Number.parseFloat(inicioCajaActivo.TotalEfectivo) + Number.parseFloat(inicioCajaActivo.TotalTransferencia)).toString())}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )
-        } else {
-            return (
-                <>
-                    <NuevoInicioCajaForm
-                        ref={inicioCajaFormRef}
-                        usuarioAutorizoId={usuarioId}
-                        usuarios={usuarios}
-                    />
-                </>
-            )
-        }
-    }
+    const calcularTotales = () => {
+        const SaldoReal = Number(form.getValues("TotalEfectivoCapturado")) + Number(form.getValues("TotalPagoConTarjeta")) + Number(form.getValues("TotalTransferencia"));
+        form.setValue("SaldoReal", SaldoReal);
+        form.setValue("Diferencia", form.getValues("SaldoEsperado") - SaldoReal);
+        form.setValue("TotalTarjetaCapturado", form.getValues("TotalPagoConTarjeta"));
+        form.setValue("TotalTransferenciaCapturado", form.getValues("TotalTransferencia"));
+        form.trigger();
+    };
 
     return (
         <Dialog open={abierto} onOpenChange={alCerrar}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Corte del dia</DialogTitle>
+                    <DialogTitle>
+                        <div className="flex items-center justify-between pr-10">
+                            <span>Corte del dia</span>
+                            <span className={`px-2 py-1 rounded-md ${corteUsuario?.Estatus === "Pendiente" ? "bg-yellow-500 text-black" : corteUsuario?.Estatus === "Cancelado" ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}>
+                                {corteUsuario?.Estatus}
+                            </span>
+                        </div>
+                    </DialogTitle>
                 </DialogHeader>
-                <div>
-                    {isLoading ? (
-                        <LoaderModales texto="Cargando inicio de caja" />
-                    ) : (
-                        <InicioCajaForm param={statusCaja} />
-                    )}
-                </div>
-                <div>
-                    {!isLoading && <NuevoCorteDelDiaForm montoInicial={montoInicial} usuarioId={usuarioId} ref={corteDiaFormRef} />}
-                </div>
-                {/* Agregar botón único en el footer */}
-                <div className="flex justify-end gap-4 mt-4">
-                    <Button variant="outline" onClick={alCerrar}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleGuardarTodo} disabled={isPending}>
-                        <SaveIcon className="w-4 h-4 mr-2" />
-                        Guardar Todo
-                    </Button>
-                </div>
+                {isLoading && <LoaderModales texto="Cargando información..." />}
+
+                {inicioCajaActivo ? (
+                    <Card className="w-full mx-auto rounded-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold">Inicio de Caja #{inicioCajaActivo?.InicioCajaID}</CardTitle>
+                            <Badge
+                                variant={inicioCajaActivo.Estatus === "Activo" ? "default" : "secondary"}
+                                className={inicioCajaActivo.Estatus === "Activo" ? "bg-green-500" : ""}
+                            >
+                                {inicioCajaActivo.Estatus}
+                            </Badge>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="flex items-center space-x-3">
+                                    <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Fecha de inicio</p>
+                                        <p className="text-sm text-muted-foreground">{formatDateTimeFull(inicioCajaActivo.FechaInicio)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Ultima actualizacion</p>
+                                        <p className="text-sm text-muted-foreground">{formatDateTimeFull(inicioCajaActivo.FechaActualizacion)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <Banknote className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Total efectivo</p>
+                                        <p className="text-sm text-muted-foreground">{formatCurrency(Number(inicioCajaActivo.TotalEfectivo))}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Total Transferencia</p>
+                                        <p className="text-sm text-muted-foreground">{formatCurrency(Number(inicioCajaActivo.TotalTransferencia))}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium leading-none">Total</p>
+                                        <p className="text-sm font-bold">
+                                            {formatCurrency(Number(inicioCajaActivo.TotalTransferencia) + Number(inicioCajaActivo.TotalEfectivo))}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Form {...nuevoInicioCajaForm}>
+                        <form onSubmit={nuevoInicioCajaForm.handleSubmit(manejarCrearInicioCaja)} className="space-y-4">
+                            <FormItem>
+                                <FormLabel>Monto Inicial</FormLabel>
+                                <Input
+                                    value={formatCurrency(montoInicial)}
+                                    disabled
+                                />
+                            </FormItem>
+
+                            <FormField
+                                control={nuevoInicioCajaForm.control}
+                                name="TotalEfectivo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Total Efectivo</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={nuevoInicioCajaForm.control}
+                                name="TotalTransferencia"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Total Transferencia</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                value={formatCurrency(field.value)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                    field.onChange(Number(valor) / 100);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <Button type="submit" disabled={isLoading}>
+                                <SaveIcon className="w-4 h-4 mr-2" />
+                                Crear Inicio de Caja
+                            </Button>
+                        </form>
+                    </Form>
+                )}
+
+                {corteUsuario && (
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(manejarGuardarCorte)} className="space-y-4 container">
+                            <div className="flex flex-col gap-5 lg:flex-row justify-between">
+                                <div className="w-full border p-3 rounded-md">
+                                    <h3 className="text-lg font-semibold mb-2">Ingresos</h3>
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        <CustomValue label="Total Ingresos en Efectivo" value="TotalIngresosEfectivo" />
+                                        <CustomValue label="Total Ingresos con Tarjeta" value="TotalIngresosTarjeta" />
+                                        <CustomValue label="Total Ingresos con Transferencia" value="TotalIngresosTransferencia" />
+                                        <CustomValue label="Total Ingresos" value="TotalIngresos" />
+                                    </div>
+                                </div>
+                                <div className="w-full border p-3 rounded-md">
+                                    <h3 className="text-lg font-semibold mb-2">Egresos</h3>
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        <CustomValue label="Total Egresos en Efectivo" value="TotalEgresosEfectivo" />
+                                        <CustomValue label="Total Egresos con Tarjeta" value="TotalEgresosTarjeta" />
+                                        <CustomValue label="Total Egresos con Transferencia" value="TotalEgresosTransferencia" />
+                                        <CustomValue label="Total Egresos" value="TotalEgresos" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="border p-3 rounded-md">
+                                <h3 className="text-lg font-semibold mb-2">Resumen General </h3>
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <CustomValue label="Total Efectivo" value="TotalEfectivo" />
+                                    <CustomValue label="Total Pago Con Tarjeta" value="TotalPagoConTarjeta" />
+                                    <CustomValue label="Total Pago Con Transferencia" value="TotalTransferencia" />
+                                    <CustomValue label="Saldo Esperado" value="SaldoEsperado" />
+                                    <CustomValue label="Saldo Real" value="SaldoReal" />
+                                    <CustomValue label="Diferencia" value="Diferencia" />
+                                </div>
+                                <h3 className="text-lg font-semibold mb-2 py-3">Totales en este usuario</h3>
+
+                                {corteUsuario.Estatus === "Cerrado" ? (
+                                    <div className="grid gap-4 grid-cols-2">
+                                        <CustomValue label="Saldo Real" value="TotalEfectivoCapturado" />
+                                        <CustomValue label="Diferencia" type={"string"} value="Observaciones" />
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-4">
+                                        <FormField
+                                            name="TotalEfectivoCapturado"
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Efectivo</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            value={formatCurrency(field.value)}
+                                                            onChange={(e) => {
+                                                                const valor = e.target.value.replace(/[^0-9]/g, "");
+                                                                field.onChange(Number(valor) / 100);
+                                                                calcularTotales();
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            name="Observaciones"
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Observaciones</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} value={field.value} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                )}
+                                
+                            </div>
+                            <div className="flex justify-end gap-2 mt-4">
+                                <Button variant="outline" onClick={alCerrar}>Cerrar</Button>
+                                {corteUsuario.Estatus === "Pendiente" && (
+                                    <Button type="submit">Guardar Corte</Button>
+                                )}
+                                {corteUsuario.Estatus === "Cerrado" && (
+                                    <Button onClick={() => manejarCancelarCorte()}>Cancelar Corte</Button>
+                                )}
+                                {corteUsuario.Estatus === "Cancelado" && (
+                                    <Button onClick={() => manejarEditarCorte()}>Guardar Corte</Button>
+                                )}
+                            </div>
+                        </form>
+                    </Form>
+                )}
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 }
