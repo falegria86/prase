@@ -39,6 +39,9 @@ import { deleteMovimiento } from "@/actions/MovimientosActions"
 import { eliminarMovimientoSchema } from "@/schemas/admin/movimientos/movimientosSchema"
 import { LoaderModales } from "@/components/LoaderModales"
 import { useRouter } from "next/navigation"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { addDays } from "date-fns"
+import { DateRange } from "react-day-picker"
 
 interface PropiedadesTabla {
     movimientos: iGetMovimientos[]
@@ -49,6 +52,8 @@ export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const router = useRouter();
+
+    const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined })
 
     const form = useForm<z.infer<typeof eliminarMovimientoSchema>>({
         resolver: zodResolver(eliminarMovimientoSchema),
@@ -91,8 +96,25 @@ export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
         })
     }
 
+    // Filter transactions based on date range
+    const filteredTransacciones = movimientos.filter((movimiento) => {
+        const transactionDate = new Date(movimiento.FechaTransaccion)
+        return (
+            (!dateRange.from || transactionDate >= dateRange.from) &&
+            (!dateRange.to || transactionDate <= addDays(dateRange.to, 1))
+        )
+    })
     return (
         <>
+            <div className="flex items-center mb-6 container">
+                <DateRangePicker dateRange={dateRange} onDateRangeChange={(range) => setDateRange(range || { from: undefined, to: undefined })} />
+                <Button
+                    variant="outline"
+                    onClick={() => setDateRange({ from: undefined, to: undefined })}
+                >
+                    Limpiar
+                </Button>
+            </div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -108,7 +130,7 @@ export const TablaMovimientos = ({ movimientos }: PropiedadesTabla) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {movimientos.map((movimiento) => (
+                    {filteredTransacciones.map((movimiento) => (
                         <TableRow key={movimiento.TransaccionID}>
                             <TableCell>{movimiento.TransaccionID}</TableCell>
                             <TableCell>{formatDateTimeFull(movimiento.FechaTransaccion)}</TableCell>
