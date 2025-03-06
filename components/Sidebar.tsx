@@ -48,7 +48,10 @@ import { OpcionesCaja } from "./admin/movimientos/OpcionesCaja";
 import UserDropdown from "./UserDropdown";
 
 interface SidebarProps {
+  UsuarioID: number;
+  NombreUsuario: string;
   aplicaciones: Aplicaciones[];
+  user: any;
 }
 
 const iconosDisponibles: Record<string, LucideIcon> = {
@@ -80,11 +83,11 @@ const iconosDisponibles: Record<string, LucideIcon> = {
   Landmark,
 };
 
-export default function Sidebar({ aplicaciones }: SidebarProps) {
+export default function Sidebar({ UsuarioID, NombreUsuario, aplicaciones, user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { status } = useSession();
-  const user = useCurrentUser();
+  // const user = useCurrentUser();
   const [categoriaAbierta, setCategoriaAbierta] = useState<string | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
@@ -99,9 +102,9 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
 
   useEffect(() => {
     const obtenerInicioCaja = async () => {
-      if (user?.usuario.UsuarioID) {
+      if (UsuarioID) {
 
-        const respuesta = await getInicioActivo(user.usuario.UsuarioID);
+        const respuesta = await getInicioActivo(UsuarioID);
 
         if (respuesta && !('statusCode' in respuesta)) {
           setInicioCajaActivo(respuesta);
@@ -110,7 +113,7 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
     };
 
     obtenerInicioCaja();
-  }, [user]);
+  }, []);
 
 
   const aplicacionesPorCategoria = aplicaciones.reduce((acc, app) => {
@@ -246,16 +249,16 @@ export default function Sidebar({ aplicaciones }: SidebarProps) {
               </div>
             ))}
 
-            {user?.usuario.UsuarioID
+            {UsuarioID
               // && user?.grupo.nombre !== 'Administrador'
               &&
               (
-                <OpcionesCaja usuarioId={user.usuario.UsuarioID} NombreUsuario={user.usuario.NombreUsuario} />
+                <OpcionesCaja usuarioId={UsuarioID} NombreUsuario={NombreUsuario} />
               )}
           </nav>
 
           <div className="mt-auto">
-            {user && (
+            {user && UsuarioID && (
               <div className="px-4 py-4 border-t">
                 <UserDropdown user={user} />
               </div>
