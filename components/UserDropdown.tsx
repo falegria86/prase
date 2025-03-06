@@ -13,6 +13,17 @@ import {
 import { logout } from '@/actions/logout'
 
 export default function UserDropdown({ user }: { user: CustomUser | null }) {
+
+    const handleLogout = async () => {
+        document.cookie.split(";").forEach((cookie) => {
+            const [name] = cookie.split("=");
+            // Elimina cada cookie configurando su fecha de expiración en el pasado
+            document.cookie = `${name.trim()}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+        });
+
+        logout()
+    }
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -42,7 +53,7 @@ export default function UserDropdown({ user }: { user: CustomUser | null }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className='cursor-pointer'>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span onClick={() => logout()}>Cerrar Sesión</span>
+                    <span onClick={() => handleLogout()}>Cerrar Sesión</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
