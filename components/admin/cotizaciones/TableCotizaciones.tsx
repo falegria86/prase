@@ -89,6 +89,7 @@ export const TableCotizaciones = ({
   coberturasData,
   tiposPago,
 }: TableCotizacionesProps) => {
+  console.log("🚀 ~ cotizaciones:", cotizaciones)
   const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState<iGetCotizacion | null>(null);
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
   const [modalReenvioAbierto, setModalReenvioAbierto] = useState(false);
@@ -319,7 +320,7 @@ export const TableCotizaciones = ({
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-3 mt-3">
-                  {(cotizacion.EstadoCotizacion !== "RECHAZADA" && cotizacion.EstadoCotizacion !== "EMITIDA") && (
+                  {(cotizacion.EstadoCotizacion !== "EMITIDA") && (
                     <AccionesMenu
                       cotizacion={cotizacion}
                       onDescargar={manejarDescargaPDF}
@@ -376,18 +377,20 @@ const AccionesMenu = ({
   onReenviar: () => void;
 }) => (
   <>
-    <Tooltip>
-      <TooltipTrigger>
-        <Download
-          size={16}
-          className="text-gray-600 cursor-pointer"
-          onClick={() => onDescargar(cotizacion)}
-        />
-      </TooltipTrigger>
-      <TooltipContent>Descargar PDF</TooltipContent>
-    </Tooltip>
+    {cotizacion.EstadoCotizacion !== "RECHAZADA" && (
+      <>
+        <Tooltip>
+          <TooltipTrigger>
+            <Download
+              size={16}
+              className="text-gray-600 cursor-pointer"
+              onClick={() => onDescargar(cotizacion)}
+            />
+          </TooltipTrigger>
+          <TooltipContent>Descargar PDF</TooltipContent>
+        </Tooltip>
 
-    {/* <Tooltip>
+        {/* <Tooltip>
       <TooltipTrigger>
         <Edit
           size={16}
@@ -398,6 +401,40 @@ const AccionesMenu = ({
       <TooltipContent>Editar</TooltipContent>
     </Tooltip> */}
 
+        <Tooltip>
+          <TooltipTrigger>
+            <Mail
+              size={16}
+              className="text-gray-600 cursor-pointer"
+              onClick={onReenviar}
+            />
+          </TooltipTrigger>
+          <TooltipContent>Reenviar PDF</TooltipContent>
+        </Tooltip>
+      </>
+    )}
+    {/* <Tooltip>
+      <TooltipTrigger>
+        <Download
+          size={16}
+          className="text-gray-600 cursor-pointer"
+          onClick={() => onDescargar(cotizacion)}
+        />
+      </TooltipTrigger>
+      <TooltipContent>Descargar PDF</TooltipContent>
+    </Tooltip>
+
+    //<Tooltip>
+    //  <TooltipTrigger>
+    //    <Edit
+    //      size={16}
+    //      className="text-gray-600 cursor-pointer"
+    //      onClick={onEditar}
+    //    />
+    //  </TooltipTrigger>
+    //  <TooltipContent>Editar</TooltipContent>
+    //</Tooltip> 
+
     <Tooltip>
       <TooltipTrigger>
         <Mail
@@ -407,7 +444,7 @@ const AccionesMenu = ({
         />
       </TooltipTrigger>
       <TooltipContent>Reenviar PDF</TooltipContent>
-    </Tooltip>
+    </Tooltip> */}
 
     <Tooltip>
       <TooltipTrigger>
