@@ -20,6 +20,7 @@ export const getIniciosCaja = async () => {
 }
 
 export const getInicioActivo = async (idUser: number) => {
+    console.log("🚀 ~ getInicioActivo ~ idUser:", idUser)
     try {
         const resp = await fetch(`${url}/inicios-caja/activo/${idUser}`, {
             cache: 'no-store'

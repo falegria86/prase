@@ -43,9 +43,6 @@ export const generarCorteDelDiaByID = async (id: number) => {
             cache: 'no-store'
         });
 
-        // console.log("🚀 ~ generarCorteDelDiaByID ~ resp:", resp)
-        if (!resp.ok) return null;
-
         const data = await resp.json();
         // console.log("🚀 ~ generarCorteDelDiaByID ~ data:", data)
         return data;
