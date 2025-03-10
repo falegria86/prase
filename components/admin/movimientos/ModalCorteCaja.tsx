@@ -28,7 +28,7 @@ import { formatDateTimeFull } from "@/lib/format-date";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isSameDay, parseISO } from "date-fns";
 import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -93,6 +93,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [corteUsuarioID, setCorteUsuarioID] = useState(null);
+
+    const esPrimeraVez = useRef(true);
+    const ejecutado = useRef(false);
 
     const { toast } = useToast();
 
@@ -160,7 +163,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     const obtenerCorteCerradoHoy = async () => {
         setIsLoading(true);
         const respuesta = await getCorteDelDiaByID(usuarioId);
-        
+
         if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
             const hoy = new Date();
 
@@ -189,6 +192,19 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
             obtenerCorteCerradoHoy();
         }
     }, [usuarioId, form]);
+
+    useLayoutEffect(() => {
+        if (abierto) {
+            if (!esPrimeraVez.current && !ejecutado.current) {
+                manejarGenerarCorte();
+                ejecutado.current = true;
+            } else if (esPrimeraVez.current) {
+                esPrimeraVez.current = false;
+            }
+        } else {
+            ejecutado.current = false;
+        }
+    }, [abierto]);
 
     const manejarCrearInicioCaja = async (values: z.infer<typeof NuevoInicioCajaSchema>) => {
         setIsLoading(true);
@@ -223,6 +239,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
     const manejarGenerarCorte = async () => {
         setIsLoading(true);
+        console.log("Generando el corte del dia")
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta.statusCode) {
             toast({
