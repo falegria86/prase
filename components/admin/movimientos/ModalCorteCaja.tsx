@@ -28,7 +28,7 @@ import { formatDateTimeFull } from "@/lib/format-date";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isSameDay, parseISO } from "date-fns";
 import { Banknote, CalendarClock, CreditCard, DollarSign, SaveIcon, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -67,7 +67,12 @@ const CustomValue: React.FC<{ label: string; value: string; className?: string, 
         <div>
             <FormLabel>{label}</FormLabel>
             {type === "number" ? (
-                <p className={className}>{formatCurrency(getValues(value))}</p>
+                value == "Diferencia" ? (
+
+                    <p className={className}>{formatCurrency(Math.abs(getValues(value)))}</p>
+                ) : (
+                    <p className={className}>{formatCurrency(getValues(value))}</p>
+                )
             ) : (
                 <p className={className}>{getValues(value)}</p>
             )}
@@ -86,9 +91,11 @@ interface ModalCorteCajaProps {
 export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: ModalCorteCajaProps) => {
     const [inicioCajaActivo, setInicioCajaActivo] = useState<iGetInicioActivo | null>(null);
     const [corteUsuario, setCorteUsuario] = useState<iGetCorteCajaUsuario | null>(null);
-    const [, setCorteObtenido] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [corteUsuarioID, setCorteUsuarioID] = useState(null);
+
+    const esPrimeraVez = useRef(true);
+    const ejecutado = useRef(false);
 
     const { toast } = useToast();
 
@@ -129,62 +136,75 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     const totalTransferencia = nuevoInicioCajaForm.watch("TotalTransferencia");
     const montoInicial = totalEfectivo + totalTransferencia;
 
-    useEffect(() => {
-        const obtenerInicioCaja = async () => {
-            setIsLoading(true);
-            const respuesta = await getInicioActivo(usuarioId);
-            console.log("🚀 ~ obtenerInicioCaja ~ respuesta:", respuesta)
+    const obtenerInicioCaja = async () => {
+        setIsLoading(true);
+        const respuesta = await getInicioActivo(usuarioId);
 
-            if (respuesta) {
-                setInicioCajaActivo(respuesta);
-                return;
-            }
-            setInicioCajaActivo(null);
+        if (respuesta) {
+            setInicioCajaActivo(respuesta);
+            return;
+        }
+        setInicioCajaActivo(null);
 
-            const iniciosCaja = await getIniciosCaja();
-            if (!iniciosCaja?.length) return;
+        const iniciosCaja = await getIniciosCaja();
+        if (!iniciosCaja?.length) return;
 
-            const hoy = new Date().toDateString();
-            const inicioCajaHoy = iniciosCaja.find(({ FechaInicio }) => new Date(FechaInicio).toDateString() === hoy);
+        const hoy = new Date().toDateString();
+        const inicioCajaHoy = iniciosCaja.find(({ FechaInicio, Usuario }) =>
+            new Date(FechaInicio).toDateString() === hoy && Usuario.UsuarioID === usuarioId);
 
-            if (inicioCajaHoy) {
-                setInicioCajaActivo(inicioCajaHoy);
-            }
+        if (inicioCajaHoy) {
+            setInicioCajaActivo(inicioCajaHoy);
+        }
 
-            setIsLoading(false);
-        };
+        setIsLoading(false);
+    };
 
-        const obtenerCorteCerradoHoy = async () => {
-            setIsLoading(true);
-            const respuesta = await getCorteDelDiaByID(usuarioId);
-            if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
-                const hoy = new Date();
+    const obtenerCorteCerradoHoy = async () => {
+        setIsLoading(true);
+        const respuesta = await getCorteDelDiaByID(usuarioId);
 
-                // Buscar el corte con la misma fecha del día actual
-                const corteDelDia = respuesta.find(corte =>
-                    isSameDay(parseISO(corte.FechaCorte), hoy)
-                );
+        if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
+            const hoy = new Date();
 
-                if (corteDelDia) {
-                    setCorteUsuarioID(corteDelDia.CorteUsuarioID)
-                    setCorteUsuario(corteDelDia);
-                    form.reset(corteDelDia);
-                    setCorteObtenido(true);
-                } else {
-                    manejarGenerarCorte();
-                }
-            }
-            else {
+            // Buscar el corte con la misma fecha del día actual
+            const corteDelDia = respuesta.find(corte =>
+                isSameDay(parseISO(corte.FechaCorte), hoy)
+            );
+
+            if (corteDelDia) {
+                setCorteUsuarioID(corteDelDia.CorteUsuarioID)
+                setCorteUsuario(corteDelDia);
+                form.reset(corteDelDia);
+                obtenerCorteCerradoHoy();
+            } else {
                 manejarGenerarCorte();
             }
-            setIsLoading(false);
-        };
-
+        }
+        else {
+            manejarGenerarCorte();
+        }
+        setIsLoading(false);
+    };
+    useEffect(() => {
         if (usuarioId) {
             obtenerInicioCaja();
             obtenerCorteCerradoHoy();
         }
     }, [usuarioId, form]);
+
+    useLayoutEffect(() => {
+        if (abierto) {
+            if (!esPrimeraVez.current && !ejecutado.current) {
+                manejarGenerarCorte();
+                ejecutado.current = true;
+            } else if (esPrimeraVez.current) {
+                esPrimeraVez.current = false;
+            }
+        } else {
+            ejecutado.current = false;
+        }
+    }, [abierto]);
 
     const manejarCrearInicioCaja = async (values: z.infer<typeof NuevoInicioCajaSchema>) => {
         setIsLoading(true);
@@ -213,25 +233,23 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         setInicioCajaActivo(respuesta);
         setIsLoading(false);
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
+        obtenerInicioCaja();
+        obtenerCorteCerradoHoy();
     };
 
     const manejarGenerarCorte = async () => {
         setIsLoading(true);
+        console.log("Generando el corte del dia")
         const respuesta = await generarCorteDelDiaByID(usuarioId);
-        if (respuesta === null) {
+        if (respuesta.statusCode) {
             toast({
-                title: "Sin inicio de caja",
-                description: "Genere uno para poder realizar el corte de caja",
-                variant: "info",
+                title: "Atencion.",
+                description: respuesta.message,
+                variant: "warning",
             });
             setIsLoading(false);
-            setCorteObtenido(false);
             return;
         } else {
-            setCorteObtenido(true);
             setCorteUsuario(respuesta);
             form.reset(respuesta);
         }
@@ -270,9 +288,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         alCerrar();
         setIsLoading(false);
-        // setTimeout(() => {
-        //     window.location.reload();
-        // }, 2000);
+        obtenerCorteCerradoHoy();
     };
 
     const manejarCancelarCorte = async () => {
@@ -293,15 +309,12 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                 title: "Éxito",
                 description: "Corte de caja cancelado correctamente",
             });
-            alCerrar();
+            // alCerrar();
             setCorteUsuario(respuesta);
             form.reset(respuesta);
-            // espera de 3 segundos
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
         }
         setIsLoading(false);
+        obtenerCorteCerradoHoy();
     };
 
     const manejarEditarCorte = async () => {
@@ -327,7 +340,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                 setIsLoading(false);
                 return;
             }
-            alCerrar();
             toast({
                 title: "Éxito",
                 description: "Corte de caja cancelado correctamente",
@@ -338,15 +350,15 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         }
 
         setIsLoading(false);
-        setTimeout(() => {
-            window.location.reload();
-        }, 3000);
+        obtenerCorteCerradoHoy();
     };
 
     const calcularTotales = () => {
         const SaldoReal = Number(form.getValues("TotalEfectivoCapturado")) + Number(form.getValues("TotalPagoConTarjeta")) + Number(form.getValues("TotalTransferencia"));
         form.setValue("SaldoReal", SaldoReal);
-        form.setValue("Diferencia", form.getValues("SaldoEsperado") - SaldoReal);
+        const diferencia = form.getValues("SaldoEsperado") - SaldoReal;
+        const difPositiva = Math.abs(diferencia);
+        form.setValue("Diferencia", difPositiva);
         form.setValue("TotalTarjetaCapturado", form.getValues("TotalPagoConTarjeta"));
         form.setValue("TotalTransferenciaCapturado", form.getValues("TotalTransferencia"));
         form.trigger();
@@ -572,9 +584,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
-                                <Button variant="outline" onClick={alCerrar}>Cerrar</Button>
+                                <Button variant="outline" onClick={alCerrar}>Cerrar ventana</Button>
                                 {corteUsuario.Estatus === "Pendiente" && (
-                                    <Button type="submit">Guardar Corte</Button>
+                                    <Button type="submit">Guardar Corte.</Button>
                                 )}
                                 {corteUsuario.Estatus === "Cerrado" && (
                                     <Button onClick={() => manejarCancelarCorte()}>Cancelar Corte</Button>
