@@ -176,7 +176,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                 setCorteUsuarioID(corteDelDia.CorteUsuarioID)
                 setCorteUsuario(corteDelDia);
                 form.reset(corteDelDia);
-                obtenerCorteCerradoHoy();
             } else {
                 manejarGenerarCorte();
             }
@@ -191,7 +190,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
             obtenerInicioCaja();
             obtenerCorteCerradoHoy();
         }
-    }, [usuarioId, form]);
+    }, [usuarioId]);
 
     useLayoutEffect(() => {
         if (abierto) {
@@ -252,6 +251,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         } else {
             setCorteUsuario(respuesta);
             form.reset(respuesta);
+            console.log("manejarGenerarCorte")
         }
 
         setIsLoading(false);
@@ -312,6 +312,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
             // alCerrar();
             setCorteUsuario(respuesta);
             form.reset(respuesta);
+            console.log("manejarCancelarCorte")
         }
         setIsLoading(false);
         obtenerCorteCerradoHoy();
@@ -347,6 +348,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
             setCorteUsuario(respuesta);
             form.reset(respuesta);
+            console.log("manejarEditarCorte")
         }
 
         setIsLoading(false);
@@ -361,6 +363,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         form.setValue("Diferencia", difPositiva);
         form.setValue("TotalTarjetaCapturado", form.getValues("TotalPagoConTarjeta"));
         form.setValue("TotalTransferenciaCapturado", form.getValues("TotalTransferencia"));
+        // console log de TotalEfecitvoCapturado y Observaciones
         form.trigger();
     };
 
@@ -584,15 +587,52 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
-                                <Button variant="outline" onClick={alCerrar}>Cerrar ventana</Button>
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        alCerrar();
+                                    }}
+                                >
+                                    Cerrar ventana
+                                </Button>
                                 {corteUsuario.Estatus === "Pendiente" && (
-                                    <Button type="submit">Guardar Corte.</Button>
+                                    <Button
+                                        type="submit"
+                                        onClick={(e) => {
+                                            if (e.currentTarget.type !== 'submit') {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    >
+                                        Guardar Corte.
+                                    </Button>
                                 )}
                                 {corteUsuario.Estatus === "Cerrado" && (
-                                    <Button onClick={() => manejarCancelarCorte()}>Cancelar Corte</Button>
+                                    <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            manejarCancelarCorte();
+                                        }}
+                                    >
+                                        Cancelar Corte
+                                    </Button>
                                 )}
                                 {corteUsuario.Estatus === "Cancelado" && (
-                                    <Button onClick={() => manejarEditarCorte()}>Guardar Corte</Button>
+                                    <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            manejarEditarCorte();
+                                        }}
+                                    >
+                                        Guardar Corte
+                                    </Button>
                                 )}
                             </div>
                         </form>
