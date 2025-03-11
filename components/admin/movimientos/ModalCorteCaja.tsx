@@ -238,7 +238,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
     const manejarGenerarCorte = async () => {
         setIsLoading(true);
-        console.log("Generando el corte del dia")
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta.statusCode) {
             toast({

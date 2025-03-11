@@ -62,22 +62,23 @@ export const GestionPagosPoliza = ({
                         {user?.grupo.nombre === 'Administrador' && <TabsTrigger value="editar">Editar Pagos</TabsTrigger>}
                     </TabsList>
 
-                    <TabsContent value="registrar">
-                        <RegistroPagoPoliza
-                            esquemaPago={esquemaPago}
-                            polizaId={poliza.PolizaID}
-                            usuarioId={usuarioId}
-                            statusPago={statusPago}
-                            metodosPago={metodosPago}
-                            onRegistrarPago={onRegistrarPago}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="historial">
-                        <HistorialPagosPoliza
-                            numeroPoliza={poliza.NumeroPoliza}
-                        />
-                    </TabsContent>
+                    <div className="pb-6">
+                        <TabsContent value="registrar">
+                            <RegistroPagoPoliza
+                                esquemaPago={esquemaPago}
+                                polizaId={poliza.PolizaID}
+                                usuarioId={usuarioId}
+                                statusPago={statusPago}
+                                metodosPago={metodosPago}
+                                onRegistrarPago={onRegistrarPago}
+                            />
+                        </TabsContent>
+                        <TabsContent value="historial">
+                            <HistorialPagosPoliza
+                                numeroPoliza={poliza.NumeroPoliza}
+                            />
+                        </TabsContent>
+                    </div>
 
                     {user?.grupo.nombre === 'Administrador' && (
                         <TabsContent value="editar">
