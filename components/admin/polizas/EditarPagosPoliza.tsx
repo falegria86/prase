@@ -336,20 +336,24 @@ export const EditarPagosPoliza = ({
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => setPagoEditando(pago.PagoID)}
-                                                            >
-                                                                <Edit2 className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => setDialogoEliminar(pago.PagoID)}
-                                                            >
-                                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                            </Button>
+                                                            {pago.EstatusPago.IDEstatusPago !== 1 &&
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => setPagoEditando(pago.PagoID)}
+                                                                >
+                                                                    <Edit2 className="h-4 w-4" />
+                                                                </Button>
+                                                            }
+                                                            {pago.EstatusPago.IDEstatusPago === 3 &&
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => setDialogoEliminar(pago.PagoID)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                                </Button>
+                                                            }
                                                         </>
                                                     )}
                                                 </div>
