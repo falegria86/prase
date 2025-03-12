@@ -138,63 +138,81 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
     const obtenerInicioCaja = async () => {
         setIsLoading(true);
-        const respuesta = await getInicioActivo(usuarioId);
+        try {
+            const respuesta = await getInicioActivo(usuarioId);
 
-        if (respuesta) {
-            setInicioCajaActivo(respuesta);
-            return;
+            if (respuesta) {
+                setInicioCajaActivo(respuesta);
+                return true;
+            }
+
+            const iniciosCaja = await getIniciosCaja();
+            if (!iniciosCaja?.length) {
+                setInicioCajaActivo(null);
+                return false;
+            }
+
+            const hoy = new Date().toDateString();
+            const inicioCajaHoy = iniciosCaja.find(({ FechaInicio, Usuario }) =>
+                new Date(FechaInicio).toDateString() === hoy && Usuario.UsuarioID === usuarioId);
+
+            if (inicioCajaHoy) {
+                setInicioCajaActivo(inicioCajaHoy);
+                return true;
+            }
+
+            setInicioCajaActivo(null);
+            return false;
+        } finally {
+            setIsLoading(false);
         }
-        setInicioCajaActivo(null);
-
-        const iniciosCaja = await getIniciosCaja();
-        if (!iniciosCaja?.length) return;
-
-        const hoy = new Date().toDateString();
-        const inicioCajaHoy = iniciosCaja.find(({ FechaInicio, Usuario }) =>
-            new Date(FechaInicio).toDateString() === hoy && Usuario.UsuarioID === usuarioId);
-
-        if (inicioCajaHoy) {
-            setInicioCajaActivo(inicioCajaHoy);
-        }
-
-        setIsLoading(false);
     };
 
     const obtenerCorteCerradoHoy = async () => {
+        if (!inicioCajaActivo) {
+            return;
+        }
+
         setIsLoading(true);
-        const respuesta = await getCorteDelDiaByID(usuarioId);
+        try {
+            const respuesta = await getCorteDelDiaByID(usuarioId);
 
-        if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
-            const hoy = new Date();
+            if (respuesta && Array.isArray(respuesta) && respuesta.length > 0) {
+                const hoy = new Date();
+                const corteDelDia = respuesta.find(corte =>
+                    isSameDay(parseISO(corte.FechaCorte), hoy)
+                );
 
-            // Buscar el corte con la misma fecha del día actual
-            const corteDelDia = respuesta.find(corte =>
-                isSameDay(parseISO(corte.FechaCorte), hoy)
-            );
-
-            if (corteDelDia) {
-                setCorteUsuarioID(corteDelDia.CorteUsuarioID)
-                setCorteUsuario(corteDelDia);
-                form.reset(corteDelDia);
+                if (corteDelDia) {
+                    setCorteUsuarioID(corteDelDia.CorteUsuarioID)
+                    setCorteUsuario(corteDelDia);
+                    form.reset(corteDelDia);
+                } else {
+                    manejarGenerarCorte();
+                }
             } else {
                 manejarGenerarCorte();
             }
+        } finally {
+            setIsLoading(false);
         }
-        else {
-            manejarGenerarCorte();
-        }
-        setIsLoading(false);
     };
     useEffect(() => {
-        if (usuarioId) {
-            obtenerInicioCaja();
-            obtenerCorteCerradoHoy();
-        }
+        const inicializarDatos = async () => {
+            if (usuarioId) {
+                const tieneInicioCaja = await obtenerInicioCaja();
+                if (tieneInicioCaja) {
+                    await obtenerCorteCerradoHoy();
+                }
+            }
+        };
+        inicializarDatos();
     }, [usuarioId]);
 
     useLayoutEffect(() => {
         if (abierto) {
-            if (!esPrimeraVez.current && !ejecutado.current) {
+            if (!esPrimeraVez.current && !ejecutado.current && inicioCajaActivo !== null) {
+                console.log("🚀 ~ ModalCorteCaja ~ inicioCajaActivo:", inicioCajaActivo)
                 manejarGenerarCorte();
                 ejecutado.current = true;
             } else if (esPrimeraVez.current) {
@@ -250,7 +268,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         } else {
             setCorteUsuario(respuesta);
             form.reset(respuesta);
-            console.log("manejarGenerarCorte")
         }
 
         setIsLoading(false);
