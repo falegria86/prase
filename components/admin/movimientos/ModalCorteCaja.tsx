@@ -142,12 +142,16 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
 
         if (respuesta) {
             setInicioCajaActivo(respuesta);
+            setIsLoading(false);
             return;
         }
         setInicioCajaActivo(null);
 
         const iniciosCaja = await getIniciosCaja();
-        if (!iniciosCaja?.length) return;
+        if (!iniciosCaja?.length) {
+            setIsLoading(false);
+            return
+        };
 
         const hoy = new Date().toDateString();
         const inicioCajaHoy = iniciosCaja.find(({ FechaInicio, Usuario }) =>
@@ -193,15 +197,9 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     }, [usuarioId]);
 
     useLayoutEffect(() => {
-        if (abierto) {
-            if (!esPrimeraVez.current && !ejecutado.current) {
-                manejarGenerarCorte();
-                ejecutado.current = true;
-            } else if (esPrimeraVez.current) {
-                esPrimeraVez.current = false;
-            }
-        } else {
-            ejecutado.current = false;
+        if (abierto && inicioCajaActivo !== null) {
+            manejarGenerarCorte();
+            ejecutado.current = true;
         }
     }, [abierto]);
 
@@ -237,6 +235,11 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     };
 
     const manejarGenerarCorte = async () => {
+        
+        if (!inicioCajaActivo || (inicioCajaActivo && corteUsuario && corteUsuario?.Estatus === "Cerrado")) {
+            return;
+        }
+        
         setIsLoading(true);
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta.statusCode) {
@@ -250,7 +253,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
         } else {
             setCorteUsuario(respuesta);
             form.reset(respuesta);
-            console.log("manejarGenerarCorte")
         }
 
         setIsLoading(false);
@@ -429,7 +431,7 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
                                     <div>
                                         <p className="text-sm font-medium leading-none">Total</p>
                                         <p className="text-sm font-bold">
-                                            {formatCurrency(Number(inicioCajaActivo.TotalTransferencia) + Number(inicioCajaActivo.MontoInicial))}
+                                            {formatCurrency(Number(inicioCajaActivo.MontoInicial))}
                                         </p>
                                     </div>
                                 </div>
