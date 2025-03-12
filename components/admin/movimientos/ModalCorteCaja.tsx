@@ -311,7 +311,6 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
             // alCerrar();
             setCorteUsuario(respuesta);
             form.reset(respuesta);
-            console.log("manejarCancelarCorte")
         }
         setIsLoading(false);
         obtenerCorteCerradoHoy();
@@ -342,12 +341,11 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
             }
             toast({
                 title: "Éxito",
-                description: "Corte de caja cancelado correctamente",
+                description: "Corte de caja guardado correctamente",
             });
 
             setCorteUsuario(respuesta);
             form.reset(respuesta);
-            console.log("manejarEditarCorte")
         }
 
         setIsLoading(false);
