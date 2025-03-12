@@ -62,6 +62,7 @@ import { generarPDFPoliza } from "./GenerarPDFPoliza";
 import { getCotizacionById } from "@/actions/CotizadorActions";
 import { iGetCliente } from "@/interfaces/ClientesInterface";
 import { LoaderModales } from "@/components/LoaderModales";
+import React from "react";
 
 interface TablaPolizasProps {
     polizas: iGetPolizas[];
@@ -346,7 +347,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago, cli
                 </TableHeader>
                 <TableBody>
                     {polizasFiltradas.map((poliza, index) => (
-                        <>
+                        <React.Fragment key={poliza.PolizaID}>
                             <TableRow
                                 key={index}
                                 className={cn(
@@ -599,7 +600,7 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago, cli
                                     </TableCell>
                                 </TableRow>
                             )}
-                        </>
+                        </React.Fragment>
                     ))}
                 </TableBody>
             </Table>
