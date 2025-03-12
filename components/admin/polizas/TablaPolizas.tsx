@@ -104,8 +104,6 @@ export const TablaPolizas = ({ polizas, coberturas, statusPago, metodosPago, cli
         });
     }, [polizas, filtros]);
 
-
-
     const obtenerColorEstado = (estado: string): "pendiente" | "success" | "default" | "destructive" | "secondary" | "outline" | null | undefined => {
         const colores = {
             "ACTIVA": "success",
