@@ -81,7 +81,7 @@ export const RegistroPagoPoliza = ({
             NombreTitular: "",
             FechaMovimiento: new Date().toISOString(),
             IDMetodoPago: 3,
-            IDEstatusPago: statusPago[0]?.IDEstatusPago || 1,
+            IDEstatusPago: 1,
             UsuarioID: usuarioId,
         },
     });
@@ -133,7 +133,7 @@ export const RegistroPagoPoliza = ({
 
     return (
         <>
-            <div className="space-y-4">
+            <div className="space-y-4 ">
                 {esquemaPago.mensajeAtraso && (
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
@@ -258,7 +258,7 @@ export const RegistroPagoPoliza = ({
                                 )}
                             />
 
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="IDEstatusPago"
                                 render={({ field }) => (
@@ -287,7 +287,7 @@ export const RegistroPagoPoliza = ({
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
 
                             {!esEfectivo && (
                                 <>
