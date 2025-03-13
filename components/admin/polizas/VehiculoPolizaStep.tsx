@@ -108,7 +108,11 @@ export const VehiculoPolizaStep = ({
             VIN: cotizacion.VIN ?? "",
             NumOcupantes: 5,
         },
+        mode: "onChange", // Activar validación en tiempo real
     });
+
+    // Obtener el estado de validación del formulario
+    const { isValid, isDirty } = form.formState;
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -516,7 +520,13 @@ export const VehiculoPolizaStep = ({
                         </div>
 
                         <div className="flex justify-end space-x-4 mt-6">
-                            <Button type="submit">
+                            <Button
+                                type="submit"
+                                disabled={
+                                    !isValid ||
+                                    (!isDirty && !form.watch("vehiculoExistente")) // Habilitar si hay vehículo existente seleccionado
+                                }
+                            >
                                 Siguiente
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
