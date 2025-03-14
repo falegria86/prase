@@ -1,6 +1,7 @@
 "use server";
 
 import { iDeleteMovimiento, iGetInicioActivo, iGetIniciosCaja, iGetMovimientos, iPatchInicioCaja, iPostInicioCaja, iPostMovimiento } from "@/interfaces/MovimientosInterface";
+import { currentUser } from "@/lib/auth";
 
 const url = process.env.API_URL;
 
@@ -161,5 +162,23 @@ export const deleteMovimiento = async (idTransaccion: number, body: iDeleteMovim
         return { msg: 'Movimiento eliminado correctamente' }
     } catch (error) {
         console.log(`Error al eliminar movimiento: ${error}`)
+    }
+}
+
+export const getMovimientosByID = async () => {
+    const user = await currentUser();
+    if (!user) return null;
+    const userId = user.usuario.UsuarioID
+    try {
+        const resp = await fetch(`${url}/transacciones/usuario/${userId}`, {
+            cache: 'no-store'
+        });
+        
+        if (!resp.ok) return null;
+
+        const data: iGetMovimientos[] = await resp.json();
+        return data;
+    } catch (error) {
+        console.log(`Error al obtener movimientos: ${error}`);
     }
 }

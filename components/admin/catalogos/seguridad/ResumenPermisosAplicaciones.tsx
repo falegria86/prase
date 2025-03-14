@@ -22,6 +22,7 @@ interface Props {
 }
 
 export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
+    console.log("🚀 ~ ResumenPermisosAplicaciones ~ initialGroups:", initialGroups)
 
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -114,7 +115,7 @@ export const ResumenPermisosAplicaciones = ({ initialGroups }: Props) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {initialGroups.map((group) => (
+                        {initialGroups.filter(group => group?.aplicaciones).map((group) => (
                             <tr key={group.id} className="border-b">
                                 <td className="px-4 py-2">{group.grupos?.nombre}</td>
                                 <td className="px-4 py-2">
