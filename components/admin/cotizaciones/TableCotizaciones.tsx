@@ -89,7 +89,6 @@ export const TableCotizaciones = ({
   coberturasData,
   tiposPago,
 }: TableCotizacionesProps) => {
-  console.log("🚀 ~ cotizaciones:", cotizaciones)
   const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState<iGetCotizacion | null>(null);
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
   const [modalReenvioAbierto, setModalReenvioAbierto] = useState(false);

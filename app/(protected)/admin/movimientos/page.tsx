@@ -1,5 +1,5 @@
 import { getCuentasBancarias } from "@/actions/ClientesActions";
-import { getMovimientos } from "@/actions/MovimientosActions"
+import { getMovimientosByID } from "@/actions/MovimientosActions"
 import { getUsuarios } from "@/actions/SeguridadActions";
 import { NuevoMovimientoForm } from "@/components/admin/movimientos/NuevoMovimientoForm";
 import { TablaMovimientos } from "@/components/admin/movimientos/TablaMovimientos";
@@ -9,21 +9,15 @@ import { ClienteGenerarCodigo } from "@/components/admin/movimientos/ClienteGene
 
 export default async function MovimientosPage() {
     const [movimientos, cuentasBancarias, usuarios, user] = await Promise.all([
-        getMovimientos(),
+        getMovimientosByID(),
         getCuentasBancarias(),
         getUsuarios(),
         currentUser()
     ]);
-
+    
     if (!user) {
         return (
             <h4 className="text-red-500">Error al obtener información del usuario actual, intente nuevamente.</h4>
-        )
-    }
-
-    if (!movimientos) {
-        return (
-            <MensajeError mensaje="Hubo un error al obtener los movimientos." />
         )
     }
 
@@ -35,7 +29,7 @@ export default async function MovimientosPage() {
 
     return (
         <>
-            {movimientos.length === 0 ? (
+            {!movimientos || movimientos.length === 0 ? (
                 <MensajeError mensaje="No existen movimientos registrados." />
             ) : (
                 <>

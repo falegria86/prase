@@ -108,7 +108,10 @@ export const ResumenPolizaStep = ({
             tipoPagoID: 7,
             primaTotal: ((Number(cotizacion.CostoBase) + Number(cotizacion.DerechoPoliza)) * 0.16) + Number(cotizacion.CostoBase),
         },
+        mode: "onChange", // Agregar validación en tiempo real
     });
+    // Agregar este console.log para ver errores de validación
+    console.log('Form Errors:', form.formState.errors);
 
     const actualizarCalculos = async (tipoPagoId: number) => {
         const tipoPago = tiposPago.find(t => t.TipoPagoID === tipoPagoId);
@@ -159,12 +162,21 @@ export const ResumenPolizaStep = ({
     };
 
     const onSubmit = (datos: z.infer<typeof resumenSchema>) => {
-        const datosCompletos = {
-            ...datos,
-            primaTotal: resultadosCalculo.total
-        };
+        console.log('Form Submitted:', datos); // Verificar los datos enviados
+        try {
+            const datosCompletos = {
+                ...datos,
+                primaTotal: resultadosCalculo.total
+            };
+            console.log('Datos Completos:', datosCompletos);
 
-        alConfirmar(datosCompletos);
+            // Add these logs
+            console.log('Executing alConfirmar...');
+            alConfirmar(datosCompletos);
+            console.log('alConfirmar executed successfully');
+        } catch (error) {
+            console.error('Error en submit:', error); // Capturar cualquier error
+        }
     };
 
     return (
@@ -465,7 +477,11 @@ export const ResumenPolizaStep = ({
                 </Alert>
 
                 <div className="flex justify-end">
-                    <Button type="submit" className="gap-2">
+                    <Button
+                        type="submit"
+                        className="gap-2"
+                        onClick={() => console.log('Button clicked')}
+                    >
                         <CheckCircle2 className="h-4 w-4" />
                         Activar Póliza
                     </Button>

@@ -87,7 +87,13 @@ export const ClientePolizaStep = ({
             zonaResidencia: "",
             RFC: "",
         },
+        mode: "onChange",
     });
+    // Obtener el estado de validación del formulario
+    const { isValid, isDirty } = form.formState;
+    // Modificar la lógica de validación del botón
+    const clienteExistente = form.watch("clienteExistente");
+    const formValido = form.formState.isValid;
 
     useEffect(() => {
         const cargarClientes = async () => {
@@ -337,7 +343,14 @@ export const ClientePolizaStep = ({
                         </div>
 
                         <div className="flex justify-end space-x-4 mt-6">
-                            <Button type="submit">
+                            <Button
+                                type="submit"
+                                disabled={
+                                    clienteExistente
+                                        ? !clienteExistente // Si hay cliente existente, solo validar que haya uno seleccionado
+                                        : !formValido // Si es cliente nuevo, validar todo el formulario
+                                }
+                            >
                                 Siguiente
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
