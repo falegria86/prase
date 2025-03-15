@@ -1,30 +1,11 @@
 "use client"
 
+import { generarCorteDelDiaByID, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
+import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
 import { LoaderModales } from "@/components/LoaderModales";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/format";
-import { formatDateTimeFull } from "@/lib/format-date";
-import { cierreCajaSchema } from "@/schemas/admin/movimientos/movimientosSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -33,23 +14,37 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input"
-import { Label } from "@radix-ui/react-label";
+} from "@/components/ui/dialog";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
+import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
+import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
+import { formatCurrency } from "@/lib/format";
+import { formatDateTimeFull } from "@/lib/format-date";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isSameDay, parseISO } from "date-fns";
 import { ArrowDownCircle, ArrowUpCircle, Banknote, CalendarClock, CreditCard, DollarSign, Info, Plus, SaveIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
-import { getInicioActivo, getIniciosCaja, postInicioCaja } from "@/actions/MovimientosActions";
-import { iGetInicioActivo, iPostInicioCaja } from "@/interfaces/MovimientosInterface";
-import { iGetCorteCajaUsuario } from "@/interfaces/CortesCajaInterface";
-import { IPostCorteDelDia } from "@/interfaces/CorteDelDiaInterface";
-import { generarCorteDelDiaByID, getCorteDelDiaByID, postCorteDelDia } from "@/actions/CorteDelDiaActions";
-import { Badge } from "@/components/ui/badge";
-import { set } from "date-fns";
-import { isSameDay, parseISO } from "date-fns";
 
 interface Usuario {
     UsuarioID: number;
