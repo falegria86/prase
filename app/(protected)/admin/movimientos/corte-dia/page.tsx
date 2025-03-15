@@ -1,6 +1,5 @@
 import { getCortesDelDiaAdmin } from "@/actions/CorteDelDiaActions";
 import { getUsuarios } from "@/actions/SeguridadActions";
-import { NuevoCorteDelDiaForm } from "@/components/admin/movimientos/NuevoCorteDelDiaForm";
 import { TablaCortesDelDia } from "@/components/admin/movimientos/TablaCortesDelDia";
 import { currentUser } from "@/lib/auth";
 
