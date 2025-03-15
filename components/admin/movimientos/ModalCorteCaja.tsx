@@ -235,11 +235,11 @@ export const ModalCorteCaja = ({ usuarioId, NombreUsuario, abierto, alCerrar }: 
     };
 
     const manejarGenerarCorte = async () => {
-        
+
         if (!inicioCajaActivo || (inicioCajaActivo && corteUsuario && corteUsuario?.Estatus === "Cerrado")) {
             return;
         }
-        
+
         setIsLoading(true);
         const respuesta = await generarCorteDelDiaByID(usuarioId);
         if (respuesta.statusCode) {

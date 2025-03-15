@@ -12,6 +12,7 @@ import { es } from "date-fns/locale"
 import { ArrowDownCircle, ArrowUpCircle, Calendar, Clock, DollarSign, Eye, Filter, Mail, Scale, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CorteUsuarioModal } from "./CorteDelDiaModal"
+import { NuevoCorteDelDiaForm } from "./NuevoCorteDelDiaForm"
 interface Usuario {
     UsuarioID: number
     NombreUsuario: string
@@ -56,7 +57,7 @@ interface CorteUsuario {
     }
 }
 
-export const TablaCortesDelDia = ({ cortes }: { cortes: CorteUsuario[] }) => {
+export const TablaCortesDelDia = ({ cortes, usuarios }: { cortes: CorteUsuario[], usuarios: any }) => {
     const [selectedCorte, setSelectedCorte] = useState<CorteUsuario | null>(null)
     const [filteredCortes, setFilteredCortes] = useState<CorteUsuario[]>(cortes)
     const [selectedUser, setSelectedUser] = useState<string>("")
@@ -132,29 +133,31 @@ export const TablaCortesDelDia = ({ cortes }: { cortes: CorteUsuario[] }) => {
 
     return (
         <>
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <Button
-                            variant={isFiltering ? "default" : "outline"}
-                            onClick={() => setIsFiltering(!isFiltering)}
-                            className="flex items-center"
-                        >
-                            <Filter className="w-4 h-4 mr-2" />
-                            Filtros
-                        </Button>
-
-                        {isFiltering && (
-                            <Button variant="outline" onClick={resetFilters} className="flex items-center">
-                                <X className="w-4 h-4 mr-2" />
-                                Limpiar
+                    <div className="flex justify-between w-full gap-2 ">
+                        <NuevoCorteDelDiaForm usuarios={usuarios} />
+                        <div className="flex gap-4">
+                            <Button
+                                variant={isFiltering ? "default" : "outline"}
+                                onClick={() => setIsFiltering(!isFiltering)}
+                                className="flex items-center rounded-md"
+                            >
+                                <Filter className="w-4 h-4 mr-2" />
+                                Filtros
                             </Button>
-                        )}
+                            {isFiltering && (
+                                <Button variant="outline" onClick={resetFilters} className="flex items-center rounded-md">
+                                    <X className="w-4 h-4 mr-2" />
+                                    Limpiar
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {isFiltering && (
-                    <div className="bg-muted/40 p-4 rounded-lg mb-6">
+                    <div className="mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <Label htmlFor="user-filter">Usuario</Label>
@@ -177,7 +180,7 @@ export const TablaCortesDelDia = ({ cortes }: { cortes: CorteUsuario[] }) => {
                                 <Label htmlFor="start-date">Fecha Inicio</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button id="start-date" variant="outline" className="w-full justify-start text-left font-normal">
+                                        <Button id="start-date" variant="outline" className="w-full justify-start text-left font-normal rounded-md">
                                             {startDate ? format(startDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : "Seleccionar fecha"}
                                         </Button>
                                     </PopoverTrigger>
@@ -191,7 +194,7 @@ export const TablaCortesDelDia = ({ cortes }: { cortes: CorteUsuario[] }) => {
                                 <Label htmlFor="end-date">Fecha Fin</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button id="end-date" variant="outline" className="w-full justify-start text-left font-normal">
+                                        <Button id="end-date" variant="outline" className="w-full justify-start text-left font-normal rounded-md">
                                             {endDate ? format(endDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : "Seleccionar fecha"}
                                         </Button>
                                     </PopoverTrigger>
