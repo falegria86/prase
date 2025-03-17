@@ -12,6 +12,10 @@ export const logout = async () => {
     // Itera sobre todas las cookies y elimínalas
     cookieStore.getAll().forEach((cookie) => {
         cookieStore.delete(cookie.name);
+        cookies().set(cookie.name, '', {
+            expires: new Date(0),
+            path: '/'
+        });
     });
 
     redirect('/login');
